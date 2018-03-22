@@ -10,9 +10,10 @@
 #include <string.h>
 #include "cn-cbor/cn-cbor.h"
 
-cn_cbor * cn_cbor_tag_create(int tag, cn_cbor * child, cn_cbor_context *ct, cn_cbor_errback * perr)
+cn_cbor *cn_cbor_tag_create(int tag, cn_cbor *child, cn_cbor_context *ct, cn_cbor_errback *perr)
 {
-    cn_cbor * cn_tag = ct->calloc_func(1, sizeof(cn_cbor), ct->context);
+    cn_cbor *cn_tag = ct->calloc_func(1, sizeof(cn_cbor), ct->context);
+
     if (cn_tag == NULL) {
         if (perr != NULL) {
             perr->err = CN_CBOR_ERR_OUT_OF_MEMORY;
@@ -30,6 +31,6 @@ cn_cbor * cn_cbor_tag_create(int tag, cn_cbor * child, cn_cbor_context *ct, cn_c
 
 void cn_cbor_data_replace(cn_cbor *cn_data, void *data)
 {
-    memcpy((uint8_t*)cn_data->v.bytes, data, cn_data->length);
+    memcpy((uint8_t *)cn_data->v.bytes, data, cn_data->length);
 }
 

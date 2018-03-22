@@ -22,6 +22,7 @@
 void cose_crypto_sign_ed25519(uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen, uint8_t *skey)
 {
     unsigned long long int signature_len = 0;
+
     crypto_sign_detached(sign, &signature_len, msg, msglen, (unsigned char *)skey);
     *signlen = (size_t)signature_len;
 }
