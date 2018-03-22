@@ -19,3 +19,5 @@ const char SIG_TYPE_COUNTERSIGNATURE[] = "CounterSignature";
 #define COSE_SIGN_STR_SIGNATURE_LEN         (sizeof(signature)-1)
 #define COSE_SIGN_STR_SIGNATURE1_LEN        (sizeof(signature1)-1)
 #define COSE_SIGN_STR_COUNTERSIGNATURE_LEN  (sizeof(countersignature)-1)
+
+

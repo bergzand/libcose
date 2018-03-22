@@ -15,34 +15,28 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include <crypto_sign.h>
+#include <sodium/crypto_sign.h>
 #include "cose.h"
 #include "cose/crypto.h"
 
-static uint8_t crypt_sign_scratch[COSE_MSGSIZE_MAX+crypto_sign_BYTES];
-static uint8_t crypt_sign_verify_scratch[COSE_MSGSIZE_MAX];
-
-void cose_crypto_sign(uint8_t *sign, unsigned long long int *signlen, uint8_t *msg, unsigned long long int msglen, uint8_t *skey)
+void cose_crypto_sign_ed25519(uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen, uint8_t *skey)
 {
-    unsigned long long int slen = 0;
-    memset(crypt_sign_scratch, 0, sizeof(crypt_sign_scratch));
-    crypto_sign(crypt_sign_scratch, &slen, msg, msglen, (unsigned char *)skey);
-    memcpy(sign, crypt_sign_scratch, crypto_sign_BYTES);
-    *signlen = slen - msglen;
+    unsigned long long int signature_len = 0;
+    crypto_sign_detached(sign, &signature_len, msg, msglen, (unsigned char *)skey);
+    *signlen = (size_t)signature_len;
 }
 
-int cose_crypto_verify(uint8_t *sign, uint8_t *msg, uint64_t msglen,  uint8_t *pkey)
+int cose_crypto_verify_ed25519(const uint8_t *sign, uint8_t *msg, uint64_t msglen,  uint8_t *pkey)
 {
-    unsigned long long int mlen = 0;
-    memset(crypt_sign_scratch, 0, sizeof(crypt_sign_scratch));
-    memset(crypt_sign_verify_scratch, 0, sizeof(crypt_sign_verify_scratch));
-    memcpy(crypt_sign_scratch, sign, crypto_sign_BYTES);
-    memcpy(crypt_sign_scratch + crypto_sign_BYTES, msg, msglen);
-    int res = crypto_sign_open(crypt_sign_verify_scratch, &mlen, crypt_sign_scratch, crypto_sign_BYTES+msglen, pkey);
-    return res;
+    return crypto_sign_verify_detached(sign, msg, msglen, pkey);
 }
 
-void cose_crypto_keypair(uint8_t *pk, uint8_t *sk)
+void cose_crypto_keypair_ed25519(uint8_t *pk, uint8_t *sk)
 {
     crypto_sign_keypair(pk, sk);
+}
+
+size_t cose_crypto_sig_size_ed25519(void)
+{
+    return crypto_sign_BYTES;
 }

@@ -7,6 +7,9 @@
  * directory for more details.
  */
 
+#ifndef COSE_H
+#define COSE_H
+
 #include <stdlib.h>
 #include <stdint.h>
 #include "cose_defines.h"
@@ -58,6 +61,7 @@ typedef struct cose_hdr_prop {
  * Readily received or supplied signature structure
  */
 typedef struct cose_signature {
+    const cose_signer_t *signer;
     const uint8_t *hdr_protected;
     size_t hdr_protected_len;
     cn_cbor *hdr_unprotected;
@@ -75,8 +79,9 @@ typedef struct cose_sign {
     const void *payload;
     size_t payload_len;
     const uint8_t *hdr_prot_ser; /* Serialized form of the protected header */
-    size_t hdr_prot_ser_len; /* Length of the serialized protected header */
+    size_t hdr_prot_ser_len;     /* Length of the serialized protected header */
     uint8_t *ext_aad;
+    uint16_t flags;              /* Flags as defined */
     size_t ext_aad_len;
     cose_hdr_prop_t hdr_protected[COSE_SIGN_HDR_PROTECTED_MAX];
     cose_hdr_prop_t hdr_unprotected[COSE_SIGN_HDR_UNPROTECTED_MAX];
@@ -92,7 +97,7 @@ void cose_signer_init(cose_signer_t *signer);
  * @param signer    Empty signer struct to fill with signer information
  * @param cn        CBOR structure to initialize from
  */
-//int cose_signer_from_cbor(cose_signer_t *signer, cn_cbor *cn);
+int cose_signer_from_cbor(cose_signer_t *signer, cn_cbor *cn);
 
 /**
  * cose_signer_set_key sets the key data of a signer
@@ -106,7 +111,7 @@ void cose_signer_set_keys(cose_signer_t *signer, cose_curve_t curve,
  *
  * @param sign     Empty sign struct to fill
  */
-void cose_sign_init(cose_sign_t *sign);
+void cose_sign_init(cose_sign_t *sign, uint16_t flags);
 
 /**
  * cose_sign_set_payload sets the payload pointer of the COSE sign struct
@@ -116,6 +121,12 @@ void cose_sign_init(cose_sign_t *sign);
  * @param len       The length of the payload
  */
 void cose_sign_set_payload(cose_sign_t *sign, void *payload, size_t len);
+
+/**
+ * cose_sign_set_external_aad adds a reference to the external data that
+ * should be authenticated.
+ */
+void cose_sign_set_external_aad(cose_sign_t *sign, void *ext, size_t len);
 
 /**
  * cose_sign_add_signer adds a signature for the signer to the sign struct
@@ -130,7 +141,7 @@ void cose_sign_set_payload(cose_sign_t *sign, void *payload, size_t len);
  * @param ct        Pointer to the cbor context
  * @param errp      Error back
  */
-int cose_sign_add_signer(cose_sign_t *sign, const cose_signer_t *signer, uint8_t *buf, size_t bufsize,  cn_cbor_context *ct, cn_cbor_errback *errp);
+int cose_sign_add_signer(cose_sign_t *sign, const cose_signer_t *signer,  cn_cbor_context *ct, cn_cbor_errback *errp);
 
 /**
  * cose_sign_sign signs the data from the sign object with the attached
@@ -175,7 +186,15 @@ void cose_signer_set_kid(cose_signer_t *signer, uint8_t* kid, size_t kid_len);
  * Serialize the protected header of a signer into the buffer
  */
 size_t cose_signer_serialize_protected(const cose_signer_t *signer, uint8_t* out, size_t outlen, cn_cbor_context *ct, cn_cbor_errback *errp);
+
 /**
  * Return the unprotected header as cn_cbor map
  */
 cn_cbor *cose_signer_cbor_unprotected(const cose_signer_t *signer, cn_cbor_context *ct, cn_cbor_errback *errp);
+
+static inline bool cose_flag_isset(uint16_t flags, uint16_t flag)
+{
+    return flags & flag;
+}
+
+#endif

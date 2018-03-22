@@ -6,12 +6,24 @@
  * General Public License v2.1. See the file LICENSE in the top level
  * directory for more details.
  */
+#ifndef COSE_DEFINES_H
+#define COSE_DEFINES_H
 
 typedef enum {
     COSE_OK = 0, /* Everything okay */
     COSE_ERR_NOMEM,  /* No memory for operation */
     COSE_ERR_CRYPTO, /* Crypto error, e.g. invalid signature */
 } cose_err_t;
+
+/**
+ * @brief COSE common flags
+ * @{
+ */
+#define COSE_FLAGS_EXTDATA   0x8000
+#define COSE_FLAGS_UNTAGGED  0x4000
+/**
+ * @}
+ */
 
 typedef enum {
 	COSE_UNKNOWN = 0,
@@ -81,3 +93,5 @@ typedef enum {
     COSE_ALGO_ES256       = -7,  /** ECDSA w/ SHA256 */
     COSE_ALGO_EDDSA       = -8,  /** EdDSA */
 } cose_algo_t;
+
+#endif

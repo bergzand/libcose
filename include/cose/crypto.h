@@ -13,9 +13,11 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <sodium/crypto_sign.h>
 
 /**
  */
-void cose_crypto_sign(uint8_t *sign, unsigned long long int *signlen, uint8_t *msg, unsigned long long int msglen, uint8_t *skey);
-int cose_crypto_verify(uint8_t *sign, uint8_t *msg, uint64_t msglen,  uint8_t *pkey);
-void cose_crypto_keypair(uint8_t *pk, uint8_t *sk);
+void cose_crypto_sign_ed25519(uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen, uint8_t *skey);
+int cose_crypto_verify_ed25519(const uint8_t *sign, uint8_t *msg, uint64_t msglen,  uint8_t *pkey);
+void cose_crypto_keypair_ed25519(uint8_t *pk, uint8_t *sk);
+size_t cose_crypto_sig_size_ed25519(void);
