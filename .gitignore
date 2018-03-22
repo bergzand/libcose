@@ -1,3 +1,8 @@
 tags
 *.swp
 *.swo
+
+# C build files
+*.o
+build
+bin
