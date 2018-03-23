@@ -1,5 +1,6 @@
 CBOR_ROOT ?= $(PWD)/../cn-cbor/
 INC_GLOBAL ?= /usr/include
+CRYPTO ?= sodium
 
 CC=gcc
 RM=rm -rf
@@ -21,22 +22,29 @@ LIB_CBOR=$(LIB_CBOR_PATH)/libcn-cbor.so
 TIDYFLAGS=-checks=*,-clang-analyzer-alpha.*
 
 CFLAGS+=-Wall -Wextra -pedantic -I$(INC_DIR) -I$(INC_GLOBAL) -I$(INC_CBOR) -g3 -std=c99
-
 CFLAGS+=-DUSE_CBOR_CONTEXT
 
+ifeq ($(CRYPTO), sodium)
+	CRYPTOLIB=libsodium
+	CRYPTOSRC=$(SRC_DIR)/crypt/crypt_sodium.c
+	CFLAGS+=$(shell pkg-config --libs --cflags $(CRYPTOLIB))
+else ($(CRYPTO), tweetnacl)
+	CRYPTOLIB=tweetnacl
+	CRYPTOSRC=$(SRC_DIR)/crypt/crypt_tweetnacl.c
+endif
+
 SRCS+=$(wildcard $(SRC_DIR)/*.c)
-SRCS+=$(wildcard $(SRC_DIR)/crypto/*.c)
+SRCS+=$(CRYPTOSRC)
 TESTS+=$(wildcard $(TEST_DIR)/*.c)
 
 OBJS=$(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRCS))
 OTESTS=$(patsubst %.c,$(OBJ_DIR)/%.o,$(TESTS))
 
 CFLAGS+=$(shell pkg-config --libs --cflags cunit)
-CFLAGS+=$(shell pkg-config --libs --cflags libsodium)
 
 prepare:
 	@mkdir -p $(OBJ_DIR)
-	@mkdir -p $(OBJ_DIR)/crypto
+	@mkdir -p $(OBJ_DIR)/crypt
 	@mkdir -p $(OBJ_DIR)/tests
 
 # Build a binary

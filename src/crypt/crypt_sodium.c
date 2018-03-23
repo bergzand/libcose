@@ -8,7 +8,7 @@
  */
 
 /**
- * Glue layer between libcose and NaCL implementations
+ * Glue layer between libcose and libsodium
  */
 
 #include <stdlib.h>
