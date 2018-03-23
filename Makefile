@@ -20,7 +20,7 @@ LIB_CBOR=$(LIB_CBOR_PATH)/libcn-cbor.so
 
 TIDYFLAGS=-checks=*,-clang-analyzer-alpha.*
 
-CFLAGS+=-Wall -Wextra -pedantic -I$(INC_DIR) -I$(INC_GLOBAL) -I$(INC_CBOR) -g3 
+CFLAGS+=-Wall -Wextra -pedantic -I$(INC_DIR) -I$(INC_GLOBAL) -I$(INC_CBOR) -g3 -std=c99
 
 CFLAGS+=-DUSE_CBOR_CONTEXT
 
