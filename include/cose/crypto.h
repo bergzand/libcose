@@ -13,7 +13,11 @@
 
 #include <stdlib.h>
 #include <stdint.h>
-#include <sodium/crypto_sign.h>
+#ifdef CRYPTO_SODIUM
+#include <sodium.h>
+#elif defined(CRYPO_TWEETNACL)
+#include <tweetnacl.h>
+#endif
 
 /**
  */

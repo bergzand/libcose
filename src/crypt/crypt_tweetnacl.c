@@ -17,7 +17,6 @@
 #include <stdint.h>
 #include <string.h>
 #include <tweetnacl.h>
-#include <sys/random.h>
 #include "cose.h"
 #include "cose/crypto.h"
 
@@ -52,7 +51,3 @@ size_t cose_crypto_sig_size_ed25519(void)
     return crypto_sign_BYTES;
 }
 
-void randombytes(uint8_t *target, uint64_t n)
-{
-    getrandom(target, n, 0);
-}
