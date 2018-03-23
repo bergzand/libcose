@@ -136,14 +136,25 @@ int cose_sign_add_signer(cose_sign_t *sign, const cose_signer_t *signer)
 
 int cose_sign_generate_signature(cose_sign_t *sign, cose_signature_t *sig, uint8_t *buf, size_t bufsize, cn_cbor_context *ct)
 {
+    cn_cbor_errback errp;
     uint8_t *buf_cbor = buf + cose_crypto_sig_size_ed25519();
     size_t cbor_space = bufsize - cose_crypto_sig_size_ed25519();
     if (!(sig->signer)) {
         return COSE_ERR_NOINIT;
     }
     /* Build the data at an offset of the signature size */
-    size_t sig_struct_len = _sign_sig_encode(sign, sig, SIG_TYPE_SIGNATURE, buf_cbor, cbor_space, ct);
-    cn_cbor *cn_arr = cn_cbor_decode(buf_cbor, sig_struct_len, ct, NULL);
+    ssize_t sig_struct_len = _sign_sig_encode(sign, sig, SIG_TYPE_SIGNATURE, buf_cbor, cbor_space, ct);
+    if (sig_struct_len < 0)
+    {
+        return sig_struct_len;
+    }
+    printf("Encoded into: %d bytes\n", sig_struct_len);
+    cn_cbor *cn_arr = cn_cbor_decode(buf_cbor, (size_t)sig_struct_len, ct, &errp);
+    if (!(cn_arr))
+    {
+        printf("Error in cn_cbor_decode: %u\n", errp.err);
+        return cose_intern_err_translate(&errp);
+    }
     cn_cbor *cn_prot = cn_cbor_index(cn_arr, 1);
 
     _serialize_cbor_protected(sign, (uint8_t *)cn_prot->v.bytes, cn_prot->length + 5, ct, NULL);
