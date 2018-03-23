@@ -91,19 +91,19 @@ static size_t _serialize_cbor_protected(cose_sign_t *sign, uint8_t *buf, size_t 
     return res;
 }
 
-static size_t _cbor_prot(cose_sign_t *sign, cn_cbor *cn_prot, cn_cbor_context *ct)
-{
-    (void)sign;
-    (void)cn_prot;
-    (void)ct;
-    for (int i = 0; i < COSE_SIGN_HDR_PROTECTED_MAX; i++) {
-        if (sign->hdr_protected[i].id != 0) {
-            /** Implement things */
-        }
-    }
-    return 0;
-
-}
+//static size_t _cbor_prot(cose_sign_t *sign, cn_cbor *cn_prot, cn_cbor_context *ct)
+//{
+//    (void)sign;
+//    (void)cn_prot;
+//    (void)ct;
+//    for (int i = 0; i < COSE_SIGN_HDR_PROTECTED_MAX; i++) {
+//        if (sign->hdr_protected[i].id != 0) {
+//            /** Implement things */
+//        }
+//    }
+//    return 0;
+//
+//}
 
 void cose_sign_init(cose_sign_t *sign, uint16_t flags)
 {
@@ -117,7 +117,7 @@ void cose_sign_set_payload(cose_sign_t *sign, void *payload, size_t len)
     sign->payload_len = len;
 }
 
-int cose_sign_add_signer(cose_sign_t *sign, const cose_signer_t *signer,  cn_cbor_context *ct, cn_cbor_errback *errp)
+int cose_sign_add_signer(cose_sign_t *sign, const cose_signer_t *signer)
 {
     /* TODO: define status codes */
     if (sign->num_sigs == COSE_SIGNATURES_MAX) {

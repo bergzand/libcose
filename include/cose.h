@@ -32,9 +32,6 @@
 #define COSE_MSGSIZE_MAX    2048
 #endif /* COSE_MSGSIZE_MAX */
 
-typedef struct cose_signer cose_signer_t;
-
-
 /**
  * COSE signer object
  */
@@ -54,7 +51,7 @@ typedef struct cose_hdr_prop {
     union {
         uint32_t val;
         void *content;
-    };
+    } v;
 } cose_hdr_prop_t;
 
 /**
@@ -141,7 +138,7 @@ void cose_sign_set_external_aad(cose_sign_t *sign, void *ext, size_t len);
  * @param ct        Pointer to the cbor context
  * @param errp      Error back
  */
-int cose_sign_add_signer(cose_sign_t *sign, const cose_signer_t *signer,  cn_cbor_context *ct, cn_cbor_errback *errp);
+int cose_sign_add_signer(cose_sign_t *sign, const cose_signer_t *signer);
 
 /**
  * cose_sign_sign signs the data from the sign object with the attached

@@ -92,7 +92,7 @@ void test_sign1(void)
     cose_signer_set_keys(&signer, COSE_EC_CURVE_ED25519, pk, NULL, sk);
     cose_signer_set_kid(&signer, (uint8_t*)kid, sizeof(kid) - 1);
 
-    cose_sign_add_signer(&sign, &signer, &ct, &errp);
+    cose_sign_add_signer(&sign, &signer);
 
     /* Encode COSE sign object */
     size_t encode_size = cose_sign_encode(&sign, buf, sizeof(buf), &ct, &errp);
@@ -148,8 +148,8 @@ void test_sign2(void)
     cose_signer_init(&signer2);
     cose_signer_set_keys(&signer2, COSE_EC_CURVE_ED25519, pk2, NULL, sk2);
     cose_signer_set_kid(&signer2, (uint8_t*)kid2, sizeof(kid2) - 1);
-    cose_sign_add_signer(&sign, &signer, &ct, &errp);
-    cose_sign_add_signer(&sign, &signer2, &ct, &errp);
+    cose_sign_add_signer(&sign, &signer);
+    cose_sign_add_signer(&sign, &signer2);
 
     CU_ASSERT(cose_signer_serialize_protected(&signer, NULL, 0, &ct, &errp) > 0);
 
