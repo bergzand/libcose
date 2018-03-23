@@ -6,13 +6,18 @@
  * General Public License v2.1. See the file LICENSE in the top level
  * directory for more details.
  */
+
 #ifndef COSE_DEFINES_H
 #define COSE_DEFINES_H
 
 typedef enum {
-    COSE_OK = 0, /* Everything okay */
-    COSE_ERR_NOMEM,  /* No memory for operation */
-    COSE_ERR_CRYPTO, /* Crypto error, e.g. invalid signature */
+    COSE_OK = 0,                    /* Everything okay */
+    COSE_ERR_NOMEM = -1,            /* No memory for operation, e.g. allocator out of mem */
+    COSE_ERR_CRYPTO = -2,           /* Crypto error, e.g. invalid signature */
+    COSE_ERR_NOINIT = -3,           /* Initialization error */
+    COSE_ERR_INVALID_CBOR = -4,     /* CBOR related error */
+    COSE_ERR_CBOR_NOTSUP = -5,      /* CBOR unsupported error */
+    COSE_ERR_INVALID_PARAM = -6,    /* Invalid parameter passed to function */
 } cose_err_t;
 
 /**
