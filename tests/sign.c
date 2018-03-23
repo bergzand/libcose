@@ -27,6 +27,10 @@ static unsigned char sk[crypto_sign_SECRETKEYBYTES];
 static unsigned char pk2[crypto_sign_PUBLICKEYBYTES];
 static unsigned char sk2[crypto_sign_SECRETKEYBYTES];
 
+/* Memory usage tracking */
+static int max = 0;
+static int cur = 0;
+
 #define MLEN (sizeof(payload))
 #define SMLEN (sizeof(payload)+ crypto_sign_BYTES)
 #define NUM_TESTS (sizeof(tests)/sizeof(struct test))
@@ -44,12 +48,18 @@ static void print_bytestr(uint8_t *bytes, size_t len)
 static void *cose_calloc(size_t count, size_t size, void *context)
 {
     (void)context;
+    cur++;
+    if(cur > max)
+    {
+        max = cur;
+    }
     return calloc(count, size);
 }
 
 static void cose_free(void *ptr, void *context)
 {
     (void)context;
+    cur--;
     free(ptr);
 }
 
@@ -62,6 +72,8 @@ static cn_cbor_context ct =
 
 void test_sign1(void)
 {
+    cur = 0;
+    max = 0;
     char sign1_payload[] = "Input string";
     memset(buf, 0, sizeof(buf));
     cose_sign_t sign, verify;
@@ -106,10 +118,14 @@ void test_sign1(void)
     verification = cose_sign_verify(&verify, &signer, 0, &ct);
     /* Should fail due to modified payload */
     CU_ASSERT_NOT_EQUAL(verification, 0);
+    printf("Current usage %d, Max usage: %d\n", cur, max);
+    CU_ASSERT_EQUAL(cur, 0);
 }
 
 void test_sign2(void)
 {
+    cur = 0;
+    max = 0;
     char payload[] = "Input string";
     cose_sign_t sign, verify;
     cose_signer_t signer, signer2;
@@ -146,13 +162,15 @@ void test_sign2(void)
     CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer, 1, &ct), 0);
     CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer2, 0, &ct), 0);
     CU_ASSERT_EQUAL(cose_sign_verify(&verify, &signer2, 1, &ct), 0);
+    /* Modify payload */
     ((int*)verify.payload)[0]++;
     CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer, 0, &ct), 0);
     CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer, 1, &ct), 0);
     CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer2, 0, &ct), 0);
     CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer2, 1, &ct), 0);
 
-    /* Modify payload */
+    printf("Current usage %d, Max usage: %d\n", cur, max);
+    CU_ASSERT_EQUAL(cur, 0);
 }
 
 const test_t tests_sign[] = {
