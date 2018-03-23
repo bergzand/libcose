@@ -17,6 +17,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <tweetnacl.h>
+#include <sys/random.h>
 #include "cose.h"
 #include "cose/crypto.h"
 
@@ -30,7 +31,7 @@ void cose_crypto_sign_ed25519(uint8_t *sign, size_t *signlen, uint8_t *msg, unsi
 
     crypto_sign(sign_buf, &signature_len, msg, msglen, (unsigned char *)skey);
     memcpy(sign, sign_buf, crypto_sign_BYTES);
-    *signlen = (size_t)signature_len;
+    *signlen = (size_t)crypto_sign_BYTES;
 }
 
 int cose_crypto_verify_ed25519(const uint8_t *sign, uint8_t *msg, uint64_t msglen,  uint8_t *pkey)
@@ -49,4 +50,9 @@ void cose_crypto_keypair_ed25519(uint8_t *pk, uint8_t *sk)
 size_t cose_crypto_sig_size_ed25519(void)
 {
     return crypto_sign_BYTES;
+}
+
+void randombytes(uint8_t *target, uint64_t n)
+{
+    getrandom(target, n, 0);
 }
