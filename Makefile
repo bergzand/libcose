@@ -21,20 +21,21 @@ LIB_CBOR=$(LIB_CBOR_PATH)/libcn-cbor.so
 
 TIDYFLAGS=-checks=*,-clang-analyzer-alpha.*
 
-CFLAGS+=-Wall -Wextra -pedantic -I$(INC_DIR) -I$(INC_GLOBAL) -I$(INC_CBOR) -g3 -std=c99
-CFLAGS+=-DUSE_CBOR_CONTEXT
+#CFLAGS += -coverage -fPIC -O0 
+
+CFLAGS +=-Wall -Wextra -pedantic -Werror -I$(INC_DIR) -I$(INC_GLOBAL) -I$(INC_CBOR) -g3 -std=c99
+CFLAGS +=-DUSE_CBOR_CONTEXT
 
 ifeq ($(CRYPTO), sodium)
 	CFLAGS+=-DCRYPTO_SODIUM
 	CRYPTOLIB=libsodium
-	CRYPTOSRC=$(SRC_DIR)/crypt/crypt_sodium.c
+	CRYPTOSRC=$(SRC_DIR)/crypt/sodium.c
 	CFLAGS+=$(shell pkg-config --libs --cflags $(CRYPTOLIB))
 else ($(CRYPTO), tweetnacl)
 	CFLAGS+=-DCRYPTO_TWEETNACL
 	CRYPTOLIB=tweetnacl
-	CRYPTOSRC=$(SRC_DIR)/crypt/crypt_tweetnacl.c
-	CRYPTOSRC+=$(SRC_DIR)/crypt/crypt_helpers.c
-	CRYPTOSRC+=$(SRC_DIR)/crypt/tweetnacl.c
+	CRYPTOSRC=$(SRC_DIR)/crypt/tweetnacl.c
+	CRYPTOSRC+=$(SRC_DIR)/crypt/helpers.c
 endif
 
 SRCS+=$(wildcard $(SRC_DIR)/*.c)
