@@ -20,7 +20,7 @@
 #include "cose.h"
 #include "cose/crypto.h"
 
-static uint8_t sign_buf[2048];
+static uint8_t verify_buf[2048];
 
 void cose_crypto_sign_ed25519(uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen, uint8_t *skey)
 {

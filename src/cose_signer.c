@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "cose.h"
+#include "cose/intern.h"
 #include "cn-cbor/cn-cbor.h"
 
 
@@ -70,10 +71,13 @@ void cose_signer_set_kid(cose_signer_t *signer, uint8_t *kid, size_t kid_len)
 
 size_t cose_signer_serialize_protected(const cose_signer_t *signer, uint8_t *out, size_t outlen, cn_cbor_context *ct, cn_cbor_errback *errp)
 {
+    size_t res = 0;
     cn_cbor *cn_prot = cose_signer_cbor_protected(signer, ct, errp);
-    size_t res = cn_cbor_encoder_write(out, 0, outlen, cn_prot);
-
-    cn_cbor_free(cn_prot, ct);
+    if (cn_prot)
+    {
+        res = cn_cbor_encoder_write(out, 0, outlen, cn_prot);
+        cn_cbor_free(cn_prot, ct);
+    }
     return res;
 }
 
@@ -81,17 +85,34 @@ cn_cbor *cose_signer_cbor_protected(const cose_signer_t *signer, cn_cbor_context
 {
     /* TODO: add key restriction hdr */
     cn_cbor *cn_map = cn_cbor_map_create(ct, errp);
+    if (!cn_map)
+    {
+        return NULL;
+    }
     cn_cbor *cn_algo = cn_cbor_int_create(_get_algo(signer), ct, errp);
-
-    cn_cbor_mapput_int(cn_map, COSE_HDR_ALG, cn_algo, ct, errp);
+    CBOR_CATCH_ERR(cn_algo, cn_map, ct);
+    if (!(cn_cbor_mapput_int(cn_map, COSE_HDR_ALG, cn_algo, ct, errp))) {
+        cn_cbor_free(cn_algo, ct);
+        cn_cbor_free(cn_map, ct);
+        return NULL;
+    }
     return cn_map;
 }
 
 cn_cbor *cose_signer_cbor_unprotected(const cose_signer_t *signer, cn_cbor_context *ct, cn_cbor_errback *errp)
 {
     cn_cbor *cn_map = cn_cbor_map_create(ct, errp);
+    if (!cn_map)
+    {
+        return NULL;
+    }
     cn_cbor *cn_kid = cn_cbor_data_create(signer->kid, signer->kid_len, ct, errp);
+    CBOR_CATCH_ERR(cn_kid, cn_map, ct);
 
-    cn_cbor_mapput_int(cn_map, COSE_HDR_KID, cn_kid, ct, errp);
+    if(!(cn_cbor_mapput_int(cn_map, COSE_HDR_KID, cn_kid, ct, errp))) {
+        cn_cbor_free(cn_kid, ct);
+        cn_cbor_free(cn_map, ct);
+        return NULL;
+    }
     return cn_map;
 }

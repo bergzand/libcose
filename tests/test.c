@@ -16,8 +16,9 @@
 #include "cose/test.h"
 
 /* External list of tests */
-extern test_t tests_sign[];
 extern test_t tests_crypto[];
+extern test_t tests_sign[];
+extern test_t tests_suite[];
 
 
 int add_tests(CU_pSuite pSuite, const test_t* tests)
@@ -51,6 +52,13 @@ int main()
         return CU_get_error();
     }
     add_tests(pSuite, tests_sign);
+
+    pSuite = CU_add_suite("Suite_suite", NULL, NULL);
+    if (NULL == pSuite) {
+        CU_cleanup_registry();
+        return CU_get_error();
+    }
+    add_tests(pSuite, tests_suite);
 
     CU_basic_set_mode(CU_BRM_VERBOSE);
     CU_basic_run_tests();

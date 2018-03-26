@@ -145,7 +145,7 @@ int cose_sign_add_signer(cose_sign_t *sign, const cose_signer_t *signer);
  * signers. The output is placed in the out param, up to s_out bytes are
  * written
  */
-ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t bufsize, cn_cbor_context *ct, cn_cbor_errback *errp);
+ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t bufsize, cn_cbor_context *ct);
 
 /**
  * cose_sign_decode parses a buffer to a cose sign struct. This buffer can
@@ -155,7 +155,7 @@ ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t bufsize, cn_cbo
  * @param buf       The buffer to read
  * @param len       Length of the buffer
  */
-int cose_sign_decode(cose_sign_t *sign, const uint8_t *buf, size_t len, cn_cbor_context *ct, cn_cbor_errback *errp);
+int cose_sign_decode(cose_sign_t *sign, const uint8_t *buf, size_t len, cn_cbor_context *ct);
 
 /**
  * Get the key ID from a signature

@@ -9,6 +9,7 @@
 #ifndef COSE_INTERN_H
 #define COSE_INTERN_H
 
+#include <stdio.h>
 #include <cn-cbor/cn-cbor.h>
 
 /*
@@ -19,6 +20,12 @@
                                                 cn_cbor_free(cn_top, ct); \
                                                 return NULL; \
                                             } \
+
+#define CBOR_CATCH_RET_ERR(cn_new, cn_top, ct, errp) \
+    if (!(cn_new)) { \
+        cn_cbor_free(cn_top, ct); \
+        return cose_intern_err_translate(errp); \
+    } \
 
 cose_err_t cose_intern_err_translate(cn_cbor_errback *errp);
 
