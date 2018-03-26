@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Freie Universität Berlin
+ * Copyright (C) 2018 Freie Universitat Berlin
  * Copyright (C) 2018 Inria
  *
  * This file is subject to the terms and conditions of the GNU Lesser
