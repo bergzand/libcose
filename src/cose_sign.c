@@ -132,7 +132,6 @@ static cn_cbor *_build_cbor_protected(cose_sign_t *sign, cn_cbor_context *ct, cn
             return NULL;
         }
     }
-
     return map;
 }
 
@@ -439,6 +438,10 @@ int cose_sign_decode(cose_sign_t *sign, const uint8_t *buf, size_t len, cn_cbor_
         psig->signature = cn_sigs->v.bytes;
         psig->signature_len = cn_sigs->length;
         sign->num_sigs = 1;
+    }
+    else {
+        cn_cbor_free(cn_in, ct);
+        return COSE_ERR_INVALID_CBOR;
     }
     cn_cbor_free(cn_in, ct);
 
