@@ -15,15 +15,10 @@ cose_err_t cose_intern_err_translate(cn_cbor_errback *errp)
         case CN_CBOR_NO_ERROR:
             return COSE_OK;
         case CN_CBOR_ERR_OUT_OF_DATA:
-            return COSE_ERR_INVALID_CBOR;
         case CN_CBOR_ERR_NOT_ALL_DATA_CONSUMED:
-            return COSE_ERR_INVALID_CBOR;
         case CN_CBOR_ERR_ODD_SIZE_INDEF_MAP:
-            return COSE_ERR_INVALID_CBOR;
         case CN_CBOR_ERR_BREAK_OUTSIDE_INDEF:
-            return COSE_ERR_INVALID_CBOR;
         case CN_CBOR_ERR_MT_UNDEF_FOR_INDEF:
-            return COSE_ERR_INVALID_CBOR;
         case CN_CBOR_ERR_RESERVED_AI:
         case CN_CBOR_ERR_WRONG_NESTING_IN_INDEF_STRING:
             return COSE_ERR_INVALID_CBOR;

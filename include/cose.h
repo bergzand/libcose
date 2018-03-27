@@ -20,13 +20,9 @@
 #define COSE_SIGNATURES_MAX    4
 #endif /* COSE_SIGNATURES_MAX */
 
-#ifndef COSE_SIGN_HDR_PROTECTED_MAX
-#define COSE_SIGN_HDR_PROTECTED_MAX 8
+#ifndef COSE_SIGN_HDR_MAX
+#define COSE_SIGN_HDR_MAX 8
 #endif /* COSE_SIGN_HDR_PROTECTED_MAX */
-
-#ifndef COSE_SIGN_HDR_UNPROTECTED_MAX
-#define COSE_SIGN_HDR_UNPROTECTED_MAX 8
-#endif /* COSE_SIGN_HDR_UNPROTECTED_MAX */
 
 #ifndef COSE_MSGSIZE_MAX
 #define COSE_MSGSIZE_MAX    2048
@@ -45,14 +41,18 @@ typedef struct cose_signer {
     uint8_t *d;     /** Private key, must match the expected size of the algorithm */
 } cose_signer_t;
 
-typedef struct cose_hdr_prop {
-    uint16_t id;
-    uint8_t type;
-    union {
-        uint32_t val;
-        void *content;
+typedef struct cose_hdr {
+    int32_t key;                /* Header label */
+    cose_hdr_type_t type;       /* Type of the header */
+    uint8_t flags;              /* Flags for the header */
+    union {                     /* Depending on the type, the content is a pointer or an integer */
+        int32_t value;            /* Direct integer value */
+        const uint8_t *data;          /* Pointer to the content */
+        const char *str;              /* String type content */
+        cn_cbor *cbor;          /* cbor type data */
     } v;
-} cose_hdr_prop_t;
+    size_t len;                 /* Length of the data, only used for the bytes type */
+} cose_hdr_t;
 
 /**
  * Readily received or supplied signature structure
@@ -80,8 +80,7 @@ typedef struct cose_sign {
     uint8_t *ext_aad;
     uint16_t flags;              /* Flags as defined */
     size_t ext_aad_len;
-    cose_hdr_prop_t hdr_protected[COSE_SIGN_HDR_PROTECTED_MAX];
-    cose_hdr_prop_t hdr_unprotected[COSE_SIGN_HDR_UNPROTECTED_MAX];
+    cose_hdr_t hdrs[COSE_SIGN_HDR_MAX];
     cose_signature_t sigs[COSE_SIGNATURES_MAX];  /** Signer data pointer */
     uint8_t num_sigs;
 } cose_sign_t;
@@ -188,6 +187,8 @@ size_t cose_signer_serialize_protected(const cose_signer_t *signer, uint8_t* out
  * Return the unprotected header as cn_cbor map
  */
 cn_cbor *cose_signer_cbor_unprotected(const cose_signer_t *signer, cn_cbor_context *ct, cn_cbor_errback *errp);
+int cose_signer_protected_to_map(const cose_signer_t *signer, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp);
+int cose_signer_unprotected_to_map(const cose_signer_t *signer, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp);
 
 static inline bool cose_flag_isset(uint16_t flags, uint16_t flag)
 {

@@ -16,6 +16,7 @@
 #include "cose/test.h"
 
 /* External list of tests */
+extern test_t tests_hdr[];
 extern test_t tests_crypto[];
 extern test_t tests_sign[];
 extern test_t tests_suite[];
@@ -38,6 +39,12 @@ int main()
     CU_pSuite pSuite = NULL;
     if (CUE_SUCCESS != CU_initialize_registry())
         return CU_get_error();
+    pSuite = CU_add_suite("Suite_hdr", NULL, NULL);
+    if (NULL == pSuite) {
+        CU_cleanup_registry();
+        return CU_get_error();
+    }
+    add_tests(pSuite, tests_hdr);
 
     pSuite = CU_add_suite("Suite_crypto", NULL, NULL);
     if (NULL == pSuite) {

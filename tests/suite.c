@@ -99,7 +99,6 @@ void test_suite1(void)
 {
     cose_sign_t verify;
     cose_signer_t signer;
-    cn_cbor_errback errp;
     /* Initialize struct */
     cose_sign_init(&verify, 0);
 
@@ -111,7 +110,7 @@ void test_suite1(void)
     print_bytestr(cose_suite, 311);
     printf("\n");
     /* Decode again */
-    int decode_success = cose_sign_decode(&verify, cose_suite, 311, &ct, &errp);
+    int decode_success = cose_sign_decode(&verify, cose_suite, 311, &ct);
     printf("Decoding: %d\n", decode_success);
     /* Verify with signature slot 0 */
     CU_ASSERT_EQUAL_FATAL(decode_success, 0);

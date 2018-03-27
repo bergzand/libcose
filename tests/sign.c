@@ -84,6 +84,7 @@ static cn_cbor_context ct =
     .context = NULL
 };
 
+/* Tagged 1 signer test */
 void test_sign1(void)
 {
     cur = 0;
@@ -109,15 +110,8 @@ void test_sign1(void)
 
     /* Encode COSE sign object */
     size_t encode_size = cose_sign_encode(&sign, buf, sizeof(buf), &ct);
-    printf("Encoded size for sign1: %lu\n", encode_size);
-    print_bytestr(buf+64, encode_size);
-    printf("\n");
-    printf("Signature: ");
-    print_bytestr(buf, 64);
-    printf("\n");
 
-
-    CU_ASSERT_NOT_EQUAL(encode_size, 0);
+    CU_ASSERT_NOT_EQUAL_FATAL(encode_size, 0);
 
     cose_sign_init(&verify, 0);
     /* Decode again */
@@ -125,7 +119,6 @@ void test_sign1(void)
     /* Verify with signature slot 0 */
     CU_ASSERT_EQUAL_FATAL(decode_success, 0);
     int verification = cose_sign_verify(&verify, &signer, 0, &ct);
-    printf("Verification: %d\n", verification);
     CU_ASSERT_EQUAL(verification, 0);
     /* Modify payload */
     ((int*)(verify.payload))[0]++;
@@ -136,7 +129,52 @@ void test_sign1(void)
     CU_ASSERT_EQUAL(cur, 0);
 }
 
+/* Untagged 1 signer test */
 void test_sign2(void)
+{
+    cur = 0;
+    max = 0;
+    total = 0;
+    char sign1_payload[] = "Input string";
+    memset(buf, 0, sizeof(buf));
+    cose_sign_t sign, verify;
+    cose_signer_t signer;
+    /* Initialize struct */
+    cose_sign_init(&sign, COSE_FLAGS_UNTAGGED);
+
+    /* Add payload */
+    cose_sign_set_payload(&sign, sign1_payload, strlen(sign1_payload));
+
+    /* First signer */
+    cose_crypto_keypair_ed25519(pk, sk);
+    cose_signer_init(&signer);
+    cose_signer_set_keys(&signer, COSE_EC_CURVE_ED25519, pk, NULL, sk);
+    cose_signer_set_kid(&signer, (uint8_t*)kid, sizeof(kid) - 1);
+
+    cose_sign_add_signer(&sign, &signer);
+
+    /* Encode COSE sign object */
+    size_t encode_size = cose_sign_encode(&sign, buf, sizeof(buf), &ct);
+
+    CU_ASSERT_NOT_EQUAL(encode_size, 0);
+
+    cose_sign_init(&verify, 0);
+    /* Decode again */
+    int decode_success = cose_sign_decode(&verify, buf + 64, encode_size, &ct);
+    /* Verify with signature slot 0 */
+    CU_ASSERT_EQUAL_FATAL(decode_success, 0);
+    int verification = cose_sign_verify(&verify, &signer, 0, &ct);
+    CU_ASSERT_EQUAL(verification, 0);
+    /* Modify payload */
+    ((int*)(verify.payload))[0]++;
+    verification = cose_sign_verify(&verify, &signer, 0, &ct);
+    /* Should fail due to modified payload */
+    CU_ASSERT_NOT_EQUAL(verification, 0);
+    printf("Current usage %d, Max usage: %d\n", cur, max);
+    CU_ASSERT_EQUAL(cur, 0);
+}
+
+void test_sign3(void)
 {
     cur = 0;
     max = 0;
@@ -150,7 +188,7 @@ void test_sign2(void)
     cose_sign_init(&verify, 0);
 
     /* Add payload */
-    cose_sign_set_payload(&sign, payload, sizeof(payload));
+    cose_sign_set_payload(&sign, payload, strlen(payload));
 
     /* First signer */
     cose_crypto_keypair_ed25519(pk, sk);
@@ -170,8 +208,10 @@ void test_sign2(void)
 
     size_t len = cose_sign_encode(&sign, buf, sizeof(buf), &ct);
 
+    print_bytestr(buf+128, len);
+    printf("\n");
 
-    CU_ASSERT_EQUAL(cose_sign_decode(&verify, buf + 128, len, &ct), 0);
+    CU_ASSERT_EQUAL_FATAL(cose_sign_decode(&verify, buf + 128, len, &ct), 0);
     /* Test correct signature with correct signer */
     CU_ASSERT_EQUAL(cose_sign_verify(&verify, &signer, 0, &ct), 0);
     CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer, 1, &ct), 0);
@@ -184,11 +224,10 @@ void test_sign2(void)
     CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer2, 0, &ct), 0);
     CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer2, 1, &ct), 0);
 
-    printf("Current usage %d, Max usage: %d\n", cur, max);
     CU_ASSERT_EQUAL(cur, 0);
 }
 
-void test_sign3(void)
+void test_sign4(void)
 {
     cose_signer_t signer;
     cose_crypto_keypair_ed25519(pk, sk);
@@ -221,7 +260,6 @@ void test_sign3(void)
 
         /* Encode COSE sign object */
         ssize_t res = cose_sign_encode(&sign, buf, sizeof(buf), &ct);
-        printf("LOOP: %2d: end usage: %2d, max: %2d, total: %d struct size: %d\n", cap_limit, cur, max, total, (signed)res);
         CU_ASSERT_EQUAL(cur, 0);
         if (res < 0)
         {
@@ -263,11 +301,10 @@ void test_sign3(void)
             /* Modify payload */
             CU_ASSERT_EQUAL(cur, 0);
         }
-        printf("LOOP: %2d: end usage: %2d, max: %2d, total: %d\n", cap_limit, cur, max, total);
     }
 }
 
-void test_sign4(void)
+void test_sign5(void)
 {
     cose_signer_t signer;
     cose_crypto_keypair_ed25519(pk, sk);
@@ -304,7 +341,6 @@ void test_sign4(void)
         ssize_t res = cose_sign_encode(&sign, buf, sizeof(buf), &ct);
         if (res > 0) {
         }
-        printf("LOOP: %2d: end usage: %2d, max: %2d, total: %d struct size: %d\n", alloc_limit, cur, max, total, (signed)res);
         CU_ASSERT_EQUAL(cur, 0);
         if (res < 0)
         {
@@ -346,9 +382,134 @@ void test_sign4(void)
             /* Modify payload */
             CU_ASSERT_EQUAL(cur, 0);
         }
-        printf("LOOP: %2d: end usage: %2d, max: %2d, total: %d\n", alloc_limit, cur, max, total);
     }
 }
+
+void test_sign6(void)
+{
+    cose_signer_t signer, signer2;
+    cose_crypto_keypair_ed25519(pk, sk);
+    cose_signer_init(&signer);
+    cose_signer_set_keys(&signer, COSE_EC_CURVE_ED25519, pk, NULL, sk);
+    cose_signer_set_kid(&signer, (uint8_t*)kid, sizeof(kid) - 1);
+    cose_signer_init(&signer2);
+    cose_signer_set_keys(&signer2, COSE_EC_CURVE_ED25519, pk2, NULL, sk2);
+    cose_signer_set_kid(&signer2, (uint8_t*)kid2, sizeof(kid2) - 1);
+    prev_len = 0;
+    printf("\n");
+    /* Should take 48 allocations max */
+    for (int i = 0; i <= 85; i++)
+    {
+        cur = 0;
+        max = 0;
+        total = 0;
+        alloc_limit = i;
+        char sign1_payload[] = "Input string";
+        memset(buf, 0, sizeof(buf));
+        cose_sign_t sign;
+        /* Initialize struct */
+        cose_sign_init(&sign, 0);
+
+        /* Add payload */
+        cose_sign_set_payload(&sign, sign1_payload, strlen(sign1_payload));
+
+        /* First signer */
+        cose_signer_set_kid(&signer, (uint8_t*)kid, sizeof(kid) - 1);
+
+        cose_sign_add_signer(&sign, &signer);
+        cose_sign_add_signer(&sign, &signer2);
+
+        /* Encode COSE sign object */
+        ssize_t res = cose_sign_encode(&sign, buf, sizeof(buf), &ct);
+        if (res > 0) {
+        }
+        CU_ASSERT_EQUAL(cur, 0);
+        if (res < 0)
+        {
+            continue;
+        }
+        if (prev_len)
+        {
+            int cmp = memcmp(buf+64, prev_result, res);
+            if (cmp != 0)
+            {
+                printf("Result: ");
+                print_bytestr(buf+64, res);
+                printf("\n");
+                printf("Prev  : ");
+                print_bytestr(prev_result, res);
+                printf("\n");
+            }
+            CU_ASSERT_EQUAL(cmp, 0);
+        }
+        memcpy(prev_result, buf+64, res);
+        prev_len = res;
+    }
+    for (int i = 0; i <= 30; i++) {
+        cur = 0;
+        max = 0;
+        total = 0;
+        cap_limit = 50;
+        alloc_limit = i;
+
+        cose_sign_t verify;
+        cose_sign_init(&verify, 0);
+        /* Decode again */
+        int decode_success = cose_sign_decode(&verify, buf + 128, prev_len, &ct);
+        /* Verify with signature slot 0 */
+        if (decode_success == COSE_OK)
+        {
+            CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer, 0, &ct), COSE_ERR_CRYPTO);
+            CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer, 1, &ct), COSE_OK);
+            CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer2, 1, &ct), COSE_ERR_CRYPTO);
+            CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer2, 0, &ct), COSE_OK);
+            /* Modify payload */
+            CU_ASSERT_EQUAL(cur, 0);
+        }
+    }
+}
+void test_sign7(void)
+{
+    cur = 0;
+    max = 0;
+    total = 0;
+    char sign1_payload[] = "Input string";
+    memset(buf, 0, sizeof(buf));
+    cose_sign_t sign;
+    cose_signer_t signer;
+    /* Initialize struct */
+    cose_sign_init(&sign, 0);
+
+    /* Add payload */
+    cose_sign_set_payload(&sign, sign1_payload, strlen(sign1_payload));
+
+    /* First signer */
+    cose_crypto_keypair_ed25519(pk, sk);
+    cose_signer_init(&signer);
+    cose_signer_set_keys(&signer, COSE_EC_CURVE_ED25519, pk, NULL, sk);
+    cose_signer_set_kid(&signer, (uint8_t*)kid, sizeof(kid) - 1);
+    for(int i = 0; i < COSE_SIGNATURES_MAX; i++) {
+        CU_ASSERT_EQUAL(cose_sign_add_signer(&sign, &signer), COSE_OK);
+    }
+    CU_ASSERT_EQUAL(cose_sign_add_signer(&sign, &signer), COSE_ERR_NOMEM);
+    CU_ASSERT_EQUAL(cur, 0);
+}
+
+void test_sign8(void)
+{
+    cur = 0;
+    max = 0;
+    total = 0;
+    memset(buf, 0, sizeof(buf));
+    cose_sign_t sign;
+    cose_signer_t signer;
+    /* Initialize struct */
+    cose_sign_init(&sign, 0);
+    CU_ASSERT_EQUAL(cose_sign_verify(&sign, &signer, COSE_SIGNATURES_MAX, &ct), COSE_ERR_NOMEM);
+
+    CU_ASSERT_EQUAL(cur, 0);
+}
+
 const test_t tests_sign[] = {
     {
         .f = test_sign1,
@@ -356,15 +517,31 @@ const test_t tests_sign[] = {
     },
     {
         .f = test_sign2,
-        .n = "Sign with two sigs",
+        .n = "Sign with 1 sig untagged",
     },
     {
         .f = test_sign3,
-        .n = "Sign memory limit capacity",
+        .n = "Sign with two sigs",
     },
     {
         .f = test_sign4,
+        .n = "Sign memory limit capacity",
+    },
+    {
+        .f = test_sign5,
         .n = "Sign memory limit allocations",
+    },
+    {
+        .f = test_sign6,
+        .n = "Sign memory limit allocation with 2 signers",
+    },
+    {
+        .f = test_sign7,
+        .n = "Signer memory exhaustion",
+    },
+    {
+        .f = test_sign8,
+        .n = "Signerature index out of bounds",
     },
     {
         .f = NULL,

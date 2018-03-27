@@ -81,6 +81,19 @@ size_t cose_signer_serialize_protected(const cose_signer_t *signer, uint8_t *out
     return res;
 }
 
+int cose_signer_protected_to_map(const cose_signer_t *signer, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp)
+{
+    cn_cbor *cn_algo = cn_cbor_int_create(_get_algo(signer), ct, errp);
+    if (!cn_algo) {
+        return -1;
+    }
+    if (!(cn_cbor_mapput_int(map, COSE_HDR_ALG, cn_algo, ct, errp))) {
+        cn_cbor_free(cn_algo, ct);
+        return -1;
+    }
+    return 0;
+}
+
 cn_cbor *cose_signer_cbor_protected(const cose_signer_t *signer, cn_cbor_context *ct, cn_cbor_errback *errp)
 {
     /* TODO: add key restriction hdr */
@@ -89,14 +102,26 @@ cn_cbor *cose_signer_cbor_protected(const cose_signer_t *signer, cn_cbor_context
     {
         return NULL;
     }
-    cn_cbor *cn_algo = cn_cbor_int_create(_get_algo(signer), ct, errp);
-    CBOR_CATCH_ERR(cn_algo, cn_map, ct);
-    if (!(cn_cbor_mapput_int(cn_map, COSE_HDR_ALG, cn_algo, ct, errp))) {
-        cn_cbor_free(cn_algo, ct);
+    if (cose_signer_protected_to_map(signer, cn_map, ct, errp) < 0)
+    {
         cn_cbor_free(cn_map, ct);
         return NULL;
     }
     return cn_map;
+}
+
+int cose_signer_unprotected_to_map(const cose_signer_t *signer, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp)
+{
+    cn_cbor *cn_kid = cn_cbor_data_create(signer->kid, signer->kid_len, ct, errp);
+    if (!cn_kid) {
+        return -1;
+    }
+
+    if (!(cn_cbor_mapput_int(map, COSE_HDR_KID, cn_kid, ct, errp))) {
+        cn_cbor_free(cn_kid, ct);
+        return -1;
+    }
+    return 0;
 }
 
 cn_cbor *cose_signer_cbor_unprotected(const cose_signer_t *signer, cn_cbor_context *ct, cn_cbor_errback *errp)
@@ -106,11 +131,8 @@ cn_cbor *cose_signer_cbor_unprotected(const cose_signer_t *signer, cn_cbor_conte
     {
         return NULL;
     }
-    cn_cbor *cn_kid = cn_cbor_data_create(signer->kid, signer->kid_len, ct, errp);
-    CBOR_CATCH_ERR(cn_kid, cn_map, ct);
-
-    if(!(cn_cbor_mapput_int(cn_map, COSE_HDR_KID, cn_kid, ct, errp))) {
-        cn_cbor_free(cn_kid, ct);
+    if (cose_signer_unprotected_to_map(signer, cn_map, ct, errp) < 0)
+    {
         cn_cbor_free(cn_map, ct);
         return NULL;
     }

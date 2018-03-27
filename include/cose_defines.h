@@ -26,6 +26,8 @@ typedef enum {
  */
 #define COSE_FLAGS_EXTDATA   0x8000
 #define COSE_FLAGS_UNTAGGED  0x4000
+
+#define COSE_FLAGS_SIGN1     0x0001
 /**
  * @}
  */
@@ -39,6 +41,17 @@ typedef enum {
 	COSE_MAC = 97,
 	COSE_MAC0 = 17,
 } cose_cbor_tag_t;
+
+
+typedef enum {
+    COSE_HDR_TYPE_INT,  /**< Integer type header */
+    COSE_HDR_TYPE_TSTR, /**< Text string type header */
+    COSE_HDR_TYPE_BSTR, /**< Byte string type header */
+    COSE_HDR_TYPE_CBOR, /**< CBOR type header */
+} cose_hdr_type_t;
+
+#define COSE_HDR_FLAGS_PROTECTED     0x01 /* Header is in the protected bucket
+                                          * or in the unprotected if not set */
 
 /**
  * COSE header parameters according to rfc 8152

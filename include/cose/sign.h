@@ -20,4 +20,7 @@ const char SIG_TYPE_COUNTERSIGNATURE[] = "CounterSignature";
 #define COSE_SIGN_STR_SIGNATURE1_LEN        (sizeof(signature1)-1)
 #define COSE_SIGN_STR_COUNTERSIGNATURE_LEN  (sizeof(countersignature)-1)
 
-
+static inline bool _is_sign1(cose_sign_t *sign)
+{
+    return (sign->num_sigs == 1);
+}
