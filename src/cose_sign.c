@@ -104,7 +104,8 @@ static cn_cbor *_cbor_unprotected(cose_sign_t *sign, cn_cbor_context *ct, cn_cbo
     return map;
 }
 
-static int _add_cbor_protected(cose_sign_t *sign, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp)
+static int _add_cbor_protected(cose_sign_t *sign, cn_cbor *map,
+        cn_cbor_context *ct, cn_cbor_errback *errp)
 {
     for (unsigned i = 0; i < COSE_SIGN_HDR_MAX; i++) {
         cose_hdr_t *hdr = &sign->hdrs[i];
@@ -117,7 +118,8 @@ static int _add_cbor_protected(cose_sign_t *sign, cn_cbor *map, cn_cbor_context 
     return 0;
 }
 
-static cn_cbor *_build_cbor_protected(cose_sign_t *sign, cn_cbor_context *ct, cn_cbor_errback *errp)
+static cn_cbor *_build_cbor_protected(cose_sign_t *sign,
+        cn_cbor_context *ct, cn_cbor_errback *errp)
 {
     /* No support for protected content headers yet, returning an empty map */
     (void)sign;
@@ -135,16 +137,46 @@ static cn_cbor *_build_cbor_protected(cose_sign_t *sign, cn_cbor_context *ct, cn
     return map;
 }
 
-static size_t _serialize_cbor_protected(cose_sign_t *sign, uint8_t *buf, size_t buflen, cn_cbor_context *ct, cn_cbor_errback *errp)
+static size_t _serialize_cbor_protected(cose_sign_t *sign, uint8_t *buf, size_t buflen,
+        cn_cbor_context *ct, cn_cbor_errback *errp)
 {
     size_t res = 0;
     cn_cbor *cn_prot = _build_cbor_protected(sign, ct, errp);
-    if (cn_prot)
-    {
+    if (cn_prot) {
         res = cn_cbor_encoder_write(buf, 0, buflen, cn_prot);
         cn_cbor_free(cn_prot, ct);
     }
 
+    return res;
+}
+
+static ssize_t _hdrs_from_cbor(cose_sign_t *sign, cn_cbor *map, uint16_t flags,
+        cn_cbor_context *ct, cn_cbor_errback *errp)
+{
+    cn_cbor *cp = NULL;
+    unsigned idx = 0;
+    cose_hdr_t *hdr = sign->hdrs;
+    /* Iterate over the map */
+    for (cp = map->first_child; cp && cp->next && idx < COSE_SIGN_HDR_MAX; cp = cp->next->next) {
+        if (!(cose_hdr_from_cbor_map(hdr, cp, ct, errp))) {
+            /* Error handling */
+        }
+        hdr->flags |= flags;
+        hdr++;
+        idx++;
+    }
+    return 0;
+}
+
+static ssize_t _deserialize_cbor_protected(cose_sign_t *sign, const uint8_t *buf, size_t buflen,
+        cn_cbor_context *ct, cn_cbor_errback *errp)
+{
+    ssize_t res = 0;
+    cn_cbor *cn_prot = cn_cbor_decode(buf, buflen, ct, errp);
+    if (cn_prot && cn_prot->type == CN_CBOR_MAP) {
+        _hdrs_from_cbor(sign, cn_prot, COSE_HDR_FLAGS_PROTECTED, ct, errp);
+    }
+    cn_cbor_free(cn_prot, ct);
     return res;
 }
 
@@ -407,6 +439,12 @@ int cose_sign_decode(cose_sign_t *sign, const uint8_t *buf, size_t len, cn_cbor_
     sign->payload = cn_payload->v.bytes;
     sign->payload_len = cn_payload->length;
 
+    /* Fill protected headers */
+    _deserialize_cbor_protected(sign, cn_hdr_prot->v.bytes, cn_hdr_prot->length,
+            ct, &errp);
+    /* Fill unprotected headers */
+    _hdrs_from_cbor(sign, cn_hdr_unprot, 0, ct, &errp);
+
     if (cn_sigs->type == CN_CBOR_ARRAY) {
         cn_cbor *cp;
         unsigned int i = 0;
@@ -460,6 +498,44 @@ size_t cose_sign_get_kid(cose_sign_t *sign, uint8_t idx, const uint8_t **kid)
     }
     *kid = NULL;
     return COSE_ERR_NOMEM;
+}
+
+cose_hdr_t *cose_sign_get_header(cose_sign_t *sign, int32_t key)
+{
+    cose_hdr_t *hdr = NULL;
+    for (unsigned i; i < COSE_SIGN_HDR_MAX; i++) {
+        if (sign->hdrs[i].key == key) {
+            hdr = &sign->hdrs[i];
+            break;
+        }
+    }
+    return hdr;
+}
+
+cose_hdr_t *cose_sign_get_protected(cose_sign_t *sign, int32_t key)
+{
+    cose_hdr_t *hdr = NULL;
+    for (unsigned i; i < COSE_SIGN_HDR_MAX; i++) {
+        cose_hdr_t *tmp_hdr = &sign->hdrs[i];
+        if (tmp_hdr->key == key && cose_hdr_is_protected(tmp_hdr)) {
+            hdr = tmp_hdr;
+            break;
+        }
+    }
+    return hdr;
+}
+
+cose_hdr_t *cose_sign_get_unprotected(cose_sign_t *sign, int32_t key)
+{
+    cose_hdr_t *hdr = NULL;
+    for (unsigned i; i < COSE_SIGN_HDR_MAX; i++) {
+        cose_hdr_t *tmp_hdr = &sign->hdrs[i];
+        if (tmp_hdr->key == key && !cose_hdr_is_protected(tmp_hdr)) {
+            hdr = tmp_hdr;
+            break;
+        }
+    }
+    return hdr;
 }
 
 /* Try to verify the structure with a signer and a signature idx */

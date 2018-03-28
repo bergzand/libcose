@@ -15,6 +15,9 @@
 
 bool cose_hdr_to_cbor_map(cose_hdr_t *hdr, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp);
 bool cose_hdr_from_cbor_map(cose_hdr_t *hdr, cn_cbor *key, cn_cbor_context *ct, cn_cbor_errback *errp);
-bool cose_hdr_is_protected(cose_hdr_t *hdr);
+static inline bool cose_hdr_is_protected(cose_hdr_t *hdr)
+{
+    return (bool)(hdr->flags & COSE_HDR_FLAGS_PROTECTED);
+}
 
 #endif

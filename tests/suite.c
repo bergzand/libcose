@@ -117,6 +117,9 @@ void test_suite1(void)
     int verification = cose_sign_verify(&verify, &signer, 0, &ct);
     printf("Verification: %d\n", verification);
     CU_ASSERT_EQUAL(verification, 0);
+    cose_hdr_t *hdr = cose_sign_get_protected(&verify, COSE_HDR_CONTENT);
+    CU_ASSERT_FATAL(hdr != NULL);
+    CU_ASSERT_EQUAL(hdr->v.value, 42);
     /* Modify payload */
     printf("Current usage %d, Max usage: %d\n", cur, max);
     CU_ASSERT_EQUAL(cur, 0);

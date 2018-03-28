@@ -20,50 +20,67 @@
 #define COSE_SIGNATURES_MAX    4
 #endif /* COSE_SIGNATURES_MAX */
 
+#ifndef COSE_HDR_MAX
+#define COSE_HDR_MAX 4
+#endif /* COSE_HDR_MAX */
+
+/*
+ * @brief Combined maximum number of protected and unprotected headers in a
+ * COSE sign object
+ */
 #ifndef COSE_SIGN_HDR_MAX
-#define COSE_SIGN_HDR_MAX 8
-#endif /* COSE_SIGN_HDR_PROTECTED_MAX */
+#define COSE_SIGN_HDR_MAX COSE_HDR_MAX
+#endif /* COSE_SIGN_HDR_MAX */
+
+/*
+ * @brief Combined maximum number of protected and unprotected headers in a
+ * COSE sign signature object
+ */
+#ifndef COSE_SIG_HDR_MAX
+#define COSE_SIG_HDR_MAX  COSE_HDR_MAX
+#endif /* COSE_SIG_HDR_MAX */
 
 #ifndef COSE_MSGSIZE_MAX
-#define COSE_MSGSIZE_MAX    2048
+#define COSE_MSGSIZE_MAX    512
 #endif /* COSE_MSGSIZE_MAX */
 
 /**
  * COSE signer object
  */
 typedef struct cose_signer {
-    cose_kty_t kty; /** Key type */
-    cose_curve_t crv;    /** Curve, algo is derived from this */
-    uint8_t *kid;   /** Key identifier */
-    size_t kid_len; /** length of the key identifier */
-    uint8_t *x;     /** Public key part 1, must match the expected size of the algorithm */
-    uint8_t *y;     /** Public key part 2, when not NULL, must match the expected size of the algorithm */
-    uint8_t *d;     /** Private key, must match the expected size of the algorithm */
+    cose_kty_t kty;     /** Key type */
+    cose_curve_t crv;   /** Curve, algo is derived from this */
+    uint8_t *kid;       /** Key identifier */
+    size_t kid_len;     /** length of the key identifier */
+    uint8_t *x;         /** Public key part 1, must match the expected size of the algorithm */
+    uint8_t *y;         /** Public key part 2, when not NULL, must match the expected size of the algorithm */
+    uint8_t *d;         /** Private key, must match the expected size of the algorithm */
 } cose_signer_t;
 
 typedef struct cose_hdr {
     int32_t key;                /* Header label */
     cose_hdr_type_t type;       /* Type of the header */
     uint8_t flags;              /* Flags for the header */
+    size_t len;                 /* Length of the data, only used for the bytes type */
     union {                     /* Depending on the type, the content is a pointer or an integer */
         int32_t value;            /* Direct integer value */
         const uint8_t *data;          /* Pointer to the content */
         const char *str;              /* String type content */
         cn_cbor *cbor;          /* cbor type data */
     } v;
-    size_t len;                 /* Length of the data, only used for the bytes type */
 } cose_hdr_t;
 
 /**
  * Readily received or supplied signature structure
  */
 typedef struct cose_signature {
-    const cose_signer_t *signer;
     const uint8_t *hdr_protected;
     size_t hdr_protected_len;
     cn_cbor *hdr_unprotected;
     const uint8_t *signature;
     size_t signature_len;
+    const cose_signer_t *signer;
+    cose_hdr_t hdrs[COSE_SIG_HDR_MAX];
 } cose_signature_t;
 
 /**
@@ -75,14 +92,14 @@ typedef struct cose_signature {
 typedef struct cose_sign {
     const void *payload;
     size_t payload_len;
+    uint8_t *ext_aad;
+    size_t ext_aad_len;
     const uint8_t *hdr_prot_ser; /* Serialized form of the protected header */
     size_t hdr_prot_ser_len;     /* Length of the serialized protected header */
-    uint8_t *ext_aad;
     uint16_t flags;              /* Flags as defined */
-    size_t ext_aad_len;
+    uint8_t num_sigs;
     cose_hdr_t hdrs[COSE_SIGN_HDR_MAX];
     cose_signature_t sigs[COSE_SIGNATURES_MAX];  /** Signer data pointer */
-    uint8_t num_sigs;
 } cose_sign_t;
 
 void cose_signer_init(cose_signer_t *signer);
@@ -170,6 +187,9 @@ int cose_sign_decode(cose_sign_t *sign, const uint8_t *buf, size_t len, cn_cbor_
  * Verify the idx't signature of the signed data with the supplied signer object
  */
 int cose_sign_verify(cose_sign_t *sign, cose_signer_t *signer, uint8_t idx, cn_cbor_context *ct);
+
+cose_hdr_t *cose_sign_get_header(cose_sign_t *sign, int32_t key);
+cose_hdr_t *cose_sign_get_protected(cose_sign_t *sign, int32_t key);
 
 cn_cbor *cose_signer_cbor_protected(const cose_signer_t *signer, cn_cbor_context *ct, cn_cbor_errback *errp);
 
