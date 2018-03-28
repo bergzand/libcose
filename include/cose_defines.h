@@ -18,6 +18,7 @@ typedef enum {
     COSE_ERR_INVALID_CBOR = -4,     /* CBOR related error */
     COSE_ERR_CBOR_NOTSUP = -5,      /* CBOR unsupported error */
     COSE_ERR_INVALID_PARAM = -6,    /* Invalid parameter passed to function */
+    COSE_ERR_NOT_FOUND = -7,        /* Header not found */
 } cose_err_t;
 
 /**

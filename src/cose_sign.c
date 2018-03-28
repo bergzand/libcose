@@ -150,36 +150,6 @@ static size_t _serialize_cbor_protected(cose_sign_t *sign, uint8_t *buf, size_t 
     return res;
 }
 
-static ssize_t _hdrs_from_cbor(cose_sign_t *sign, cn_cbor *map, uint16_t flags,
-        cn_cbor_context *ct, cn_cbor_errback *errp)
-{
-    cn_cbor *cp = NULL;
-    unsigned idx = 0;
-    cose_hdr_t *hdr = sign->hdrs;
-    /* Iterate over the map */
-    for (cp = map->first_child; cp && cp->next && idx < COSE_SIGN_HDR_MAX; cp = cp->next->next) {
-        if (!(cose_hdr_from_cbor_map(hdr, cp, ct, errp))) {
-            /* Error handling */
-        }
-        hdr->flags |= flags;
-        hdr++;
-        idx++;
-    }
-    return 0;
-}
-
-static ssize_t _deserialize_cbor_protected(cose_sign_t *sign, const uint8_t *buf, size_t buflen,
-        cn_cbor_context *ct, cn_cbor_errback *errp)
-{
-    ssize_t res = 0;
-    cn_cbor *cn_prot = cn_cbor_decode(buf, buflen, ct, errp);
-    if (cn_prot && cn_prot->type == CN_CBOR_MAP) {
-        _hdrs_from_cbor(sign, cn_prot, COSE_HDR_FLAGS_PROTECTED, ct, errp);
-    }
-    cn_cbor_free(cn_prot, ct);
-    return res;
-}
-
 static int _add_signatures(cose_sign_t *sign, cn_cbor* cn_sigs, cn_cbor_context *ct)
 {
     cn_cbor_errback errp;
@@ -440,10 +410,9 @@ int cose_sign_decode(cose_sign_t *sign, const uint8_t *buf, size_t len, cn_cbor_
     sign->payload_len = cn_payload->length;
 
     /* Fill protected headers */
-    _deserialize_cbor_protected(sign, cn_hdr_prot->v.bytes, cn_hdr_prot->length,
-            ct, &errp);
+    cose_hdr_add_prot_from_cbor(sign->hdrs, COSE_SIGN_HDR_MAX, cn_hdr_prot->v.bytes, cn_hdr_prot->length , ct, &errp);
     /* Fill unprotected headers */
-    _hdrs_from_cbor(sign, cn_hdr_unprot, 0, ct, &errp);
+    cose_hdr_add_unprot_from_cbor(sign->hdrs, COSE_SIGN_HDR_MAX, cn_hdr_unprot, ct, &errp);
 
     if (cn_sigs->type == CN_CBOR_ARRAY) {
         cn_cbor *cp;
@@ -460,10 +429,11 @@ int cose_sign_decode(cose_sign_t *sign, const uint8_t *buf, size_t len, cn_cbor_
             psig->hdr_protected = prot->v.bytes;
             psig->hdr_protected_len = prot->length;
             /* TODO: copy array */
-            psig->hdr_unprotected = cn_cbor_index(cp, 1);
             cn_cbor *sig = cn_cbor_index(cp, 2);
             psig->signature = sig->v.bytes;
             psig->signature_len = sig->length;
+            cose_hdr_add_prot_from_cbor(psig->hdrs, COSE_SIG_HDR_MAX, prot->v.bytes, prot->length, ct, &errp);
+            cose_hdr_add_from_cbor(psig->hdrs, COSE_SIG_HDR_MAX, cn_cbor_index(cp, 1), 0, ct, &errp);
             i++;
         }
         sign->num_sigs = i;
@@ -486,56 +456,36 @@ int cose_sign_decode(cose_sign_t *sign, const uint8_t *buf, size_t len, cn_cbor_
     return COSE_OK;
 }
 
-size_t cose_sign_get_kid(cose_sign_t *sign, uint8_t idx, const uint8_t **kid)
+ssize_t cose_sign_get_kid(cose_sign_t *sign, uint8_t idx, const uint8_t **kid)
 {
-    if (idx < COSE_SIGNATURES_MAX) {
-        cn_cbor *cn_unprot = sign->sigs[idx].hdr_unprotected;
-        cn_cbor *cn_kid = cn_cbor_mapget_int(cn_unprot, (int)COSE_HDR_KID);
-        if (cn_kid) {
-            *kid = cn_kid->v.bytes;
-            return cn_kid->length;
-        }
-    }
     *kid = NULL;
-    return COSE_ERR_NOMEM;
+    if (idx >= COSE_SIGNATURES_MAX) {
+        return COSE_ERR_INVALID_PARAM;
+    }
+    cose_hdr_t *hdr = cose_hdr_get(sign->sigs[idx].hdrs, COSE_SIG_HDR_MAX, COSE_HDR_KID);
+    if (hdr) {
+        *kid = hdr->v.data;
+        return COSE_OK;
+    }
+    else{
+        return COSE_ERR_NOT_FOUND;
+    }
 }
 
 cose_hdr_t *cose_sign_get_header(cose_sign_t *sign, int32_t key)
 {
-    cose_hdr_t *hdr = NULL;
-    for (unsigned i; i < COSE_SIGN_HDR_MAX; i++) {
-        if (sign->hdrs[i].key == key) {
-            hdr = &sign->hdrs[i];
-            break;
-        }
-    }
-    return hdr;
+    return cose_hdr_get(sign->hdrs, COSE_SIGN_HDR_MAX, key);
 }
 
 cose_hdr_t *cose_sign_get_protected(cose_sign_t *sign, int32_t key)
 {
-    cose_hdr_t *hdr = NULL;
-    for (unsigned i; i < COSE_SIGN_HDR_MAX; i++) {
-        cose_hdr_t *tmp_hdr = &sign->hdrs[i];
-        if (tmp_hdr->key == key && cose_hdr_is_protected(tmp_hdr)) {
-            hdr = tmp_hdr;
-            break;
-        }
-    }
-    return hdr;
+    return cose_hdr_get_flagged(sign->hdrs, COSE_SIGN_HDR_MAX,
+            key, true);
 }
 
 cose_hdr_t *cose_sign_get_unprotected(cose_sign_t *sign, int32_t key)
 {
-    cose_hdr_t *hdr = NULL;
-    for (unsigned i; i < COSE_SIGN_HDR_MAX; i++) {
-        cose_hdr_t *tmp_hdr = &sign->hdrs[i];
-        if (tmp_hdr->key == key && !cose_hdr_is_protected(tmp_hdr)) {
-            hdr = tmp_hdr;
-            break;
-        }
-    }
-    return hdr;
+    return cose_hdr_get_flagged(sign->hdrs, COSE_SIGN_HDR_MAX, key, false);
 }
 
 /* Try to verify the structure with a signer and a signature idx */

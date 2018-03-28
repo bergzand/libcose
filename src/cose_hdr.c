@@ -87,3 +87,24 @@ bool cose_hdr_from_cbor_map(cose_hdr_t *hdr, cn_cbor *key, cn_cbor_context *ct, 
     }
     return true;
 }
+
+int cose_hdr_add_from_cbor(cose_hdr_t *hdr, size_t num, cn_cbor *map, uint8_t flags,
+        cn_cbor_context *ct, cn_cbor_errback *errp)
+{
+    cn_cbor *cp = NULL;
+    unsigned idx = 0;
+    for (cp = map->first_child; cp && cp->next && idx < num; cp = cp->next->next) {
+        for(;hdr->key != 0; hdr++, idx++) {
+            if (idx >= num) {
+                return COSE_ERR_NOMEM;
+            }
+        }
+        if (!(cose_hdr_from_cbor_map(hdr, cp, ct, errp))) {
+            /* Error handling */
+        }
+        hdr->flags |= flags;
+        hdr++;
+        idx++;
+    }
+    return 0;
+}

@@ -181,7 +181,7 @@ int cose_sign_decode(cose_sign_t *sign, const uint8_t *buf, size_t len, cn_cbor_
  * @param[out] kid      Filled with a pointer to the key ID
  * @return              Size of the key ID, 0 in case of empty slot
  */
- size_t cose_sign_get_kid(cose_sign_t *sign, uint8_t idx, const uint8_t **kid);
+ssize_t cose_sign_get_kid(cose_sign_t *sign, uint8_t idx, const uint8_t **kid);
 
 /**
  * Verify the idx't signature of the signed data with the supplied signer object
