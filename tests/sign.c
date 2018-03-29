@@ -91,6 +91,7 @@ void test_sign1(void)
     cur = 0;
     max = 0;
     total = 0;
+    uint8_t *psign = NULL;
     char sign1_payload[] = "Input string";
     memset(buf, 0, sizeof(buf));
     cose_sign_t sign, verify;
@@ -110,13 +111,13 @@ void test_sign1(void)
     cose_sign_add_signer(&sign, &signer);
 
     /* Encode COSE sign object */
-    size_t encode_size = cose_sign_encode(&sign, buf, sizeof(buf), &ct);
+    size_t encode_size = cose_sign_encode(&sign, buf, sizeof(buf), &psign, &ct);
 
     CU_ASSERT_NOT_EQUAL_FATAL(encode_size, 0);
 
     cose_sign_init(&verify, 0);
     /* Decode again */
-    int decode_success = cose_sign_decode(&verify, buf + 64, encode_size, &ct);
+    int decode_success = cose_sign_decode(&verify, psign, encode_size, &ct);
     /* Verify with signature slot 0 */
     CU_ASSERT_EQUAL_FATAL(decode_success, 0);
     int verification = cose_sign_verify(&verify, &signer, 0, ver_buf, sizeof(ver_buf), &ct);
@@ -136,6 +137,7 @@ void test_sign2(void)
     cur = 0;
     max = 0;
     total = 0;
+    uint8_t *psign = NULL;
     char sign1_payload[] = "Input string";
     memset(buf, 0, sizeof(buf));
     cose_sign_t sign, verify;
@@ -155,13 +157,13 @@ void test_sign2(void)
     cose_sign_add_signer(&sign, &signer);
 
     /* Encode COSE sign object */
-    size_t encode_size = cose_sign_encode(&sign, buf, sizeof(buf), &ct);
+    size_t encode_size = cose_sign_encode(&sign, buf, sizeof(buf), &psign, &ct);
 
     CU_ASSERT_NOT_EQUAL(encode_size, 0);
 
     cose_sign_init(&verify, 0);
     /* Decode again */
-    int decode_success = cose_sign_decode(&verify, buf + 64, encode_size, &ct);
+    int decode_success = cose_sign_decode(&verify, psign, encode_size, &ct);
     /* Verify with signature slot 0 */
     CU_ASSERT_EQUAL_FATAL(decode_success, 0);
     int verification = cose_sign_verify(&verify, &signer, 0, ver_buf, sizeof(ver_buf), &ct);
@@ -180,6 +182,7 @@ void test_sign3(void)
     cur = 0;
     max = 0;
     total = 0;
+    uint8_t *psign = NULL;
     char payload[] = "Input string";
     cose_sign_t sign, verify;
     cose_signer_t signer, signer2;
@@ -207,12 +210,12 @@ void test_sign3(void)
 
     CU_ASSERT(cose_signer_serialize_protected(&signer, NULL, 0, &ct, &errp) > 0);
 
-    size_t len = cose_sign_encode(&sign, buf, sizeof(buf), &ct);
+    size_t len = cose_sign_encode(&sign, buf, sizeof(buf), &psign, &ct);
 
-    print_bytestr(buf+128, len);
+    print_bytestr(psign, len);
     printf("\n");
 
-    CU_ASSERT_EQUAL_FATAL(cose_sign_decode(&verify, buf + 128, len, &ct), 0);
+    CU_ASSERT_EQUAL_FATAL(cose_sign_decode(&verify, psign, len, &ct), 0);
     /* Test correct signature with correct signer */
     CU_ASSERT_EQUAL(cose_sign_verify(&verify, &signer, 0, ver_buf, sizeof(ver_buf), &ct), 0);
     CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer, 1, ver_buf, sizeof(ver_buf), &ct), 0);
@@ -235,6 +238,7 @@ void test_sign4(void)
     cose_signer_init(&signer);
     cose_signer_set_keys(&signer, COSE_EC_CURVE_ED25519, pk, NULL, sk);
     cose_signer_set_kid(&signer, (uint8_t*)kid, sizeof(kid) - 1);
+    uint8_t *psign = NULL;
     printf("\n");
     for (unsigned i = 0; i <= 20; i++)
     {
@@ -260,7 +264,7 @@ void test_sign4(void)
         cose_sign_add_signer(&sign, &signer);
 
         /* Encode COSE sign object */
-        ssize_t res = cose_sign_encode(&sign, buf, sizeof(buf), &ct);
+        ssize_t res = cose_sign_encode(&sign, buf, sizeof(buf), &psign, &ct);
         CU_ASSERT_EQUAL(cur, 0);
         if (cur) {
             printf("Mem: Cur: %d, max: %d, total: %d, limit: %d, alloc_lim: %d\n", cur, max, total, cap_limit, alloc_limit);
@@ -272,11 +276,11 @@ void test_sign4(void)
         }
         if (prev_len)
         {
-            int cmp = memcmp(buf+64, prev_result, res);
+            int cmp = memcmp(psign, prev_result, res);
             if (cmp != 0)
             {
                 printf("Result: ");
-                print_bytestr(buf+64, res);
+                print_bytestr(psign, res);
                 printf("\n");
                 printf("Prev  : ");
                 print_bytestr(prev_result, res);
@@ -284,7 +288,7 @@ void test_sign4(void)
             }
             CU_ASSERT_EQUAL(cmp, 0);
         }
-        memcpy(prev_result, buf+64, res);
+        memcpy(prev_result, psign, res);
         prev_len = res;
     }
     for (unsigned i = 0; i <= 20; i++) {
@@ -297,7 +301,7 @@ void test_sign4(void)
         cose_sign_t verify;
         cose_sign_init(&verify, 0);
         /* Decode again */
-        int decode_success = cose_sign_decode(&verify, buf + 64, prev_len, &ct);
+        int decode_success = cose_sign_decode(&verify, psign, prev_len, &ct);
         /* Verify with signature slot 0 */
         if (decode_success == COSE_OK)
         {
@@ -318,6 +322,7 @@ void test_sign5(void)
     cose_signer_set_kid(&signer, (uint8_t*)kid, sizeof(kid) - 1);
     prev_len = 0;
     printf("\n");
+    uint8_t *psign = NULL;
     /* Should take 48 allocations max */
     for (unsigned i = 0; i <= 60; i++)
     {
@@ -343,7 +348,7 @@ void test_sign5(void)
         cose_sign_add_signer(&sign, &signer);
 
         /* Encode COSE sign object */
-        ssize_t res = cose_sign_encode(&sign, buf, sizeof(buf), &ct);
+        ssize_t res = cose_sign_encode(&sign, buf, sizeof(buf), &psign, &ct);
         if (res > 0) {
         }
         CU_ASSERT_EQUAL(cur, 0);
@@ -353,11 +358,11 @@ void test_sign5(void)
         }
         if (prev_len)
         {
-            int cmp = memcmp(buf+64, prev_result, res);
+            int cmp = memcmp(psign, prev_result, res);
             if (cmp != 0)
             {
                 printf("Result: ");
-                print_bytestr(buf+64, res);
+                print_bytestr(psign, res);
                 printf("\n");
                 printf("Prev  : ");
                 print_bytestr(prev_result, res);
@@ -365,7 +370,7 @@ void test_sign5(void)
             }
             CU_ASSERT_EQUAL(cmp, 0);
         }
-        memcpy(prev_result, buf+64, res);
+        memcpy(prev_result, psign, res);
         prev_len = res;
     }
     for (unsigned i = 0; i <= 20; i++) {
@@ -378,7 +383,7 @@ void test_sign5(void)
         cose_sign_t verify;
         cose_sign_init(&verify, 0);
         /* Decode again */
-        int decode_success = cose_sign_decode(&verify, buf + 64, prev_len, &ct);
+        int decode_success = cose_sign_decode(&verify, psign, prev_len, &ct);
         /* Verify with signature slot 0 */
         if (decode_success == COSE_OK)
         {
@@ -401,6 +406,7 @@ void test_sign6(void)
     cose_signer_set_keys(&signer2, COSE_EC_CURVE_ED25519, pk2, NULL, sk2);
     cose_signer_set_kid(&signer2, (uint8_t*)kid2, sizeof(kid2) - 1);
     prev_len = 0;
+    uint8_t *psign = NULL;
     printf("\n");
     /* Should take 48 allocations max */
     for (unsigned i = 0; i <= 85; i++)
@@ -425,7 +431,7 @@ void test_sign6(void)
         cose_sign_add_signer(&sign, &signer2);
 
         /* Encode COSE sign object */
-        ssize_t res = cose_sign_encode(&sign, buf, sizeof(buf), &ct);
+        ssize_t res = cose_sign_encode(&sign, buf, sizeof(buf), &psign, &ct);
         CU_ASSERT_EQUAL(cur, 0);
         if (res < 0)
         {
@@ -433,11 +439,11 @@ void test_sign6(void)
         }
         if (prev_len)
         {
-            int cmp = memcmp(buf+64, prev_result, res);
+            int cmp = memcmp(psign, prev_result, res);
             if (cmp != 0)
             {
                 printf("Result: ");
-                print_bytestr(buf+64, res);
+                print_bytestr(psign, res);
                 printf("\n");
                 printf("Prev  : ");
                 print_bytestr(prev_result, res);
@@ -445,7 +451,7 @@ void test_sign6(void)
             }
             CU_ASSERT_EQUAL(cmp, 0);
         }
-        memcpy(prev_result, buf+64, res);
+        memcpy(prev_result, psign, res);
         prev_len = res;
     }
     for (unsigned i = 0; i <= 30; i++) {
@@ -458,7 +464,7 @@ void test_sign6(void)
         cose_sign_t verify;
         cose_sign_init(&verify, 0);
         /* Decode again */
-        int decode_success = cose_sign_decode(&verify, buf + 128, prev_len, &ct);
+        int decode_success = cose_sign_decode(&verify, psign, prev_len, &ct);
         /* Verify with signature slot 0 */
         if (decode_success == COSE_OK)
         {
@@ -523,6 +529,7 @@ void test_sign9(void)
     cap_limit = 1000;
     alloc_limit = 1000;
 
+    uint8_t *psign = NULL;
     char sign1_payload[] = "Input string";
     memset(buf, 0, sizeof(buf));
     cose_sign_t sign, verify;
@@ -544,17 +551,17 @@ void test_sign9(void)
     cose_sign_set_ct(&sign, 42);
 
     /* Encode COSE sign object */
-    size_t encode_size = cose_sign_encode(&sign, buf, sizeof(buf), &ct);
+    size_t encode_size = cose_sign_encode(&sign, buf, sizeof(buf), &psign, &ct);
     printf("Encode size: %d\n", (signed)encode_size);
     printf("\n");
-    print_bytestr(buf+64, encode_size);
+    print_bytestr(psign, encode_size);
     printf("\n");
 
     CU_ASSERT_NOT_EQUAL_FATAL(encode_size, 0);
 
     cose_sign_init(&verify, 0);
     /* Decode again */
-    int decode_success = cose_sign_decode(&verify, buf + 64, encode_size, &ct);
+    int decode_success = cose_sign_decode(&verify, psign, encode_size, &ct);
     cose_hdr_t *hdr = cose_sign_get_protected(&verify, COSE_HDR_CONTENT_TYPE);
     CU_ASSERT_NOT_EQUAL(hdr, NULL);
     /* Verify with signature slot 0 */

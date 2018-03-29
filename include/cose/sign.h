@@ -127,18 +127,26 @@ int cose_sign_add_signer(cose_sign_t *sign, const cose_signer_t *signer);
 
 /**
  * cose_sign_sign signs the data from the sign object with the attached
- * signers. The output is placed in the out param, up to s_out bytes are
- * written
+ * signers. The output is placed in the supplied buffer, starting at the
+ * position indicated by the out parameter.
  *
- * @param   sign    Sign struct to encode
- * @param   buf     Buffer to write in
- * @param   len     Size of the buffer to write in
- * @param   ct      CN_CBOR context for cbor block allocation
+ * This function uses the buffer as scratch space to first calculate all the
+ * signatures. Therefor this buffer should be large enough to contain the
+ * headers, the payload, the additionally authenticated data and the
+ * signatures at the same time. This is a limitation caused by how the COSE
+ * signatures to be generated and how crypto libraries require their message
+ * as one continuous block of data.
+ *
+ * @param       sign    Sign struct to encode
+ * @param       buf     Buffer to write in
+ * @param[out]  out     Pointer to where the COSE sign struct starts
+ * @param       len     Size of the buffer to write in
+ * @param       ct      CN_CBOR context for cbor block allocation
  *
  * @return          The number of bytes written
  * @return          Negative on error
  */
-ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, cn_cbor_context *ct);
+ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, uint8_t **out, cn_cbor_context *ct);
 
 /**
  * cose_sign_decode parses a buffer to a cose sign struct. This buffer can
@@ -168,6 +176,10 @@ ssize_t cose_sign_get_kid(cose_sign_t *sign, uint8_t idx, const uint8_t **kid);
 
 /**
  * Verify the idx't signature of the signed data with the supplied signer object
+ *
+ * The buffer is required as scratch space to build the signature structs in.
+ * The buffer must be large enough to contain the headers, payload and the
+ * additional authenticated data.
  *
  * @param   sign        The sign object to verify
  * @param   signer      The signer to verify with
