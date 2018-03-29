@@ -60,15 +60,15 @@ typedef enum {
  * @url https://www.iana.org/assignments/cose/cose.xhtml#header-parameters
  */
 typedef enum {
-    COSE_HDR_ALG         = 1,
-    COSE_HDR_CRIT        = 2,
-    COSE_HDR_CONTENT     = 3,
-    COSE_HDR_KID         = 4,
-    COSE_HDR_IV          = 5,
-    COSE_HDR_PARTIALIV   = 6,
-    COSE_HDR_COUNTERSIG  = 7,
-    COSE_HDR_UNASSIGN    = 8,
-    COSE_HDR_COUNTERSIG0 = 9,
+    COSE_HDR_ALG            = 1,
+    COSE_HDR_CRIT           = 2,
+    COSE_HDR_CONTENT_TYPE   = 3,
+    COSE_HDR_KID            = 4,
+    COSE_HDR_IV             = 5,
+    COSE_HDR_PARTIALIV      = 6,
+    COSE_HDR_COUNTERSIG     = 7,
+    COSE_HDR_UNASSIGN       = 8,
+    COSE_HDR_COUNTERSIG0    = 9,
 } cose_header_param_t;
 
 /**

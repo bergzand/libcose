@@ -8,7 +8,7 @@
  */
 
 #include <cn-cbor/cn-cbor.h>
-#include "cose.h"
+#include "cose/hdr.h"
 #include "cose_defines.h"
 
 /* Appends the header the given cbor map */
@@ -107,4 +107,78 @@ int cose_hdr_add_from_cbor(cose_hdr_t *hdr, size_t num, cn_cbor *map, uint8_t fl
         idx++;
     }
     return 0;
+}
+
+int cose_hdr_add_hdr_value(cose_hdr_t *start, size_t num, int32_t key, uint8_t flags, int32_t value)
+{
+    cose_hdr_t *hdr = cose_hdr_next_empty(start, num);
+    if (!hdr) {
+        return COSE_ERR_NOMEM;
+    }
+    else {
+        hdr->type = COSE_HDR_TYPE_INT;
+        hdr->key = key;
+        hdr->v.value = value;
+        hdr->flags = flags;
+    }
+    return COSE_OK;
+}
+
+int cose_hdr_add_hdr_string(cose_hdr_t *start, size_t num, int32_t key, uint8_t flags, char *str)
+{
+    cose_hdr_t *hdr = cose_hdr_next_empty(start, num);
+    if (!hdr) {
+        return COSE_ERR_NOMEM;
+    }
+    else {
+        hdr->type = COSE_HDR_TYPE_TSTR;
+        hdr->key = key;
+        hdr->v.str = str;
+        hdr->flags = flags;
+    }
+    return COSE_OK;
+}
+
+int cose_hdr_add_hdr_data(cose_hdr_t *start, size_t num, int32_t key, uint8_t flags, uint8_t *data, size_t len)
+{
+    cose_hdr_t *hdr = cose_hdr_next_empty(start, num);
+    if (!hdr) {
+        return COSE_ERR_NOMEM;
+    }
+    else {
+        hdr->type = COSE_HDR_TYPE_BSTR;
+        hdr->key = key;
+        hdr->v.data = data;
+        hdr->len = len;
+        hdr->flags = flags;
+    }
+    return COSE_OK;
+}
+
+int cose_hdr_add_hdr_cbor(cose_hdr_t *start, size_t num, int32_t key, uint8_t flags, cn_cbor *cbor)
+{
+    cose_hdr_t *hdr = cose_hdr_next_empty(start, num);
+    if (!hdr) {
+        return COSE_ERR_NOMEM;
+    }
+    else {
+        hdr->type = COSE_HDR_TYPE_CBOR;
+        hdr->key = key;
+        hdr->v.cbor = cbor;
+        hdr->flags = flags;
+    }
+    return COSE_OK;
+}
+
+cose_hdr_t *cose_hdr_next_empty(cose_hdr_t *hdr, size_t  num)
+{
+    cose_hdr_t *res = NULL;
+    for (unsigned i = 0; i < num; i++, hdr++)
+    {
+        if (hdr->key == 0) {
+            res = hdr;
+            break;
+        }
+    }
+    return res;
 }

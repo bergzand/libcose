@@ -218,7 +218,9 @@ int cose_sign_generate_signature(cose_sign_t *sign, cose_signature_t *sig, uint8
         return COSE_ERR_NOINIT;
     }
     /* Build the data at an offset of the signature size */
-    ssize_t sig_struct_len = _sign_sig_encode(sign, sig, SIG_TYPE_SIGNATURE, buf_cbor, cbor_space, ct);
+    ssize_t sig_struct_len = _sign_sig_encode(sign, sig,
+            _is_sign1(sign) ? SIG_TYPE_SIGNATURE1 : SIG_TYPE_SIGNATURE,
+            buf_cbor, cbor_space, ct);
     if (sig_struct_len < 0) {
         return sig_struct_len;
     }
@@ -260,6 +262,12 @@ ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t bufsize, cn_cbo
     /* The buffer here is used to contain dummy data a number of times */
     uint8_t *bufptr = buf;
 
+    /* Determine if this requires sign or sign1 */
+    if (sign->num_sigs == 1) {
+        sign->flags |= COSE_FLAGS_SIGN1;
+    }
+
+
     /* build cbor payload structure with signer array */
     /* Serialize protected so we know the length */
     {
@@ -276,7 +284,7 @@ ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t bufsize, cn_cbo
         cose_signature_t *sig = &(sign->sigs[i]);
         /* Get to know the protected header length
          * Don't set if when using sign1, it is added to the body headers */
-        if (!(_is_sign1(sign))) {
+        if (!_is_sign1(sign)) {
             len = cose_signer_serialize_protected(sig->signer, buf, bufsize, ct, &errp);
             if (!len) {
                 return cose_intern_err_translate(&errp);
@@ -439,6 +447,7 @@ int cose_sign_decode(cose_sign_t *sign, const uint8_t *buf, size_t len, cn_cbor_
         sign->num_sigs = i;
     /* Probably a SIGN1 struct then */
     } else if (cn_sigs->type == CN_CBOR_BYTES) {
+        sign->flags |= COSE_FLAGS_SIGN1;
         cose_signature_t *psig = &(sign->sigs[0]);
         psig->hdr_protected = NULL;
         psig->hdr_protected_len = 0;
@@ -497,7 +506,9 @@ int cose_sign_verify(cose_sign_t *sign, cose_signer_t *signer, uint8_t idx, cn_c
         return COSE_ERR_NOMEM;
     }
     cose_signature_t *sig = &sign->sigs[idx];
-    ssize_t sig_len = _sign_sig_encode(sign, sig, SIG_TYPE_SIGNATURE, buf, sizeof(buf), ct);
+    ssize_t sig_len = _sign_sig_encode(sign, sig,
+            _is_sign1(sign) ? SIG_TYPE_SIGNATURE1 : SIG_TYPE_SIGNATURE,
+            buf, sizeof(buf), ct);
     if (sig_len < 0) {
         return sig_len;
     }

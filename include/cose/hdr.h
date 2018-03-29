@@ -11,10 +11,29 @@
 #define COSE_HDR_H
 
 #include <cn-cbor/cn-cbor.h>
-#include "cose.h"
+#include "cose_defines.h"
+
+typedef struct cose_hdr {
+    int32_t key;                /* Header label */
+    cose_hdr_type_t type;       /* Type of the header */
+    uint8_t flags;              /* Flags for the header */
+    size_t len;                 /* Length of the data, only used for the bytes type */
+    union {                     /* Depending on the type, the content is a pointer or an integer */
+        int32_t value;            /* Direct integer value */
+        const uint8_t *data;          /* Pointer to the content */
+        const char *str;              /* String type content */
+        cn_cbor *cbor;          /* cbor type data */
+    } v;
+} cose_hdr_t;
 
 bool cose_hdr_to_cbor_map(cose_hdr_t *hdr, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp);
 bool cose_hdr_from_cbor_map(cose_hdr_t *hdr, cn_cbor *key, cn_cbor_context *ct, cn_cbor_errback *errp);
+
+int cose_hdr_add_hdr_value(cose_hdr_t *start, size_t num, int32_t key, uint8_t flags, int32_t value);
+int cose_hdr_add_hdr_string(cose_hdr_t *start, size_t num, int32_t key, uint8_t flags, char *str);
+int cose_hdr_add_hdr_data(cose_hdr_t *start, size_t num, int32_t key, uint8_t flags, uint8_t *data, size_t len);
+int cose_hdr_add_hdr_cbor(cose_hdr_t *start, size_t num, int32_t key, uint8_t flags, cn_cbor *cbor);
+cose_hdr_t *cose_hdr_next_empty(cose_hdr_t *hdr, size_t  num);
 
 int cose_hdr_add_from_cbor(cose_hdr_t *hdr, size_t num, cn_cbor *map, uint8_t flags,
         cn_cbor_context *ct, cn_cbor_errback *errp);

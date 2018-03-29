@@ -468,6 +468,7 @@ void test_sign6(void)
         }
     }
 }
+
 void test_sign7(void)
 {
     cur = 0;
@@ -510,6 +511,61 @@ void test_sign8(void)
     CU_ASSERT_EQUAL(cur, 0);
 }
 
+/* Tagged 1 signer test */
+void test_sign9(void)
+{
+    cur = 0;
+    max = 0;
+    total = 0;
+    cap_limit = 1000;
+    alloc_limit = 1000;
+
+    char sign1_payload[] = "Input string";
+    memset(buf, 0, sizeof(buf));
+    cose_sign_t sign, verify;
+    cose_signer_t signer;
+    /* Initialize struct */
+    cose_sign_init(&sign, 0);
+
+    /* Add payload */
+    cose_sign_set_payload(&sign, sign1_payload, strlen(sign1_payload));
+
+    /* First signer */
+    cose_crypto_keypair_ed25519(pk, sk);
+    cose_signer_init(&signer);
+    cose_signer_set_keys(&signer, COSE_EC_CURVE_ED25519, pk, NULL, sk);
+    cose_signer_set_kid(&signer, (uint8_t*)kid, sizeof(kid) - 1);
+
+    cose_sign_add_signer(&sign, &signer);
+    /* Octet stream content type */
+    cose_sign_set_ct(&sign, 42);
+
+    /* Encode COSE sign object */
+    size_t encode_size = cose_sign_encode(&sign, buf, sizeof(buf), &ct);
+    printf("Encode size: %d\n", (signed)encode_size);
+    printf("\n");
+    print_bytestr(buf+64, encode_size);
+    printf("\n");
+
+    CU_ASSERT_NOT_EQUAL_FATAL(encode_size, 0);
+
+    cose_sign_init(&verify, 0);
+    /* Decode again */
+    int decode_success = cose_sign_decode(&verify, buf + 64, encode_size, &ct);
+    cose_hdr_t *hdr = cose_sign_get_protected(&verify, COSE_HDR_CONTENT_TYPE);
+    CU_ASSERT_NOT_EQUAL(hdr, NULL);
+    /* Verify with signature slot 0 */
+    CU_ASSERT_EQUAL_FATAL(decode_success, 0);
+    int verification = cose_sign_verify(&verify, &signer, 0, &ct);
+    CU_ASSERT_EQUAL(verification, 0);
+    /* Modify payload */
+    ((int*)(verify.payload))[0]++;
+    verification = cose_sign_verify(&verify, &signer, 0, &ct);
+    /* Should fail due to modified payload */
+    CU_ASSERT_NOT_EQUAL(verification, 0);
+    CU_ASSERT_EQUAL(cur, 0);
+}
+
 const test_t tests_sign[] = {
     {
         .f = test_sign1,
@@ -542,6 +598,10 @@ const test_t tests_sign[] = {
     {
         .f = test_sign8,
         .n = "Signerature index out of bounds",
+    },
+    {
+        .f = test_sign9,
+        .n = "Content type header test",
     },
     {
         .f = NULL,

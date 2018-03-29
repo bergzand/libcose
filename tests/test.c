@@ -34,6 +34,7 @@ int add_tests(CU_pSuite pSuite, const test_t* tests)
     }
     return 0;
 }
+
 int main()
 {
     CU_pSuite pSuite = NULL;
