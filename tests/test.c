@@ -75,5 +75,8 @@ int main()
     printf("\n\n");
 
     CU_cleanup_registry();
+    if (CU_get_number_of_failure_records()) {
+        exit(2);
+    }
     return CU_get_error();
 }
