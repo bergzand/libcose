@@ -21,17 +21,20 @@ LIB_CBOR=$(LIB_CBOR_PATH)/libcn-cbor.so
 
 TIDYFLAGS=-checks=*,-clang-analyzer-alpha.*
 
-CFLAGS += -coverage -fPIC -O0 
+CFLAGS_COVERAGE += -coverage 
+CFLAGS_DEBUG += $(CFLAGS_COVERAGE) -g3
 
-CFLAGS +=-Wall -Wextra -pedantic -Werror -I$(INC_DIR) -I$(INC_GLOBAL) -I$(INC_CBOR) -g3 -std=c99
+
+CFLAGS += -fPIC -Wall -Wextra -pedantic -Werror -I$(INC_DIR) -I$(INC_GLOBAL) -I$(INC_CBOR) -std=c99 
 CFLAGS +=-DUSE_CBOR_CONTEXT
 
 ifeq ($(CRYPTO), sodium)
 	CFLAGS+=-DCRYPTO_SODIUM
 	CRYPTOLIB=libsodium
 	CRYPTOSRC=$(SRC_DIR)/crypt/sodium.c
-	CFLAGS+=$(shell pkg-config --libs --cflags $(CRYPTOLIB))
-else ($(CRYPTO), tweetnacl)
+	CFLAGS += $(shell pkg-config --libs --cflags $(CRYPTOLIB))
+endif
+ifeq ($(CRYPTO), tweetnacl)
 	CFLAGS+=-DCRYPTO_TWEETNACL
 	CRYPTOLIB=tweetnacl
 	CRYPTOSRC=$(SRC_DIR)/crypt/tweetnacl.c
@@ -45,7 +48,9 @@ TESTS+=$(wildcard $(TEST_DIR)/*.c)
 OBJS=$(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRCS))
 OTESTS=$(patsubst %.c,$(OBJ_DIR)/%.o,$(TESTS))
 
-CFLAGS+=$(shell pkg-config --libs --cflags cunit)
+CFLAGS_TEST+=$(shell pkg-config --libs --cflags cunit)
+
+lib: $(BIN_DIR)/libcose.so
 
 prepare:
 	@mkdir -p $(OBJ_DIR)
@@ -59,14 +64,19 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 $(OBJ_DIR)/tests/%.o: $(TEST_DIR)/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-$(BIN_DIR)/%: $(OBJS) $(OTESTS) prepare
-	$(CC) $(CFLAGS) $(OBJS) $(OTESTS) -o $@ -Wl,$(LIB_CBOR)  
+$(BIN_DIR)/test: $(OBJS) $(OTESTS) prepare
+	$(CC) $(CFLAGS) $(CFLAGS_TEST) $(OBJS) $(OTESTS) -o $@ -Wl,$(LIB_CBOR)  
+
+$(BIN_DIR)/libcose.so: $(OBJS) prepare
+	$(CC) $(CFLAGS) $(OBJS) -o $@ -Wl,$(LIB_CBOR) -shared
 
 test: $(BIN_DIR)/test
 	LD_LIBRARY_PATH=$(LIB_CBOR_PATH) $<
 
+debug-test: CFLAGS += $(CFLAGS_DEBUG)
 debug-test: $(BIN_DIR)/test
 	LD_LIBRARY_PATH=$(LIB_CBOR_PATH) gdb $<
+
 
 clean:
 	$(RM) $(BIN_DIR)
@@ -74,5 +84,5 @@ clean:
 print-%:
 	@echo $* = $($*)
 
-.PHONY: prepare clean test debug-test
+.PHONY: prepare clean test debug-test lib
 .SECONDARY: ${OBJS} ${OTESTS}
