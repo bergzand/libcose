@@ -256,7 +256,7 @@ int cose_sign_generate_signature(cose_sign_t *sign, cose_signature_t *sig, uint8
 
 
 /* TODO: splitme */
-ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, cn_cbor_context *ct)
+ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, uint8_t **out, cn_cbor_context *ct)
 {
     cn_cbor_errback errp;
     /* The buffer here is used to contain dummy data a number of times */
@@ -354,6 +354,7 @@ ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, cn_cbor_co
     }
 
     /* Serialize array */
+    *out = buf;
     size_t res = cn_cbor_encoder_write(buf, 0, len, cn_top);
     cn_cbor_free(cn_top, ct);
 
