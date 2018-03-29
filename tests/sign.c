@@ -236,7 +236,7 @@ void test_sign4(void)
     cose_signer_set_keys(&signer, COSE_EC_CURVE_ED25519, pk, NULL, sk);
     cose_signer_set_kid(&signer, (uint8_t*)kid, sizeof(kid) - 1);
     printf("\n");
-    for (int i = 0; i <= 20; i++)
+    for (unsigned i = 0; i <= 20; i++)
     {
         cur = 0;
         max = 0;
@@ -262,6 +262,10 @@ void test_sign4(void)
         /* Encode COSE sign object */
         ssize_t res = cose_sign_encode(&sign, buf, sizeof(buf), &ct);
         CU_ASSERT_EQUAL(cur, 0);
+        if (cur) {
+            printf("Mem: Cur: %d, max: %d, total: %d, limit: %d, alloc_lim: %d\n", cur, max, total, cap_limit, alloc_limit);
+        }
+
         if (res < 0)
         {
             continue;
@@ -283,7 +287,7 @@ void test_sign4(void)
         memcpy(prev_result, buf+64, res);
         prev_len = res;
     }
-    for (int i = 0; i <= 20; i++) {
+    for (unsigned i = 0; i <= 20; i++) {
         cur = 0;
         max = 0;
         total = 0;
@@ -315,7 +319,7 @@ void test_sign5(void)
     prev_len = 0;
     printf("\n");
     /* Should take 48 allocations max */
-    for (int i = 0; i <= 60; i++)
+    for (unsigned i = 0; i <= 60; i++)
     {
         cur = 0;
         max = 0;
@@ -364,7 +368,7 @@ void test_sign5(void)
         memcpy(prev_result, buf+64, res);
         prev_len = res;
     }
-    for (int i = 0; i <= 20; i++) {
+    for (unsigned i = 0; i <= 20; i++) {
         cur = 0;
         max = 0;
         total = 0;
@@ -399,7 +403,7 @@ void test_sign6(void)
     prev_len = 0;
     printf("\n");
     /* Should take 48 allocations max */
-    for (int i = 0; i <= 85; i++)
+    for (unsigned i = 0; i <= 85; i++)
     {
         cur = 0;
         max = 0;
@@ -422,8 +426,6 @@ void test_sign6(void)
 
         /* Encode COSE sign object */
         ssize_t res = cose_sign_encode(&sign, buf, sizeof(buf), &ct);
-        if (res > 0) {
-        }
         CU_ASSERT_EQUAL(cur, 0);
         if (res < 0)
         {
@@ -446,7 +448,7 @@ void test_sign6(void)
         memcpy(prev_result, buf+64, res);
         prev_len = res;
     }
-    for (int i = 0; i <= 30; i++) {
+    for (unsigned i = 0; i <= 30; i++) {
         cur = 0;
         max = 0;
         total = 0;
@@ -490,7 +492,7 @@ void test_sign7(void)
     cose_signer_init(&signer);
     cose_signer_set_keys(&signer, COSE_EC_CURVE_ED25519, pk, NULL, sk);
     cose_signer_set_kid(&signer, (uint8_t*)kid, sizeof(kid) - 1);
-    for(int i = 0; i < COSE_SIGNATURES_MAX; i++) {
+    for(unsigned i = 0; i < COSE_SIGNATURES_MAX; i++) {
         CU_ASSERT_EQUAL(cose_sign_add_signer(&sign, &signer), COSE_OK);
     }
     CU_ASSERT_EQUAL(cose_sign_add_signer(&sign, &signer), COSE_ERR_NOMEM);
