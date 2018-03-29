@@ -13,8 +13,14 @@
 #include <CUnit/CUnit.h>
 
 static char payload[] = "Input string";
+static char additional_data[] = "Extra signed data";
 static unsigned char pk[crypto_sign_PUBLICKEYBYTES];
 static unsigned char sk[crypto_sign_SECRETKEYBYTES];
+static unsigned char aead_sk[crypto_aead_xchacha20poly1305_ietf_KEYBYTES];
+static unsigned char nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
+
+unsigned char ciphertext[sizeof(payload) + crypto_aead_xchacha20poly1305_ietf_ABYTES];
+
 
 #define MLEN (sizeof(payload))
 #define SMLEN (sizeof(payload)+ crypto_sign_BYTES)
@@ -31,10 +37,22 @@ void test_crypto1(void)
     CU_ASSERT_EQUAL(res, 0);
 }
 
+void test_crypto2(void)
+{
+    /* Generate key */
+    cose_crypto_aead_keypair_chachapoly(aead_sk);
+    (void)nonce;
+    (void)additional_data;
+}
+
 const test_t tests_crypto[] = {
     {
         .f = test_crypto1,
         .n = "Simple sign and verify",
+    },
+    {
+        .f = test_crypto2,
+        .n = "Simple AEAD encrypt/decrypt",
     },
     {
         .f = NULL,
