@@ -15,15 +15,33 @@ be skipped.
 - Either tweetNaCl[3] or Libsodium[4] as crypto library
 - A memory block allocator (can be malloc/calloc based)
 
-### building
+### Building
 
 To build a shared library from libcose:
+
 ```
 make lib
 ```
 
 Default libcose will try to link against libsodium.
 
+### Testing
+
+libcose is supplied with a test suite covering most cases. Testing requires
+CUnit as test framework. Running al tests is done with
+
+```
+make test
+```
+
+### Limitations
+
+Due to time constraints, for now only signing is implemented. Contributions
+for encryption and authentication is of course welcome.
+
+As libcose is aimed at constrained devices a number of configurables are
+compile time defined. This includes the number of headers and the number
+signatures that are allowed in a single signature structure.
 
 [1]: https://tools.ietf.org/html/rfc8152
 [2]: https://github.com/cabo/cn-cbor
