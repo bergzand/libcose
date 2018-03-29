@@ -1,6 +1,6 @@
 # libcose
 
-Libcose is a C library aiming to implement the full COSE[1] standard.
+Libcose is a C library aiming to implement the full [COSE] standard.
 Libcose is aimed at constrained devices without dynamic memory allocation,
 libcose will never call malloc related calls by itself. However it does
 require a simple block array allocator for cbor management.
@@ -11,8 +11,8 @@ be skipped.
 
 ### Dependencies:
 
-- cn-cbor[2]
-- Either tweetNaCl[3] or Libsodium[4] as crypto library
+- [cn-cbor]
+- Either [TweetNaCl] or [libsodium] as crypto library
 - A memory block allocator (can be malloc/calloc based)
 
 ### Building
@@ -43,7 +43,7 @@ As libcose is aimed at constrained devices a number of configurables are
 compile time defined. This includes the number of headers and the number
 signatures that are allowed in a single signature structure.
 
-[1]: https://tools.ietf.org/html/rfc8152
-[2]: https://github.com/cabo/cn-cbor
-[3]: https://tweetnacl.cr.yp.to/
-[4]: https://github.com/jedisct1/libsodium
+[COSE]: https://tools.ietf.org/html/rfc8152
+[cn-cbor]: https://github.com/cabo/cn-cbor
+[TweetNaCl]: https://tweetnacl.cr.yp.to/
+[libsodium]: https://github.com/jedisct1/libsodium
