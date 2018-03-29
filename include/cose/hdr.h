@@ -102,7 +102,7 @@ int cose_hdr_add_hdr_value(cose_hdr_t *start, size_t num, int32_t key, uint8_t f
  * @return              0 on success
  * @return              Negative when failed
  */
-int cose_hdr_add_hdr_string(cose_hdr_t *start, size_t num, int32_t key, uint8_t flags, char *str);
+int cose_hdr_add_hdr_string(cose_hdr_t *start, size_t num, int32_t key, uint8_t flags, const char *str);
 
 /**
  * Add a header with a byte array based value to the set of headers
@@ -119,7 +119,7 @@ int cose_hdr_add_hdr_string(cose_hdr_t *start, size_t num, int32_t key, uint8_t 
  * @return              0 on success
  * @return              Negative when failed
  */
-int cose_hdr_add_hdr_data(cose_hdr_t *start, size_t num, int32_t key, uint8_t flags, uint8_t *data, size_t len);
+int cose_hdr_add_hdr_data(cose_hdr_t *start, size_t num, int32_t key, uint8_t flags, const uint8_t *data, size_t len);
 
 /**
  * Add a header with a CBOR based value to the set of headers

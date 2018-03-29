@@ -6,11 +6,11 @@
  * General Public License v2.1. See the file LICENSE in the top level
  * directory for more details.
  */
-#include <stdint.h>
-#include <string.h>
 #include "cose.h"
 #include "cose/intern.h"
-#include "cn-cbor/cn-cbor.h"
+#include <cn-cbor/cn-cbor.h>
+#include <stdint.h>
+#include <string.h>
 
 
 int _get_algo(const cose_signer_t *signer)

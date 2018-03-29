@@ -7,16 +7,13 @@
  * directory for more details.
  */
 
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
 #include "cn-cbor/cn-cbor.h"
 #include "cose.h"
-#include "cose/intern.h"
 #include "cose/cbor.h"
 #include "cose/crypto.h"
-#include "cose/sign.h"
-#include "cose/hdr.h"
+#include "cose/intern.h"
+#include <stdint.h>
+#include <string.h>
 
 #define COSE_HDR_SIZE_MAX 32
 
@@ -26,7 +23,6 @@ static cn_cbor *_sign_sig_cbor(cose_sign_t *sign, cose_signature_t *sig, const c
 static ssize_t _sign_sig_encode(cose_sign_t *sign, cose_signature_t *sig, const char *type, uint8_t *buf, size_t buf_size, cn_cbor_context *ct);
 static cn_cbor *_cbor_unprotected(cose_sign_t *sign, cn_cbor_context *ct, cn_cbor_errback *errp);
 static cn_cbor *_build_cbor_protected(cose_sign_t *sign, cn_cbor_context *ct, cn_cbor_errback *errp);
-static size_t _serialize_cbor_protected(cose_sign_t *sign, uint8_t *buf, size_t buflen, cn_cbor_context *ct, cn_cbor_errback *errp);
 
 static cn_cbor *_sign_sig_cbor(cose_sign_t *sign, cose_signature_t *sig, const char *type, cn_cbor_context *ct, cn_cbor_errback *errp)
 {
@@ -480,9 +476,7 @@ ssize_t cose_sign_get_kid(cose_sign_t *sign, uint8_t idx, const uint8_t **kid)
         *kid = hdr->v.data;
         return COSE_OK;
     }
-    else {
-        return COSE_ERR_NOT_FOUND;
-    }
+    return COSE_ERR_NOT_FOUND;
 }
 
 cose_hdr_t *cose_sign_get_header(cose_sign_t *sign, int32_t key)

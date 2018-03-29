@@ -7,9 +7,9 @@
  * directory for more details.
  */
 
-#include <cn-cbor/cn-cbor.h>
-#include "cose/hdr.h"
 #include "cose_defines.h"
+#include "cose/hdr.h"
+#include <cn-cbor/cn-cbor.h>
 
 /* Appends the header the given cbor map */
 bool cose_hdr_to_cbor_map(cose_hdr_t *hdr, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp)
@@ -118,45 +118,39 @@ int cose_hdr_add_hdr_value(cose_hdr_t *start, size_t num, int32_t key, uint8_t f
     if (!hdr) {
         return COSE_ERR_NOMEM;
     }
-    else {
-        hdr->type = COSE_HDR_TYPE_INT;
-        hdr->key = key;
-        hdr->v.value = value;
-        hdr->flags = flags;
-    }
+    hdr->type = COSE_HDR_TYPE_INT;
+    hdr->key = key;
+    hdr->v.value = value;
+    hdr->flags = flags;
     return COSE_OK;
 }
 
-int cose_hdr_add_hdr_string(cose_hdr_t *start, size_t num, int32_t key, uint8_t flags, char *str)
+int cose_hdr_add_hdr_string(cose_hdr_t *start, size_t num, int32_t key, uint8_t flags, const char *str)
 {
     cose_hdr_t *hdr = cose_hdr_next_empty(start, num);
 
     if (!hdr) {
         return COSE_ERR_NOMEM;
     }
-    else {
-        hdr->type = COSE_HDR_TYPE_TSTR;
-        hdr->key = key;
-        hdr->v.str = str;
-        hdr->flags = flags;
-    }
+    hdr->type = COSE_HDR_TYPE_TSTR;
+    hdr->key = key;
+    hdr->v.str = str;
+    hdr->flags = flags;
     return COSE_OK;
 }
 
-int cose_hdr_add_hdr_data(cose_hdr_t *start, size_t num, int32_t key, uint8_t flags, uint8_t *data, size_t len)
+int cose_hdr_add_hdr_data(cose_hdr_t *start, size_t num, int32_t key, uint8_t flags, const uint8_t *data, size_t len)
 {
     cose_hdr_t *hdr = cose_hdr_next_empty(start, num);
 
     if (!hdr) {
         return COSE_ERR_NOMEM;
     }
-    else {
-        hdr->type = COSE_HDR_TYPE_BSTR;
-        hdr->key = key;
-        hdr->v.data = data;
-        hdr->len = len;
-        hdr->flags = flags;
-    }
+    hdr->type = COSE_HDR_TYPE_BSTR;
+    hdr->key = key;
+    hdr->v.data = data;
+    hdr->len = len;
+    hdr->flags = flags;
     return COSE_OK;
 }
 
@@ -167,12 +161,10 @@ int cose_hdr_add_hdr_cbor(cose_hdr_t *start, size_t num, int32_t key, uint8_t fl
     if (!hdr) {
         return COSE_ERR_NOMEM;
     }
-    else {
-        hdr->type = COSE_HDR_TYPE_CBOR;
-        hdr->key = key;
-        hdr->v.cbor = cbor;
-        hdr->flags = flags;
-    }
+    hdr->type = COSE_HDR_TYPE_CBOR;
+    hdr->key = key;
+    hdr->v.cbor = cbor;
+    hdr->flags = flags;
     return COSE_OK;
 }
 

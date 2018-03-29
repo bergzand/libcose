@@ -7,8 +7,8 @@
  * directory for more details.
  */
 
-#include <string.h>
 #include "cn-cbor/cn-cbor.h"
+#include <string.h>
 
 static bool _append_kv(cn_cbor *cb_map, cn_cbor *key, cn_cbor *val)
 {
