@@ -172,12 +172,15 @@ ssize_t cose_sign_get_kid(cose_sign_t *sign, uint8_t idx, const uint8_t **kid);
  * @param   sign        The sign object to verify
  * @param   signer      The signer to verify with
  * @param   idx         The signature index to verify from the sign object
+ * @param   buf         Buff
  * @param   ct          CN_CBOR context for cbor block allocation
  *
  * @return              0 on verification success
  * @return              Negative on error
  */
-int cose_sign_verify(cose_sign_t *sign, cose_signer_t *signer, uint8_t idx, cn_cbor_context *ct);
+int cose_sign_verify(cose_sign_t *sign, cose_signer_t *signer, uint8_t idx,
+        uint8_t *buf, size_t len,
+        cn_cbor_context *ct);
 
 /**
  * Retrieve a header from a sign object by key lookup

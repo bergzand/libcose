@@ -502,9 +502,8 @@ cose_hdr_t *cose_sign_get_unprotected(cose_sign_t *sign, int32_t key)
 }
 
 /* Try to verify the structure with a signer and a signature idx */
-int cose_sign_verify(cose_sign_t *sign, cose_signer_t *signer, uint8_t idx, cn_cbor_context *ct)
+int cose_sign_verify(cose_sign_t *sign, cose_signer_t *signer, uint8_t idx, uint8_t *buf, size_t len, cn_cbor_context *ct)
 {
-    uint8_t buf[2048];
     int res = COSE_OK;
 
     if (idx >= COSE_SIGNATURES_MAX) {
@@ -513,7 +512,7 @@ int cose_sign_verify(cose_sign_t *sign, cose_signer_t *signer, uint8_t idx, cn_c
     cose_signature_t *sig = &sign->sigs[idx];
     ssize_t sig_len = _sign_sig_encode(sign, sig,
                                        _is_sign1(sign) ? SIG_TYPE_SIGNATURE1 : SIG_TYPE_SIGNATURE,
-                                       buf, sizeof(buf), ct);
+                                       buf, len, ct);
     if (sig_len < 0) {
         return sig_len;
     }

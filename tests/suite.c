@@ -20,6 +20,8 @@
 #include "CUnit/Basic.h"
 #include "CUnit/Automated.h"
 
+static uint8_t buf[2048];
+
 static const unsigned char cose_suite[] = {
   0xd8, 0x62, 0x84, 0x44, 0xa1, 0x03, 0x18, 0x2a, 0xa0, 0x58, 0xcd, 0x8a,
   0x02, 0xa4, 0x01, 0x6e, 0x54, 0x68, 0x69, 0x73, 0x20, 0x69, 0x73, 0x20,
@@ -116,7 +118,7 @@ void test_suite1(void)
     printf("Decoding: %d\n", decode_success);
     /* Verify with signature slot 0 */
     CU_ASSERT_EQUAL_FATAL(decode_success, 0);
-    int verification = cose_sign_verify(&verify, &signer, 0, &ct);
+    int verification = cose_sign_verify(&verify, &signer, 0, buf, sizeof(buf), &ct);
     printf("Verification: %d\n", verification);
     CU_ASSERT_EQUAL(verification, 0);
     cose_hdr_t *hdr = cose_sign_get_protected(&verify, COSE_HDR_CONTENT_TYPE);

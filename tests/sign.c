@@ -38,6 +38,7 @@ static int alloc_limit = 1000;
 #define SMLEN (sizeof(payload)+ crypto_sign_BYTES)
 #define NUM_TESTS (sizeof(tests)/sizeof(struct test))
 static uint8_t buf[2048];
+static uint8_t ver_buf[2048];
 static uint8_t prev_result[2048];
 static size_t prev_len = 0;
 
@@ -118,11 +119,11 @@ void test_sign1(void)
     int decode_success = cose_sign_decode(&verify, buf + 64, encode_size, &ct);
     /* Verify with signature slot 0 */
     CU_ASSERT_EQUAL_FATAL(decode_success, 0);
-    int verification = cose_sign_verify(&verify, &signer, 0, &ct);
+    int verification = cose_sign_verify(&verify, &signer, 0, ver_buf, sizeof(ver_buf), &ct);
     CU_ASSERT_EQUAL(verification, 0);
     /* Modify payload */
     ((int*)(verify.payload))[0]++;
-    verification = cose_sign_verify(&verify, &signer, 0, &ct);
+    verification = cose_sign_verify(&verify, &signer, 0, ver_buf, sizeof(ver_buf), &ct);
     /* Should fail due to modified payload */
     CU_ASSERT_NOT_EQUAL(verification, 0);
     printf("Current usage %d, Max usage: %d\n", cur, max);
@@ -163,11 +164,11 @@ void test_sign2(void)
     int decode_success = cose_sign_decode(&verify, buf + 64, encode_size, &ct);
     /* Verify with signature slot 0 */
     CU_ASSERT_EQUAL_FATAL(decode_success, 0);
-    int verification = cose_sign_verify(&verify, &signer, 0, &ct);
+    int verification = cose_sign_verify(&verify, &signer, 0, ver_buf, sizeof(ver_buf), &ct);
     CU_ASSERT_EQUAL(verification, 0);
     /* Modify payload */
     ((int*)(verify.payload))[0]++;
-    verification = cose_sign_verify(&verify, &signer, 0, &ct);
+    verification = cose_sign_verify(&verify, &signer, 0, ver_buf, sizeof(ver_buf), &ct);
     /* Should fail due to modified payload */
     CU_ASSERT_NOT_EQUAL(verification, 0);
     printf("Current usage %d, Max usage: %d\n", cur, max);
@@ -213,16 +214,16 @@ void test_sign3(void)
 
     CU_ASSERT_EQUAL_FATAL(cose_sign_decode(&verify, buf + 128, len, &ct), 0);
     /* Test correct signature with correct signer */
-    CU_ASSERT_EQUAL(cose_sign_verify(&verify, &signer, 0, &ct), 0);
-    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer, 1, &ct), 0);
-    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer2, 0, &ct), 0);
-    CU_ASSERT_EQUAL(cose_sign_verify(&verify, &signer2, 1, &ct), 0);
+    CU_ASSERT_EQUAL(cose_sign_verify(&verify, &signer, 0, ver_buf, sizeof(ver_buf), &ct), 0);
+    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer, 1, ver_buf, sizeof(ver_buf), &ct), 0);
+    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer2, 0, ver_buf, sizeof(ver_buf), &ct), 0);
+    CU_ASSERT_EQUAL(cose_sign_verify(&verify, &signer2, 1, ver_buf, sizeof(ver_buf), &ct), 0);
     /* Modify payload */
     ((int*)verify.payload)[0]++;
-    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer, 0, &ct), 0);
-    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer, 1, &ct), 0);
-    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer2, 0, &ct), 0);
-    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer2, 1, &ct), 0);
+    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer, 0, ver_buf, sizeof(ver_buf), &ct), 0);
+    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer, 1, ver_buf, sizeof(ver_buf), &ct), 0);
+    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer2, 0, ver_buf, sizeof(ver_buf), &ct), 0);
+    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer2, 1, ver_buf, sizeof(ver_buf), &ct), 0);
 
     CU_ASSERT_EQUAL(cur, 0);
 }
@@ -296,7 +297,7 @@ void test_sign4(void)
         /* Verify with signature slot 0 */
         if (decode_success == COSE_OK)
         {
-            int verification = cose_sign_verify(&verify, &signer, 0, &ct);
+            int verification = cose_sign_verify(&verify, &signer, 0, ver_buf, sizeof(ver_buf), &ct);
             CU_ASSERT_EQUAL(verification, 0);
             /* Modify payload */
             CU_ASSERT_EQUAL(cur, 0);
@@ -377,7 +378,7 @@ void test_sign5(void)
         /* Verify with signature slot 0 */
         if (decode_success == COSE_OK)
         {
-            int verification = cose_sign_verify(&verify, &signer, 0, &ct);
+            int verification = cose_sign_verify(&verify, &signer, 0, ver_buf, sizeof(ver_buf), &ct);
             CU_ASSERT_NOT_EQUAL(verification, COSE_ERR_CRYPTO);
             /* Modify payload */
             CU_ASSERT_EQUAL(cur, 0);
@@ -459,10 +460,10 @@ void test_sign6(void)
         /* Verify with signature slot 0 */
         if (decode_success == COSE_OK)
         {
-            CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer, 0, &ct), COSE_ERR_CRYPTO);
-            CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer, 1, &ct), COSE_OK);
-            CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer2, 1, &ct), COSE_ERR_CRYPTO);
-            CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer2, 0, &ct), COSE_OK);
+            CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer, 0, ver_buf, sizeof(ver_buf), &ct), COSE_ERR_CRYPTO);
+            CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer, 1, ver_buf, sizeof(ver_buf), &ct), COSE_OK);
+            CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer2, 1, ver_buf, sizeof(ver_buf), &ct), COSE_ERR_CRYPTO);
+            CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &signer2, 0, ver_buf, sizeof(ver_buf), &ct), COSE_OK);
             /* Modify payload */
             CU_ASSERT_EQUAL(cur, 0);
         }
@@ -506,7 +507,7 @@ void test_sign8(void)
     cose_signer_t signer;
     /* Initialize struct */
     cose_sign_init(&sign, 0);
-    CU_ASSERT_EQUAL(cose_sign_verify(&sign, &signer, COSE_SIGNATURES_MAX, &ct), COSE_ERR_NOMEM);
+    CU_ASSERT_EQUAL(cose_sign_verify(&sign, &signer, COSE_SIGNATURES_MAX, ver_buf, sizeof(ver_buf), &ct), COSE_ERR_NOMEM);
 
     CU_ASSERT_EQUAL(cur, 0);
 }
@@ -556,11 +557,11 @@ void test_sign9(void)
     CU_ASSERT_NOT_EQUAL(hdr, NULL);
     /* Verify with signature slot 0 */
     CU_ASSERT_EQUAL_FATAL(decode_success, 0);
-    int verification = cose_sign_verify(&verify, &signer, 0, &ct);
+    int verification = cose_sign_verify(&verify, &signer, 0, ver_buf, sizeof(ver_buf), &ct);
     CU_ASSERT_EQUAL(verification, 0);
     /* Modify payload */
     ((int*)(verify.payload))[0]++;
-    verification = cose_sign_verify(&verify, &signer, 0, &ct);
+    verification = cose_sign_verify(&verify, &signer, 0, ver_buf, sizeof(ver_buf), &ct);
     /* Should fail due to modified payload */
     CU_ASSERT_NOT_EQUAL(verification, 0);
     CU_ASSERT_EQUAL(cur, 0);
