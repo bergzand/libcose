@@ -1,8 +1,12 @@
-tags
-*.swp
-*.swo
-
 # C build files
 *.o
 build
 bin
+
+# Editor related
+tags
+*.swp
+*.swo
+
+# docs
+docs
