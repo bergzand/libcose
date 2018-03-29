@@ -10,3 +10,6 @@ tags
 
 # docs
 docs
+
+# cn-cbor as used by the CI
+cn-cbor
