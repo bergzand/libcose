@@ -11,14 +11,12 @@
  * Glue layer between libcose and libsodium
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
-#include <sodium/crypto_sign.h>
-#include <sodium/crypto_aead_xchacha20poly1305.h>
 #include "cose.h"
 #include "cose/crypto.h"
+#include <sodium/crypto_aead_xchacha20poly1305.h>
+#include <sodium/crypto_sign.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 int cose_crypto_aead_encrypt_chachapoly(unsigned char *c,
                                         unsigned char *mac,

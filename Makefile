@@ -19,7 +19,7 @@ INC_CBOR=$(CBOR_ROOT)/include
 LIB_CBOR_PATH=$(CBOR_ROOT)/build/dist/lib
 LIB_CBOR=$(LIB_CBOR_PATH)/libcn-cbor.so
 
-TIDYFLAGS=-checks=*,-clang-analyzer-alpha.*
+TIDYFLAGS=-checks=* -warnings-as-errors=*
 
 CFLAGS_COVERAGE += -coverage 
 CFLAGS_DEBUG += $(CFLAGS_COVERAGE) -g3
@@ -83,6 +83,8 @@ debug-test: CFLAGS += $(CFLAGS_DEBUG)
 debug-test: $(BIN_DIR)/test
 	LD_LIBRARY_PATH=$(LIB_CBOR_PATH) gdb $<
 
+clang-tidy:
+	$(TIDY) $(TIDYFLAGS) $(SRCS) -- $(CFLAGS)
 
 clean:
 	$(RM) $(BIN_DIR)
@@ -90,5 +92,5 @@ clean:
 print-%:
 	@echo $* = $($*)
 
-.PHONY: prepare clean test debug-test lib
+.PHONY: prepare clean test debug-test lib clang-tidy
 .SECONDARY: ${OBJS} ${OTESTS}
