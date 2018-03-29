@@ -11,7 +11,7 @@
 
 cose_err_t cose_intern_err_translate(cn_cbor_errback *errp)
 {
-    switch(errp->err) {
+    switch (errp->err) {
         case CN_CBOR_NO_ERROR:
             return COSE_OK;
         case CN_CBOR_ERR_OUT_OF_DATA:

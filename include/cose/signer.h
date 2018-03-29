@@ -42,7 +42,7 @@ int cose_signer_from_cbor(cose_signer_t *signer, cn_cbor *cn);
  * TODO: params
  */
 void cose_signer_set_keys(cose_signer_t *signer, cose_curve_t curve,
-        uint8_t* x, uint8_t* y, uint8_t* d);
+                          uint8_t *x, uint8_t *y, uint8_t *d);
 
 
 void cose_signer_init(cose_signer_t *signer);
@@ -51,12 +51,12 @@ cn_cbor *cose_signer_cbor_protected(const cose_signer_t *signer, cn_cbor_context
 /**
  * Set the KID value of a signer
  */
-void cose_signer_set_kid(cose_signer_t *signer, uint8_t* kid, size_t kid_len);
+void cose_signer_set_kid(cose_signer_t *signer, uint8_t *kid, size_t kid_len);
 
 /**
  * Serialize the protected header of a signer into the buffer
  */
-size_t cose_signer_serialize_protected(const cose_signer_t *signer, uint8_t* out, size_t outlen, cn_cbor_context *ct, cn_cbor_errback *errp);
+size_t cose_signer_serialize_protected(const cose_signer_t *signer, uint8_t *out, size_t outlen, cn_cbor_context *ct, cn_cbor_errback *errp);
 
 /**
  * Return the unprotected header as cn_cbor map

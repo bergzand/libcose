@@ -13,6 +13,6 @@
 #include "cn-cbor/cn-cbor.h"
 
 
-cn_cbor * cn_cbor_tag_create(int tag, cn_cbor * child, cn_cbor_context *ct, cn_cbor_errback * perr);
+cn_cbor *cn_cbor_tag_create(int tag, cn_cbor *child, cn_cbor_context *ct, cn_cbor_errback *perr);
 
 #endif

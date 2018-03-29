@@ -11,14 +11,14 @@
 #define COSE_DEFINES_H
 
 typedef enum {
-    COSE_OK = 0,                    /* Everything okay */
-    COSE_ERR_NOMEM = -1,            /* No memory for operation, e.g. allocator out of mem */
-    COSE_ERR_CRYPTO = -2,           /* Crypto error, e.g. invalid signature */
-    COSE_ERR_NOINIT = -3,           /* Initialization error */
-    COSE_ERR_INVALID_CBOR = -4,     /* CBOR related error */
-    COSE_ERR_CBOR_NOTSUP = -5,      /* CBOR unsupported error */
-    COSE_ERR_INVALID_PARAM = -6,    /* Invalid parameter passed to function */
-    COSE_ERR_NOT_FOUND = -7,        /* Header not found */
+    COSE_OK                 = 0,    /* Everything okay */
+    COSE_ERR_NOMEM          = -1,   /* No memory for operation, e.g. allocator out of mem */
+    COSE_ERR_CRYPTO         = -2,   /* Crypto error, e.g. invalid signature */
+    COSE_ERR_NOINIT         = -3,   /* Initialization error */
+    COSE_ERR_INVALID_CBOR   = -4,   /* CBOR related error */
+    COSE_ERR_CBOR_NOTSUP    = -5,   /* CBOR unsupported error */
+    COSE_ERR_INVALID_PARAM  = -6,   /* Invalid parameter passed to function */
+    COSE_ERR_NOT_FOUND      = -7,   /* Header not found */
 } cose_err_t;
 
 /**
@@ -34,13 +34,13 @@ typedef enum {
  */
 
 typedef enum {
-	COSE_UNKNOWN = 0,
-	COSE_SIGN = 98,
-	COSE_SIGN1 = 18,
-	COSE_ENVELOPED = 96,
-	COSE_ENCRYPT = 16,
-	COSE_MAC = 97,
-	COSE_MAC0 = 17,
+    COSE_UNKNOWN    = 0,
+    COSE_SIGN       = 98,
+    COSE_SIGN1      = 18,
+    COSE_ENVELOPED  = 96,
+    COSE_ENCRYPT    = 16,
+    COSE_MAC        = 97,
+    COSE_MAC0       = 17,
 } cose_cbor_tag_t;
 
 
@@ -52,7 +52,7 @@ typedef enum {
 } cose_hdr_type_t;
 
 #define COSE_HDR_FLAGS_PROTECTED     0x01 /* Header is in the protected bucket
-                                          * or in the unprotected if not set */
+                                           * or in the unprotected if not set */
 
 /**
  * COSE header parameters according to rfc 8152
@@ -90,27 +90,27 @@ typedef enum {
  * @url https://www.iana.org/assignments/cose/cose.xhtml#key-type
  */
 typedef enum {
-	COSE_KTY_OCTET  = 1,    /** Octet key pair (eddsa) */
-	COSE_KTY_EC2    = 2,    /** Elliptic curve */
-	COSE_KTY_RSA    = 3,    /** RSA */
-	COSE_KTY_SYMM   = 4,    /** Symmetric key types */
+    COSE_KTY_OCTET  = 1,    /** Octet key pair (eddsa) */
+    COSE_KTY_EC2    = 2,    /** Elliptic curve */
+    COSE_KTY_RSA    = 3,    /** RSA */
+    COSE_KTY_SYMM   = 4,    /** Symmetric key types */
 } cose_kty_t;
 
 typedef enum {
-    COSE_EC_CURVE_P256    = 1, /** secp256r1 */
-    COSE_EC_CURVE_P384    = 2, /** secp384r1 */
-    COSE_EC_CURVE_P521    = 3, /** secp521r1 */
-    COSE_EC_CURVE_X22519  = 4, /** X25519, ECDH only */
-    COSE_EC_CURVE_X448    = 5, /** X448, ECDH only */
-    COSE_EC_CURVE_ED25519 = 6, /** Ed25519 for EdDSA only */
-    COSE_EC_CURVE_ED448   = 7, /** Ed25519 for EdDSA only */
+    COSE_EC_CURVE_P256      = 1,    /** secp256r1 */
+    COSE_EC_CURVE_P384      = 2,    /** secp384r1 */
+    COSE_EC_CURVE_P521      = 3,    /** secp521r1 */
+    COSE_EC_CURVE_X22519    = 4,    /** X25519, ECDH only */
+    COSE_EC_CURVE_X448      = 5,    /** X448, ECDH only */
+    COSE_EC_CURVE_ED25519   = 6,    /** Ed25519 for EdDSA only */
+    COSE_EC_CURVE_ED448     = 7,    /** Ed25519 for EdDSA only */
 } cose_curve_t;
 
 typedef enum {
-    COSE_ALGO_ES512       = -36, /** ECDSA w/ SHA512 */
-    COSE_ALGO_ES384       = -35, /** ECDSA w/ SHA384 */
-    COSE_ALGO_ES256       = -7,  /** ECDSA w/ SHA256 */
-    COSE_ALGO_EDDSA       = -8,  /** EdDSA */
+    COSE_ALGO_ES512 = -36,          /** ECDSA w/ SHA512 */
+    COSE_ALGO_ES384 = -35,          /** ECDSA w/ SHA384 */
+    COSE_ALGO_ES256 = -7,           /** ECDSA w/ SHA256 */
+    COSE_ALGO_EDDSA = -8,           /** EdDSA */
 } cose_algo_t;
 
 #endif

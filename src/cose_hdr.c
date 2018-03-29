@@ -15,7 +15,8 @@
 bool cose_hdr_to_cbor_map(cose_hdr_t *hdr, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp)
 {
     cn_cbor *value = NULL;
-    switch(hdr->type) {
+
+    switch (hdr->type) {
         case COSE_HDR_TYPE_INT:
             value = cn_cbor_int_create(hdr->v.value, ct, errp);
             break;
@@ -57,7 +58,7 @@ bool cose_hdr_from_cbor_map(cose_hdr_t *hdr, cn_cbor *key, cn_cbor_context *ct, 
         return false;
     }
     cn_cbor *val = key->next;
-    switch(val->type) {
+    switch (val->type) {
         case CN_CBOR_UINT:
             hdr->v.value = (int32_t)val->v.uint;
             hdr->type = COSE_HDR_TYPE_INT;
@@ -89,12 +90,13 @@ bool cose_hdr_from_cbor_map(cose_hdr_t *hdr, cn_cbor *key, cn_cbor_context *ct, 
 }
 
 int cose_hdr_add_from_cbor(cose_hdr_t *hdr, size_t num, cn_cbor *map, uint8_t flags,
-        cn_cbor_context *ct, cn_cbor_errback *errp)
+                           cn_cbor_context *ct, cn_cbor_errback *errp)
 {
     cn_cbor *cp = NULL;
     unsigned idx = 0;
+
     for (cp = map->first_child; cp && cp->next && idx < num; cp = cp->next->next) {
-        for(;hdr->key != 0; hdr++, idx++) {
+        for (; hdr->key != 0; hdr++, idx++) {
             if (idx >= num) {
                 return COSE_ERR_NOMEM;
             }
@@ -112,6 +114,7 @@ int cose_hdr_add_from_cbor(cose_hdr_t *hdr, size_t num, cn_cbor *map, uint8_t fl
 int cose_hdr_add_hdr_value(cose_hdr_t *start, size_t num, int32_t key, uint8_t flags, int32_t value)
 {
     cose_hdr_t *hdr = cose_hdr_next_empty(start, num);
+
     if (!hdr) {
         return COSE_ERR_NOMEM;
     }
@@ -127,6 +130,7 @@ int cose_hdr_add_hdr_value(cose_hdr_t *start, size_t num, int32_t key, uint8_t f
 int cose_hdr_add_hdr_string(cose_hdr_t *start, size_t num, int32_t key, uint8_t flags, char *str)
 {
     cose_hdr_t *hdr = cose_hdr_next_empty(start, num);
+
     if (!hdr) {
         return COSE_ERR_NOMEM;
     }
@@ -142,6 +146,7 @@ int cose_hdr_add_hdr_string(cose_hdr_t *start, size_t num, int32_t key, uint8_t 
 int cose_hdr_add_hdr_data(cose_hdr_t *start, size_t num, int32_t key, uint8_t flags, uint8_t *data, size_t len)
 {
     cose_hdr_t *hdr = cose_hdr_next_empty(start, num);
+
     if (!hdr) {
         return COSE_ERR_NOMEM;
     }
@@ -158,6 +163,7 @@ int cose_hdr_add_hdr_data(cose_hdr_t *start, size_t num, int32_t key, uint8_t fl
 int cose_hdr_add_hdr_cbor(cose_hdr_t *start, size_t num, int32_t key, uint8_t flags, cn_cbor *cbor)
 {
     cose_hdr_t *hdr = cose_hdr_next_empty(start, num);
+
     if (!hdr) {
         return COSE_ERR_NOMEM;
     }
@@ -170,11 +176,11 @@ int cose_hdr_add_hdr_cbor(cose_hdr_t *start, size_t num, int32_t key, uint8_t fl
     return COSE_OK;
 }
 
-cose_hdr_t *cose_hdr_next_empty(cose_hdr_t *hdr, size_t  num)
+cose_hdr_t *cose_hdr_next_empty(cose_hdr_t *hdr, size_t num)
 {
     cose_hdr_t *res = NULL;
-    for (unsigned i = 0; i < num; i++, hdr++)
-    {
+
+    for (unsigned i = 0; i < num; i++, hdr++) {
         if (hdr->key == 0) {
             res = hdr;
             break;

@@ -17,9 +17,9 @@
  */
 
 #define CBOR_CATCH_ERR(cn_new, cn_top, ct)  if (!(cn_new)) { \
-                                                cn_cbor_free(cn_top, ct); \
-                                                return NULL; \
-                                            } \
+        cn_cbor_free(cn_top, ct); \
+        return NULL; \
+} \
 
 #define CBOR_CATCH_RET_ERR(cn_new, cn_top, ct, errp) \
     if (!(cn_new)) { \

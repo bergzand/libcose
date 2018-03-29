@@ -73,8 +73,8 @@ size_t cose_signer_serialize_protected(const cose_signer_t *signer, uint8_t *out
 {
     size_t res = 0;
     cn_cbor *cn_prot = cose_signer_cbor_protected(signer, ct, errp);
-    if (cn_prot)
-    {
+
+    if (cn_prot) {
         res = cn_cbor_encoder_write(out, 0, outlen, cn_prot);
         cn_cbor_free(cn_prot, ct);
     }
@@ -84,6 +84,7 @@ size_t cose_signer_serialize_protected(const cose_signer_t *signer, uint8_t *out
 int cose_signer_protected_to_map(const cose_signer_t *signer, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp)
 {
     cn_cbor *cn_algo = cn_cbor_int_create(_get_algo(signer), ct, errp);
+
     if (!cn_algo) {
         return -1;
     }
@@ -98,12 +99,11 @@ cn_cbor *cose_signer_cbor_protected(const cose_signer_t *signer, cn_cbor_context
 {
     /* TODO: add key restriction hdr */
     cn_cbor *cn_map = cn_cbor_map_create(ct, errp);
-    if (!cn_map)
-    {
+
+    if (!cn_map) {
         return NULL;
     }
-    if (cose_signer_protected_to_map(signer, cn_map, ct, errp) < 0)
-    {
+    if (cose_signer_protected_to_map(signer, cn_map, ct, errp) < 0) {
         cn_cbor_free(cn_map, ct);
         return NULL;
     }
@@ -113,6 +113,7 @@ cn_cbor *cose_signer_cbor_protected(const cose_signer_t *signer, cn_cbor_context
 int cose_signer_unprotected_to_map(const cose_signer_t *signer, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp)
 {
     cn_cbor *cn_kid = cn_cbor_data_create(signer->kid, signer->kid_len, ct, errp);
+
     if (!cn_kid) {
         return -1;
     }
@@ -127,12 +128,11 @@ int cose_signer_unprotected_to_map(const cose_signer_t *signer, cn_cbor *map, cn
 cn_cbor *cose_signer_cbor_unprotected(const cose_signer_t *signer, cn_cbor_context *ct, cn_cbor_errback *errp)
 {
     cn_cbor *cn_map = cn_cbor_map_create(ct, errp);
-    if (!cn_map)
-    {
+
+    if (!cn_map) {
         return NULL;
     }
-    if (cose_signer_unprotected_to_map(signer, cn_map, ct, errp) < 0)
-    {
+    if (cose_signer_unprotected_to_map(signer, cn_map, ct, errp) < 0) {
         cn_cbor_free(cn_map, ct);
         return NULL;
     }

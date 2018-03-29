@@ -18,9 +18,10 @@ static bool _append_kv(cn_cbor *cb_map, cn_cbor *key, cn_cbor *val)
     val->parent = cb_map;
     val->next = NULL;
 
-    if(cb_map->last_child) {
+    if (cb_map->last_child) {
         cb_map->last_child->next = key;
-    } else {
+    }
+    else {
         cb_map->first_child = key;
     }
     cb_map->last_child = val;
@@ -33,19 +34,20 @@ static bool _append_kv(cn_cbor *cb_map, cn_cbor *key, cn_cbor *val)
 bool cn_cbor_map_merge(cn_cbor *first, cn_cbor *second, cn_cbor_errback *perr)
 {
     //Make sure input is a map. Otherwise
-    if(!first || !second ||
-            first->type != CN_CBOR_MAP ||
-            second->type != CN_CBOR_MAP) {
-        if (perr) {perr->err = CN_CBOR_ERR_INVALID_PARAMETER;}
+    if (!first || !second ||
+        first->type != CN_CBOR_MAP ||
+        second->type != CN_CBOR_MAP) {
+        if (perr) {
+            perr->err = CN_CBOR_ERR_INVALID_PARAMETER;
+        }
         return false;
     }
     cn_cbor *cp;
-    for (cp = second->first_child; cp && cp->next; cp = cp->next->next)
-    {
+    for (cp = second->first_child; cp && cp->next; cp = cp->next->next) {
         _append_kv(first, cp, cp->next);
     }
-    second->first_child=NULL;
-    second->last_child=NULL;
+    second->first_child = NULL;
+    second->last_child = NULL;
     return true;
 }
 

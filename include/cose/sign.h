@@ -41,9 +41,9 @@ typedef struct cose_sign {
     size_t payload_len;
     uint8_t *ext_aad;
     size_t ext_aad_len;
-    const uint8_t *hdr_prot_ser; /* Serialized form of the protected header */
-    size_t hdr_prot_ser_len;     /* Length of the serialized protected header */
-    uint16_t flags;              /* Flags as defined */
+    const uint8_t *hdr_prot_ser;    /* Serialized form of the protected header */
+    size_t hdr_prot_ser_len;        /* Length of the serialized protected header */
+    uint16_t flags;                 /* Flags as defined */
     uint8_t num_sigs;
     cose_hdr_t hdrs[COSE_SIGN_HDR_MAX];
     cose_signature_t sigs[COSE_SIGNATURES_MAX];  /** Signer data pointer */
@@ -54,9 +54,9 @@ static const char SIG_TYPE_SIGNATURE1[] = "Signature1";
 static const char SIG_TYPE_COUNTERSIGNATURE[] = "CounterSignature";
 
 /* Strip zero terminators */
-#define COSE_SIGN_STR_SIGNATURE_LEN         (sizeof(signature)-1)
-#define COSE_SIGN_STR_SIGNATURE1_LEN        (sizeof(signature1)-1)
-#define COSE_SIGN_STR_COUNTERSIGNATURE_LEN  (sizeof(countersignature)-1)
+#define COSE_SIGN_STR_SIGNATURE_LEN         (sizeof(signature) - 1)
+#define COSE_SIGN_STR_SIGNATURE1_LEN        (sizeof(signature1) - 1)
+#define COSE_SIGN_STR_COUNTERSIGNATURE_LEN  (sizeof(countersignature) - 1)
 /**
  * cose_sign_init initializes a sign struct
  *
@@ -151,7 +151,7 @@ static inline int cose_sign_add_hdr_data(cose_sign_t *sign, int32_t key, uint8_t
     return cose_hdr_add_hdr_data(sign->hdrs, COSE_SIGN_HDR_MAX, key, flags, data, len);
 }
 
-static inline int cose_sign_add_hdr_cbor  (cose_sign_t *sign, int32_t key, uint8_t flags, cn_cbor *cbor)
+static inline int cose_sign_add_hdr_cbor(cose_sign_t *sign, int32_t key, uint8_t flags, cn_cbor *cbor)
 {
     return cose_hdr_add_hdr_cbor(sign->hdrs, COSE_SIGN_HDR_MAX, key, flags, cbor);
 }
@@ -164,6 +164,7 @@ static inline int cose_sign_set_ct(cose_sign_t *sign, int32_t value)
 {
     int res = COSE_OK;
     cose_hdr_t *hdr = cose_hdr_get(sign->hdrs, COSE_SIGN_HDR_MAX, COSE_HDR_CONTENT_TYPE);
+
     if (!hdr) {
         res = cose_sign_add_hdr_value(sign, COSE_HDR_CONTENT_TYPE, COSE_HDR_FLAGS_PROTECTED, value);
     }
