@@ -456,7 +456,6 @@ int cose_sign_decode(cose_sign_t *sign, const uint8_t *buf, size_t len, cn_cbor_
         cose_signature_t *psig = &(sign->sigs[0]);
         psig->hdr_protected = NULL;
         psig->hdr_protected_len = 0;
-        psig->hdr_unprotected = cn_hdr_unprot;
         psig->signature = cn_sigs->v.bytes;
         psig->signature_len = cn_sigs->length;
         sign->num_sigs = 1;

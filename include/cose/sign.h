@@ -21,9 +21,8 @@
  * Readily received or supplied signature structure
  */
 typedef struct cose_signature {
-    const uint8_t *hdr_protected;
-    size_t hdr_protected_len;
-    cn_cbor *hdr_unprotected;
+    const uint8_t *hdr_protected;   /* Pointer to the protected header */
+    size_t hdr_protected_len;       /* Protected header length */
     const uint8_t *signature;
     size_t signature_len;
     const cose_signer_t *signer;
