@@ -32,7 +32,8 @@ ifeq ($(CRYPTO), sodium)
 	CFLAGS+=-DCRYPTO_SODIUM
 	CRYPTOLIB=libsodium
 	CRYPTOSRC=$(SRC_DIR)/crypt/sodium.c
-	CFLAGS += $(shell pkg-config --libs --cflags $(CRYPTOLIB))
+	CFLAGS_CRYPTO += $(shell pkg-config --cflags $(CRYPTOLIB))
+	LDFLAGS_CRYPTO += -Wl,$(shell pkg-config --libs $(CRYPTOLIB))
 endif
 ifeq ($(CRYPTO), tweetnacl)
 	CFLAGS+=-DCRYPTO_TWEETNACL
@@ -48,7 +49,10 @@ TESTS+=$(wildcard $(TEST_DIR)/*.c)
 OBJS=$(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRCS))
 OTESTS=$(patsubst %.c,$(OBJ_DIR)/%.o,$(TESTS))
 
-CFLAGS_TEST+=$(shell pkg-config --libs --cflags cunit)
+CFLAGS_TEST += $(shell pkg-config --cflags cunit)
+LDFLAGS_TEST += -Wl,$(shell pkg-config --libs cunit || echo -lcunit)
+
+LDFLAGS += $(LDFLAGS_CRYPTO)
 
 lib: $(BIN_DIR)/libcose.so
 
@@ -64,8 +68,10 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 $(OBJ_DIR)/tests/%.o: $(TEST_DIR)/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
+$(BIN_DIR)/test: CFLAGS += $(CFLAGS_TEST)
+$(BIN_DIR)/test: LDFLAGS += $(LDFLAGS_TEST)
 $(BIN_DIR)/test: $(OBJS) $(OTESTS) prepare
-	$(CC) $(CFLAGS) $(CFLAGS_TEST) $(OBJS) $(OTESTS) -o $@ -Wl,$(LIB_CBOR)  
+	$(CC) $(CFLAGS) $(OBJS) $(OTESTS) -o $@ -Wl,$(LIB_CBOR) $(LDFLAGS)
 
 $(BIN_DIR)/libcose.so: $(OBJS) prepare
 	$(CC) $(CFLAGS) $(OBJS) -o $@ -Wl,$(LIB_CBOR) -shared
