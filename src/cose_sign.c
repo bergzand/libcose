@@ -212,11 +212,11 @@ int cose_sign_add_signer(cose_sign_t *sign, const cose_signer_t *signer)
     return COSE_OK;
 }
 
-int cose_sign_generate_signature(cose_sign_t *sign, cose_signature_t *sig, uint8_t *buf, size_t bufsize, cn_cbor_context *ct)
+int cose_sign_generate_signature(cose_sign_t *sign, cose_signature_t *sig, uint8_t *buf, size_t len, cn_cbor_context *ct)
 {
     cn_cbor_errback errp;
     uint8_t *buf_cbor = buf + cose_crypto_sig_size_ed25519();
-    size_t cbor_space = bufsize - cose_crypto_sig_size_ed25519();
+    size_t cbor_space = len - cose_crypto_sig_size_ed25519();
 
     if (!sig->signer) {
         return COSE_ERR_NOINIT;
@@ -260,7 +260,7 @@ int cose_sign_generate_signature(cose_sign_t *sign, cose_signature_t *sig, uint8
 
 
 /* TODO: splitme */
-ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t bufsize, cn_cbor_context *ct)
+ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, cn_cbor_context *ct)
 {
     cn_cbor_errback errp;
     /* The buffer here is used to contain dummy data a number of times */
@@ -275,35 +275,35 @@ ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t bufsize, cn_cbo
     /* build cbor payload structure with signer array */
     /* Serialize protected so we know the length */
     {
-        size_t len = _serialize_cbor_protected(sign, buf, bufsize, ct, &errp);
-        if (!len) {
+        size_t prot_len = _serialize_cbor_protected(sign, buf, len, ct, &errp);
+        if (!prot_len) {
             return cose_intern_err_translate(&errp);
         }
-        sign->hdr_prot_ser_len = len;
+        sign->hdr_prot_ser_len = prot_len;
         sign->hdr_prot_ser = buf;
     }
     /* First generate all required signatures */
     for (int i = 0; i < sign->num_sigs; i++) {
-        size_t len = 0;
+        size_t sig_prot_len = 0;
         cose_signature_t *sig = &(sign->sigs[i]);
         /* Get to know the protected header length
          * Don't set if when using sign1, it is added to the body headers */
         if (!_is_sign1(sign)) {
-            len = cose_signer_serialize_protected(sig->signer, buf, bufsize, ct, &errp);
-            if (!len) {
+            sig_prot_len = cose_signer_serialize_protected(sig->signer, buf, len, ct, &errp);
+            if (!sig_prot_len) {
                 return cose_intern_err_translate(&errp);
             }
         }
-        sig->hdr_protected_len = len;
+        sig->hdr_protected_len = sig_prot_len;
         sig->hdr_protected = buf;
 
         /* Start generating the signature */
-        int res = cose_sign_generate_signature(sign, sig, buf, bufsize, ct);
+        int res = cose_sign_generate_signature(sign, sig, buf, len, ct);
         if (res != COSE_OK) {
             return res;
         }
         buf += sig->signature_len;
-        bufsize -= sig->signature_len;
+        len -= sig->signature_len;
     }
     /* Create the main array */
     cn_cbor *cn_arr = cn_cbor_array_create(ct, &errp);
@@ -358,7 +358,7 @@ ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t bufsize, cn_cbo
     }
 
     /* Serialize array */
-    size_t res = cn_cbor_encoder_write(buf, 0, bufsize, cn_top);
+    size_t res = cn_cbor_encoder_write(buf, 0, len, cn_top);
     cn_cbor_free(cn_top, ct);
 
     /* Deserialize again to fill protected headers */
@@ -492,13 +492,13 @@ cose_hdr_t *cose_sign_get_header(cose_sign_t *sign, int32_t key)
 
 cose_hdr_t *cose_sign_get_protected(cose_sign_t *sign, int32_t key)
 {
-    return cose_hdr_get_flagged(sign->hdrs, COSE_SIGN_HDR_MAX,
-                                key, true);
+    return cose_hdr_get_bucket(sign->hdrs, COSE_SIGN_HDR_MAX,
+                               key, true);
 }
 
 cose_hdr_t *cose_sign_get_unprotected(cose_sign_t *sign, int32_t key)
 {
-    return cose_hdr_get_flagged(sign->hdrs, COSE_SIGN_HDR_MAX, key, false);
+    return cose_hdr_get_bucket(sign->hdrs, COSE_SIGN_HDR_MAX, key, false);
 }
 
 /* Try to verify the structure with a signer and a signature idx */

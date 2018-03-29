@@ -63,19 +63,19 @@ void cose_signer_set_keys(cose_signer_t *signer, cose_curve_t curve,
     signer->d = d;
 }
 
-void cose_signer_set_kid(cose_signer_t *signer, uint8_t *kid, size_t kid_len)
+void cose_signer_set_kid(cose_signer_t *signer, uint8_t *kid, size_t len)
 {
     signer->kid = kid;
-    signer->kid_len = kid_len;
+    signer->kid_len = len;
 }
 
-size_t cose_signer_serialize_protected(const cose_signer_t *signer, uint8_t *out, size_t outlen, cn_cbor_context *ct, cn_cbor_errback *errp)
+size_t cose_signer_serialize_protected(const cose_signer_t *signer, uint8_t *buf, size_t len, cn_cbor_context *ct, cn_cbor_errback *errp)
 {
     size_t res = 0;
     cn_cbor *cn_prot = cose_signer_cbor_protected(signer, ct, errp);
 
     if (cn_prot) {
-        res = cn_cbor_encoder_write(out, 0, outlen, cn_prot);
+        res = cn_cbor_encoder_write(buf, 0, len, cn_prot);
         cn_cbor_free(cn_prot, ct);
     }
     return res;

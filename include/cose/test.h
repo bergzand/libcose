@@ -10,11 +10,17 @@
 #ifndef COSE_TEST_H
 #define COSE_TEST_H
 
-
+/**
+ * Function prototype for a test function
+ */
 typedef void (*test_func)(void);
+
+/**
+ * Struct to define a test
+ */
 typedef struct test {
-    const test_func f;
-    const char *n;
+    const test_func f;  /**< Function to run as test */
+    const char *n;      /**< Name or description of the test */
 } test_t;
 
 #endif

@@ -16,8 +16,39 @@
 #include <stdint.h>
 #include <string.h>
 #include <sodium/crypto_sign.h>
+#include <sodium/crypto_aead_xchacha20poly1305.h>
 #include "cose.h"
 #include "cose/crypto.h"
+
+int cose_crypto_aead_encrypt_chachapoly(unsigned char *c,
+                                        unsigned char *mac,
+                                        unsigned long long *maclen_p,
+                                        const unsigned char *m,
+                                        unsigned long long mlen,
+                                        const unsigned char *ad,
+                                        unsigned long long adlen,
+                                        const unsigned char *npub,
+                                        const unsigned char *k)
+{
+    return crypto_aead_xchacha20poly1305_ietf_encrypt_detached(c, mac, maclen_p, m, mlen, ad, adlen, NULL, npub, k);
+}
+
+int cose_crypto_aead_decrypt_chachapoly(unsigned char *m,
+                                        const unsigned char *c,
+                                        unsigned long long clen,
+                                        const unsigned char *mac,
+                                        const unsigned char *ad,
+                                        unsigned long long adlen,
+                                        const unsigned char *npub,
+                                        const unsigned char *k)
+{
+    return crypto_aead_xchacha20poly1305_ietf_decrypt_detached(m, NULL, c, clen, mac, ad, adlen, npub, k);
+}
+
+void cose_crypto_aead_keypair_chachapoly(uint8_t *sk)
+{
+    crypto_aead_xchacha20poly1305_ietf_keygen((unsigned char*)sk);
+}
 
 void cose_crypto_sign_ed25519(uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen, uint8_t *skey)
 {
