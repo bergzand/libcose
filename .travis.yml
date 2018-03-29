@@ -9,10 +9,11 @@ before_install:
  - sudo add-apt-repository -y ppa:ondrej/php
  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
  - sudo apt-get update
- - sudo apt-get --yes install gcc-6 cmake cmake-data libcunit1-dev libsodium-dev
+ - sudo apt-get --yes install gcc-6 cmake cmake-data libcunit1-dev libsodium-dev clang-tidy-3.9
 
 script:
  - git clone https://github.com/cabo/cn-cbor cn-cbor
  - pushd cn-cbor && mkdir build && pushd build && cmake -Duse_context=on .. && make all && popd
  - popd
+ - make clang-tidy CRYPTO=sodium CBOR_ROOT=${PWD}/cn-cbor
  - make test CRYPTO=sodium CBOR_ROOT=${PWD}/cn-cbor CC=gcc-6
