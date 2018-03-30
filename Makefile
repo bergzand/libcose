@@ -49,7 +49,7 @@ TESTS+=$(wildcard $(TEST_DIR)/*.c)
 OBJS=$(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRCS))
 OTESTS=$(patsubst %.c,$(OBJ_DIR)/%.o,$(TESTS))
 
-CFLAGS_TEST += $(shell pkg-config --cflags cunit)
+CFLAGS_TEST += $(shell pkg-config --cflags cunit) $(CFLAGS_COVERAGE)
 LDFLAGS_TEST += -Wl,$(shell pkg-config --libs cunit || echo -lcunit)
 
 LDFLAGS += $(LDFLAGS_CRYPTO)
