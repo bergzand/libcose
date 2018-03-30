@@ -25,7 +25,10 @@ To build a shared library from libcose:
 make lib
 ```
 
-Default libcose will try to link against libsodium.
+Default libcose will try to link against libsodium for the crypto. Note that
+libcose also requires cn-cbor compiled with context pointer support. When
+building cn-cbor, please use `cmake -Duse_context=ON` to enable the context
+pointer.
 
 ### Testing
 
