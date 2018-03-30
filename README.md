@@ -25,7 +25,10 @@ To build a shared library from libcose:
 make lib
 ```
 
-Default libcose will try to link against libsodium.
+Default libcose will try to link against libsodium for the crypto. Note that
+libcose also requires cn-cbor compiled with context pointer support. When
+building cn-cbor, please use `cmake -Duse_context=ON` to enable the context
+pointer.
 
 ### Testing
 
@@ -35,6 +38,12 @@ CUnit as test framework. Running al tests is done with
 ```
 make test
 ```
+
+### Contributing
+
+Open an issue, PR, the usual. Builds must pass before merging. Currently
+Travis tests the full test suite. In addition Travis also runs clang-tidy
+to check for simple style and code mistakes.
 
 ### Limitations
 
