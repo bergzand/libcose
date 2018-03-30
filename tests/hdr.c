@@ -9,11 +9,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "cose/hdr.h"
 #include "cose/test.h"
 #include <cn-cbor/cn-cbor.h>
 #include <CUnit/CUnit.h>
 
+#define HDRS_SIZE   4
 /* CN_CBOR calloc functions */
 static void *cose_calloc(size_t count, size_t size, void *context)
 {
@@ -174,6 +176,25 @@ void test_hdr9(void)
     CU_ASSERT_FALSE(cose_hdr_from_cbor_map(&header, cn_map->first_child, &ct, &errp));
 }
 
+void test_hdr10(void)
+{
+    cose_hdr_t hdrs[HDRS_SIZE];
+    char test_input[] = "data";
+    cn_cbor map;
+    memset(hdrs, 0, sizeof(hdrs));
+    memset(&map, 0, sizeof(map));
+    /* Fill the array */
+    CU_ASSERT_EQUAL(cose_hdr_add_hdr_value(hdrs, HDRS_SIZE, 1, 0, 1), 0);
+    CU_ASSERT_EQUAL(cose_hdr_add_hdr_string(hdrs, HDRS_SIZE, 2, 0, test_input), 0);
+    CU_ASSERT_EQUAL(cose_hdr_add_hdr_data(hdrs, HDRS_SIZE, 3, 0, (uint8_t*)test_input, sizeof(test_input)), 0);
+    CU_ASSERT_EQUAL(cose_hdr_add_hdr_cbor(hdrs, HDRS_SIZE, 4, 0, &map), 0);
+
+    /* Array should be full now */
+    CU_ASSERT_NOT_EQUAL(cose_hdr_add_hdr_value(hdrs, HDRS_SIZE, 5, 0, 1), 0);
+    CU_ASSERT_NOT_EQUAL(cose_hdr_add_hdr_string(hdrs, HDRS_SIZE, 6, 0, test_input), 0);
+    CU_ASSERT_NOT_EQUAL(cose_hdr_add_hdr_data(hdrs, HDRS_SIZE, 7, 0, (uint8_t*)test_input, sizeof(test_input)), 0);
+    CU_ASSERT_NOT_EQUAL(cose_hdr_add_hdr_cbor(hdrs, HDRS_SIZE, 8, 0, &map), 0);
+}
 
 const test_t tests_hdr[] = {
     {
@@ -211,6 +232,10 @@ const test_t tests_hdr[] = {
     {
         .f = test_hdr9,
         .n = "Invalid header conversion to CBOR",
+    },
+    {
+        .f = test_hdr10,
+        .n = "Header additions Out of memory",
     },
     {
         .f = NULL,
