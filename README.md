@@ -39,6 +39,12 @@ CUnit as test framework. Running al tests is done with
 make test
 ```
 
+### Contributing
+
+Open an issue, PR, the usual. Builds must pass before merging. Currently
+Travis tests the full test suite. In addition Travis also runs clang-tidy
+to check for simple style and code mistakes.
+
 ### Limitations
 
 Due to time constraints, for now only signing is implemented. Contributions
