@@ -17,9 +17,11 @@ static char additional_data[] = "Extra signed data";
 static unsigned char pk[crypto_sign_PUBLICKEYBYTES];
 static unsigned char sk[crypto_sign_SECRETKEYBYTES];
 static unsigned char aead_sk[crypto_aead_xchacha20poly1305_ietf_KEYBYTES];
-static unsigned char nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
+static unsigned char nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES] = { 0 };
 
-unsigned char ciphertext[sizeof(payload) + crypto_aead_xchacha20poly1305_ietf_ABYTES];
+unsigned char ciphertext[sizeof(payload)];
+unsigned char plaintext[sizeof(payload)];
+unsigned char tag[crypto_aead_chacha20poly1305_IETF_ABYTES];
 
 
 #define MLEN (sizeof(payload))
@@ -40,9 +42,13 @@ void test_crypto1(void)
 void test_crypto2(void)
 {
     /* Generate key */
+    unsigned long long taglen;
     cose_crypto_aead_keypair_chachapoly(aead_sk);
-    (void)nonce;
-    (void)additional_data;
+    cose_crypto_aead_encrypt_chachapoly(ciphertext, tag, &taglen, (unsigned char *)payload, sizeof(payload), (unsigned char *)additional_data, sizeof(additional_data), nonce, aead_sk);
+    CU_ASSERT_EQUAL(
+        cose_crypto_aead_decrypt_chachapoly(plaintext, ciphertext, sizeof(payload), tag, (unsigned char *)additional_data, sizeof(additional_data), nonce, aead_sk),
+        0 );
+    CU_ASSERT_EQUAL(memcmp(payload, plaintext, sizeof(payload)), 0);
 }
 
 const test_t tests_crypto[] = {
