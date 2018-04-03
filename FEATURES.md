@@ -20,7 +20,7 @@ list of features that are supported at the moment by this library
 - [x] Sign1 support for signing
 - [x] Sign1 support for verification
 - [ ] Countersignature support
-- [ ] External Payload support
+- [x] External Payload support
 - [x] Additional authenticated data support
 - [x] Untagged support
 - [x] Tagged support
