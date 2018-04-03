@@ -499,7 +499,7 @@ void test_sign7(void)
     cose_signer_set_keys(&signer, COSE_EC_CURVE_ED25519, pk, NULL, sk);
     cose_signer_set_kid(&signer, (uint8_t*)kid, sizeof(kid) - 1);
     for(unsigned i = 0; i < COSE_SIGNATURES_MAX; i++) {
-        CU_ASSERT_EQUAL(cose_sign_add_signer(&sign, &signer), COSE_OK);
+        CU_ASSERT_EQUAL(cose_sign_add_signer(&sign, &signer), i);
     }
     CU_ASSERT_EQUAL(cose_sign_add_signer(&sign, &signer), COSE_ERR_NOMEM);
     CU_ASSERT_EQUAL(cur, 0);

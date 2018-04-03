@@ -201,11 +201,7 @@ int cose_sign_add_signer(cose_sign_t *sign, const cose_signer_t *signer)
     cose_signature_t *sig = &(sign->sigs[sign->num_sigs]);
     sig->signer = signer;
 
-    /* Add unprotected headers to the signature struct */
-
-    /* Serialize signer protected headers */
-    sign->num_sigs++;
-    return COSE_OK;
+    return sign->num_sigs++;
 }
 
 int cose_sign_generate_signature(cose_sign_t *sign, cose_signature_t *sig, uint8_t *buf, size_t len, cn_cbor_context *ct)

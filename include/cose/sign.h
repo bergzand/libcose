@@ -120,7 +120,7 @@ void cose_sign_set_external_aad(cose_sign_t *sign, void *ext, size_t len);
  * @param sign      Sign struct to operate on
  * @param signer    The signer to sign with
  *
- * @return          0 on success
+ * @return          The index of the allocated sig on success
  * @return          negative on failure
  */
 int cose_sign_add_signer(cose_sign_t *sign, const cose_signer_t *signer);
