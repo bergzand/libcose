@@ -576,6 +576,57 @@ void test_sign9(void)
     CU_ASSERT_EQUAL(cur, 0);
 }
 
+/* External payload signer test */
+void test_sign10(void)
+{
+    cur = 0;
+    max = 0;
+    total = 0;
+    cap_limit = 1000;
+    alloc_limit = 1000;
+
+    uint8_t *psign = NULL;
+    char sign1_payload[] = "Input string";
+    memset(buf, 0, sizeof(buf));
+    cose_sign_t sign, verify;
+    cose_signer_t signer;
+    /* Initialize struct */
+    cose_sign_init(&sign, COSE_FLAGS_EXTDATA);
+
+    /* Add payload */
+    cose_sign_set_payload(&sign, sign1_payload, strlen(sign1_payload));
+
+    /* First signer */
+    cose_crypto_keypair_ed25519(pk, sk);
+    cose_signer_init(&signer);
+    cose_signer_set_keys(&signer, COSE_EC_CURVE_ED25519, pk, NULL, sk);
+    cose_signer_set_kid(&signer, (uint8_t*)kid, sizeof(kid) - 1);
+    cose_sign_add_signer(&sign, &signer);
+
+    /* Encode COSE sign object */
+    size_t encode_size = cose_sign_encode(&sign, buf, sizeof(buf), &psign, &ct);
+    CU_ASSERT_NOT_EQUAL_FATAL(encode_size, 0);
+
+    cose_sign_init(&verify, 0);
+    /* Decode again */
+    int decode_success = cose_sign_decode(&verify, psign, encode_size, &ct);
+    CU_ASSERT(verify.flags & COSE_FLAGS_EXTDATA);
+    CU_ASSERT_EQUAL(verify.payload_len, 0);
+    CU_ASSERT_EQUAL(verify.payload, NULL);
+    cose_sign_set_payload(&verify, sign1_payload, strlen(sign1_payload));
+
+    /* Verify with signature slot 0 */
+    CU_ASSERT_EQUAL_FATAL(decode_success, 0);
+    int verification = cose_sign_verify(&verify, &signer, 0, ver_buf, sizeof(ver_buf), &ct);
+    CU_ASSERT_EQUAL(verification, 0);
+    /* Modify payload */
+    ((int*)(verify.payload))[0]++;
+    verification = cose_sign_verify(&verify, &signer, 0, ver_buf, sizeof(ver_buf), &ct);
+    /* Should fail due to modified payload */
+    CU_ASSERT_NOT_EQUAL(verification, 0);
+    CU_ASSERT_EQUAL(cur, 0);
+}
+
 const test_t tests_sign[] = {
     {
         .f = test_sign1,
@@ -612,6 +663,10 @@ const test_t tests_sign[] = {
     {
         .f = test_sign9,
         .n = "Content type header test",
+    },
+    {
+        .f = test_sign10,
+        .n = "External payload header test",
     },
     {
         .f = NULL,
