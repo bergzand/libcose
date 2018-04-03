@@ -48,7 +48,7 @@ static cn_cbor *_sign_sig_cbor(cose_sign_t *sign, cose_signature_t *sig, const c
         cn_cbor_array_append(cn_arr, cn_signer_prot, errp);
     }
 
-    /* Empty external aad */
+    /* External aad */
     cn_cbor *cn_external = cn_cbor_data_create(sign->ext_aad, sign->ext_aad_len, ct, errp);
     CBOR_CATCH_ERR(cn_external, cn_arr, ct);
     cn_cbor_array_append(cn_arr, cn_external, errp);
@@ -313,9 +313,16 @@ ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, uint8_t **
     CBOR_CATCH_RET_ERR(cn_unprot, cn_arr, ct, &errp);
     cn_cbor_array_append(cn_arr, cn_unprot, &errp);
     /* Create payload */
-    cn_cbor *cn_payload = cn_cbor_data_create(sign->payload, sign->payload_len, ct, &errp);
-    CBOR_CATCH_RET_ERR(cn_payload, cn_arr, ct, &errp);
-    cn_cbor_array_append(cn_arr, cn_payload, &errp);
+    if (cose_flag_isset(sign->flags, COSE_FLAGS_EXTDATA)) {
+        cn_cbor *cn_payload = cn_cbor_data_create(NULL, 0, ct, &errp);
+        CBOR_CATCH_RET_ERR(cn_payload, cn_arr, ct, &errp);
+        cn_cbor_array_append(cn_arr, cn_payload, &errp);
+    }
+    else {
+        cn_cbor *cn_payload = cn_cbor_data_create(sign->payload, sign->payload_len, ct, &errp);
+        CBOR_CATCH_RET_ERR(cn_payload, cn_arr, ct, &errp);
+        cn_cbor_array_append(cn_arr, cn_payload, &errp);
+    }
 
     /* cn_arr contains the framework for our COSE sign struct.
      * The cn_prot would contain nonsense when serialized now, but we don't
@@ -411,9 +418,15 @@ int cose_sign_decode(cose_sign_t *sign, const uint8_t *buf, size_t len, cn_cbor_
 
     sign->hdr_prot_ser = cn_hdr_prot->v.bytes;
     sign->hdr_prot_ser_len = cn_hdr_prot->length;
-    sign->payload = cn_payload->v.bytes;
     sign->payload_len = cn_payload->length;
-
+    if (!sign->payload_len) {
+        /* Zero payload length, thus external payload */
+        sign->flags |= COSE_FLAGS_EXTDATA;
+        sign->payload = NULL;
+    }
+    else {
+        sign->payload = cn_payload->v.bytes;
+    }
     /* Fill protected headers */
     cose_hdr_add_prot_from_cbor(sign->hdrs, COSE_SIGN_HDR_MAX, cn_hdr_prot->v.bytes, cn_hdr_prot->length, ct, &errp);
     /* Fill unprotected headers */
