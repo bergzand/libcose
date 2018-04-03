@@ -164,6 +164,20 @@ int cose_hdr_add_from_cbor(cose_hdr_t *hdr, size_t num, cn_cbor *map, uint8_t fl
                            cn_cbor_context *ct, cn_cbor_errback *errp);
 
 /**
+ * Iterate over the headers and add them to a supplied cbor map
+ *
+ * @param   hdr     Header struct array to feed from
+ * @param   num     Number of headers in the array
+ * @param   map     Map to add headers to
+ * @param   prot    True adds only protected, false only unprotected
+ * @param   ct      CN_CBOR context for cbor block allocation
+ * @param   errp    error return struct from cn-cbor
+ *
+ * @return          True when succeeded
+ */
+bool cose_hdr_add_to_map(cose_hdr_t *hdr, size_t num, cn_cbor *map, bool prot, cn_cbor_context *ct, cn_cbor_errback *errp);
+
+/**
  * Convert a cbor unprotected header representation to cose_hdr_t structs
  *
  * @param   hdr     Header struct array to fill
