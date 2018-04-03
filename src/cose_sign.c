@@ -73,24 +73,11 @@ static ssize_t _sign_sig_encode(cose_sign_t *sign, cose_signature_t *sig, const 
     return (ssize_t)len;
 }
 
-static int _add_cbor_unprotected(cose_sign_t *sign, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp)
-{
-    for (unsigned i = 0; i < COSE_SIGN_HDR_MAX; i++) {
-        cose_hdr_t *hdr = &sign->hdrs[i];
-        if (hdr->key == 0 || cose_hdr_is_protected(hdr)) {
-            continue;
-        }
-        /* TODO: Error catch */
-        cose_hdr_to_cbor_map(hdr, map, ct, errp);
-    }
-    return 0;
-}
-
 static cn_cbor *_cbor_unprotected(cose_sign_t *sign, cn_cbor_context *ct, cn_cbor_errback *errp)
 {
     cn_cbor *map = cn_cbor_map_create(ct, errp);
 
-    if (_add_cbor_unprotected(sign, map, ct, errp) < 0) {
+    if (!cose_hdr_add_to_map(sign->hdrs, COSE_SIGN_HDR_MAX, map, false, ct, errp)) {
         return NULL;
     }
     if (_is_sign1(sign)) {
@@ -102,27 +89,11 @@ static cn_cbor *_cbor_unprotected(cose_sign_t *sign, cn_cbor_context *ct, cn_cbo
     return map;
 }
 
-static int _add_cbor_protected(cose_sign_t *sign, cn_cbor *map,
-                               cn_cbor_context *ct, cn_cbor_errback *errp)
-{
-    for (unsigned i = 0; i < COSE_SIGN_HDR_MAX; i++) {
-        cose_hdr_t *hdr = &sign->hdrs[i];
-        if (hdr->key == 0 || !(cose_hdr_is_protected(hdr))) {
-            continue;
-        }
-        /* TODO: Error catch */
-        cose_hdr_to_cbor_map(hdr, map, ct, errp);
-    }
-    return 0;
-}
-
 static cn_cbor *_build_cbor_protected(cose_sign_t *sign,
                                       cn_cbor_context *ct, cn_cbor_errback *errp)
 {
-    /* No support for protected content headers yet, returning an empty map */
-    (void)sign;
     cn_cbor *map = cn_cbor_map_create(ct, errp);
-    if (_add_cbor_protected(sign, map, ct, errp) < 0) {
+    if (!cose_hdr_add_to_map(sign->hdrs, COSE_SIGN_HDR_MAX, map, true, ct, errp)) {
         return NULL;
     }
     if (_is_sign1(sign)) {
