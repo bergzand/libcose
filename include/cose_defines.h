@@ -53,6 +53,7 @@ typedef enum {
 
 #define COSE_HDR_FLAGS_PROTECTED     0x01 /* Header is in the protected bucket
                                            * or in the unprotected if not set */
+#define COSE_HDR_FLAGS_UNPROTECTED     0x00 /* Header is in the unprotected bucket */
 
 /**
  * COSE header parameters according to rfc 8152

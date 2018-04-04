@@ -91,43 +91,6 @@ void cose_signer_set_keys(cose_signer_t *signer, cose_curve_t curve,
 void cose_signer_set_kid(cose_signer_t *signer, uint8_t *kid, size_t len);
 
 /**
- * Serialize the protected header of a signer into the buffer
- *
- * @param   signer  The signer object
- * @param   buf     Buffer to serialize into
- * @param   len     Length of the buffer
- * @param   ct      CN_CBOR context for cbor block allocation
- * @param   errp    error return struct from cn-cbor
- *
- * @return          Length of the serialized protected header
- */
-size_t cose_signer_serialize_protected(const cose_signer_t *signer, uint8_t *buf, size_t len, cn_cbor_context *ct, cn_cbor_errback *errp);
-
-/**
- * Return the unprotected header as cn_cbor map
- *
- * @param   signer  The signer object
- * @param   ct      CN_CBOR context for cbor block allocation
- * @param   errp    error return struct from cn-cbor
- *
- * @return          A pointer to the cbor map struct
- * @return          NULL on failure
- */
-cn_cbor *cose_signer_cbor_unprotected(const cose_signer_t *signer, cn_cbor_context *ct, cn_cbor_errback *errp);
-
-/**
- * Generate a CBOR map of the protected headers.
- *
- * @param   signer  The signer object
- * @param   ct      CN_CBOR context for cbor block allocation
- * @param   errp    error return struct from cn-cbor
- *
- * @return          A pointer to the cbor map struct
- * @return          NULL on failure
- */
-cn_cbor *cose_signer_cbor_protected(const cose_signer_t *signer, cn_cbor_context *ct, cn_cbor_errback *errp);
-
-/**
  * Add the protected headers to the provided CBOR map
  *
  * @param   signer  The signer object

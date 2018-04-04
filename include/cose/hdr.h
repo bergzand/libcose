@@ -56,7 +56,7 @@ typedef struct cose_hdr {
  *
  * @return          True when succeeded
  */
-bool cose_hdr_to_cbor_map(cose_hdr_t *hdr, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp);
+bool cose_hdr_to_cbor_map(const cose_hdr_t *hdr, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp);
 
 /**
  * Convert a cn_cbor struct to a COSE header struct.
@@ -175,7 +175,7 @@ int cose_hdr_add_from_cbor(cose_hdr_t *hdr, size_t num, cn_cbor *map, uint8_t fl
  *
  * @return          True when succeeded
  */
-bool cose_hdr_add_to_map(cose_hdr_t *hdr, size_t num, cn_cbor *map, bool prot, cn_cbor_context *ct, cn_cbor_errback *errp);
+bool cose_hdr_add_to_map(const cose_hdr_t *hdr, size_t num, cn_cbor *map, bool prot, cn_cbor_context *ct, cn_cbor_errback *errp);
 
 /**
  * Convert a cbor unprotected header representation to cose_hdr_t structs
@@ -229,7 +229,7 @@ static inline int cose_hdr_add_prot_from_cbor(cose_hdr_t *hdr, size_t num, const
  * @return          True when it is in the protected buffer
  * @return          False otherwise
  */
-static inline bool cose_hdr_is_protected(cose_hdr_t *hdr)
+static inline bool cose_hdr_is_protected(const cose_hdr_t *hdr)
 {
     return (bool)(hdr->flags & COSE_HDR_FLAGS_PROTECTED);
 }

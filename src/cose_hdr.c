@@ -12,7 +12,7 @@
 #include <cn-cbor/cn-cbor.h>
 
 /* Appends the header the given cbor map */
-bool cose_hdr_to_cbor_map(cose_hdr_t *hdr, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp)
+bool cose_hdr_to_cbor_map(const cose_hdr_t *hdr, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp)
 {
     cn_cbor *value = NULL;
 
@@ -181,7 +181,7 @@ cose_hdr_t *cose_hdr_next_empty(cose_hdr_t *hdr, size_t num)
     return res;
 }
 
-bool cose_hdr_add_to_map(cose_hdr_t *hdr, size_t num, cn_cbor *map, bool prot, cn_cbor_context *ct, cn_cbor_errback *errp)
+bool cose_hdr_add_to_map(const cose_hdr_t *hdr, size_t num, cn_cbor *map, bool prot, cn_cbor_context *ct, cn_cbor_errback *errp)
 {
     for (unsigned i = 0; i < num; i++, hdr++) {
         if (hdr->key == 0 || (cose_hdr_is_protected(hdr) != prot) ) {
