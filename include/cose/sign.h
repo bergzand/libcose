@@ -10,7 +10,6 @@
 /**
  * @defgroup    cose_sign COSE signing defintions
  * @ingroup     cose
- * Internal constants for signing
  * @{
  *
  * @file
@@ -184,7 +183,8 @@ ssize_t cose_sign_get_kid(cose_sign_t *sign, uint8_t idx, const uint8_t **kid);
  * @param   sign        The sign object to verify
  * @param   signer      The signer to verify with
  * @param   idx         The signature index to verify from the sign object
- * @param   buf         Buff
+ * @param   buf         Buffer to write in
+ * @param   len         Size of the buffer to write in
  * @param   ct          CN_CBOR context for cbor block allocation
  *
  * @return              0 on verification success
@@ -216,6 +216,41 @@ cose_hdr_t *cose_sign_get_header(cose_sign_t *sign, int32_t key);
  */
 cose_hdr_t *cose_sign_get_protected(cose_sign_t *sign, int32_t key);
 
+/**
+ * Retrieve a header from a signature object by key lookup
+ *
+ * @param   sign        The sign object to operate on
+ * @param   idx         The signature index
+ * @param   key         The key to look up
+ *
+ * @return              A header object with matching key
+ * @return              NULL if there is no header with the key
+ */
+cose_hdr_t *cose_sign_sig_get_header(cose_sign_t *sign, uint8_t idx, int32_t key);
+
+/**
+ * Retrieve a protected header from a signature object by key lookup
+ *
+ * @param   sign        The sign object to operate on
+ * @param   idx         The signature index
+ * @param   key         The key to look up
+ *
+ * @return              A protected header object with matching key
+ * @return              NULL if there is no header with the key
+ */
+cose_hdr_t *cose_sign_sig_get_protected(cose_sign_t *sign, uint8_t idx, int32_t key);
+
+/**
+ * Retrieve an unprotected header from a signature object by key lookup
+ *
+ * @param   sign        The sign object to operate on
+ * @param   idx         The signature index
+ * @param   key         The key to look up
+ *
+ * @return              A protected header object with matching key
+ * @return              NULL if there is no header with the key
+ */
+cose_hdr_t *cose_sign_sig_get_unprotected(cose_sign_t *sign, uint8_t idx, int32_t key);
 
 /**
  * Internal function to check if the object is a sign1 structure
@@ -306,7 +341,99 @@ static inline int cose_sign_add_hdr_cbor(cose_sign_t *sign, int32_t key, uint8_t
     return cose_hdr_add_hdr_cbor(sign->hdrs, COSE_SIGN_HDR_MAX, key, flags, cbor);
 }
 
+/* Sig header setters */
+
+/**
+ * Add a header with an integer based value to a signature
+ *
+ * @note This function does not protect against setting duplicate keys
+ *
+ * @param   sign        The sign object to operate on
+ * @param   idx         Index number of the signature to operate on
+ * @param   key         The key to add
+ * @param   flags       Flags to set for this header
+ * @param   value       Integer value to set for the new header
+ *
+ * @return              0 on success
+ * @return              Negative when failed
+ */
+static inline int cose_sign_sig_add_hdr_value(cose_sign_t *sign, uint8_t idx, int32_t key, uint8_t flags, int32_t value)
+{
+    if (idx >= COSE_SIGNATURES_MAX) {
+        return COSE_ERR_INVALID_PARAM;
+    }
+    return cose_hdr_add_hdr_value(sign->sigs[idx].hdrs, COSE_SIGN_HDR_MAX, key, flags, value);
+}
+
+/**
+ * Add a header with a string based value to a signature
+ *
+ * @note This function does not protect against setting duplicate keys
+ *
+ * @param   sign        The sign object to operate on
+ * @param   idx         Index number of the signature to operate on
+ * @param   key         The key to add
+ * @param   flags       Flags to set for this header
+ * @param   str         zero terminated string to set
+ *
+ * @return              0 on success
+ * @return              Negative when failed
+ */
+static inline int cose_sign_sig_add_hdr_string(cose_sign_t *sign, uint8_t idx, int32_t key, uint8_t flags, char *str)
+{
+    if (idx >= COSE_SIGNATURES_MAX) {
+        return COSE_ERR_INVALID_PARAM;
+    }
+    return cose_hdr_add_hdr_string(sign->sigs[idx].hdrs, COSE_SIGN_HDR_MAX, key, flags, str);
+}
+
+/**
+ * Add a header with a byte array based value
+ *
+ * @note This function does not protect against setting duplicate keys
+ *
+ * @param   sign        The sign object to operate on
+ * @param   idx         Index number of the signature to operate on
+ * @param   key         The key to add
+ * @param   flags       Flags to set for this header
+ * @param   data        Byte array to set
+ * @param   len         Length of the byte array
+ *
+ * @return              0 on success
+ * @return              Negative when failed
+ */
+static inline int cose_sign_sig_add_hdr_data(cose_sign_t *sign, uint8_t idx, int32_t key, uint8_t flags, uint8_t *data, size_t len)
+{
+    if (idx >= COSE_SIGNATURES_MAX) {
+        return COSE_ERR_INVALID_PARAM;
+    }
+    return cose_hdr_add_hdr_data(sign->sigs[idx].hdrs, COSE_SIGN_HDR_MAX, key, flags, data, len);
+}
+
+/**
+ * Add a header with a CBOR based value
+ *
+ * @note This function does not protect against setting duplicate keys
+ * @todo Properly copy the cbor struct to protect against freeing it
+ *
+ * @param   sign        The sign object to operate on
+ * @param   idx         Index number of the signature to operate on
+ * @param   key         The key to add
+ * @param   flags       Flags to set for this header
+ * @param   cbor        Pointer to the cbor object to set for the header
+ *
+ * @return              0 on success
+ * @return              Negative when failed
+ */
+static inline int cose_sign_sig_add_hdr_cbor(cose_sign_t *sign, uint8_t idx, int32_t key, uint8_t flags, cn_cbor *cbor)
+{
+    if (idx >= COSE_SIGNATURES_MAX) {
+        return COSE_ERR_INVALID_PARAM;
+    }
+    return cose_hdr_add_hdr_cbor(sign->sigs[idx].hdrs, COSE_SIGN_HDR_MAX, key, flags, cbor);
+}
 /* Header setters for common headers */
+
 /**
  * Set the content type number header of the sign body. The header is placed
  * in the protected bucket.

@@ -69,18 +69,6 @@ void cose_signer_set_kid(cose_signer_t *signer, uint8_t *kid, size_t len)
     signer->kid_len = len;
 }
 
-size_t cose_signer_serialize_protected(const cose_signer_t *signer, uint8_t *buf, size_t len, cn_cbor_context *ct, cn_cbor_errback *errp)
-{
-    size_t res = 0;
-    cn_cbor *cn_prot = cose_signer_cbor_protected(signer, ct, errp);
-
-    if (cn_prot) {
-        res = cn_cbor_encoder_write(buf, 0, len, cn_prot);
-        cn_cbor_free(cn_prot, ct);
-    }
-    return res;
-}
-
 int cose_signer_protected_to_map(const cose_signer_t *signer, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp)
 {
     cn_cbor *cn_algo = cn_cbor_int_create(_get_algo(signer), ct, errp);
@@ -93,21 +81,6 @@ int cose_signer_protected_to_map(const cose_signer_t *signer, cn_cbor *map, cn_c
         return -1;
     }
     return 0;
-}
-
-cn_cbor *cose_signer_cbor_protected(const cose_signer_t *signer, cn_cbor_context *ct, cn_cbor_errback *errp)
-{
-    /* TODO: add key restriction hdr */
-    cn_cbor *cn_map = cn_cbor_map_create(ct, errp);
-
-    if (!cn_map) {
-        return NULL;
-    }
-    if (cose_signer_protected_to_map(signer, cn_map, ct, errp) < 0) {
-        cn_cbor_free(cn_map, ct);
-        return NULL;
-    }
-    return cn_map;
 }
 
 int cose_signer_unprotected_to_map(const cose_signer_t *signer, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp)
@@ -123,18 +96,4 @@ int cose_signer_unprotected_to_map(const cose_signer_t *signer, cn_cbor *map, cn
         return -1;
     }
     return 0;
-}
-
-cn_cbor *cose_signer_cbor_unprotected(const cose_signer_t *signer, cn_cbor_context *ct, cn_cbor_errback *errp)
-{
-    cn_cbor *cn_map = cn_cbor_map_create(ct, errp);
-
-    if (!cn_map) {
-        return NULL;
-    }
-    if (cose_signer_unprotected_to_map(signer, cn_map, ct, errp) < 0) {
-        cn_cbor_free(cn_map, ct);
-        return NULL;
-    }
-    return cn_map;
 }

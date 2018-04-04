@@ -25,7 +25,7 @@ list of features that are supported at the moment by this library
 - [x] Untagged support
 - [x] Tagged support
 - [x] Signature body headers
-- [ ] Signature per signer headers
+- [x] Signature per signer headers
 
 - [x] EdDSA based signing and verification
 - [ ] ECDSA basedi signing and verification
