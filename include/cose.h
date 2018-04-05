@@ -44,7 +44,7 @@
 #include "cose_defines.h"
 #include "cose/hdr.h"
 #include "cose/sign.h"
-#include "cose/signer.h"
+#include "cose/key.h"
 #include "cn-cbor/cn-cbor.h"
 
 #endif

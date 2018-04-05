@@ -22,7 +22,7 @@
 #define COSE_SIGN_H
 
 #include "cose/hdr.h"
-#include "cose/signer.h"
+#include "cose/key.h"
 
 /**
  * @name Signature struct
@@ -34,7 +34,7 @@ typedef struct cose_signature {
     size_t hdr_protected_len;           /**< Protected header length */
     const uint8_t *signature;           /**< Pointer to the signature */
     size_t signature_len;               /**< Length of the signature */
-    const cose_signer_t *signer;        /**< Pointer to the signer used for this signature */
+    const cose_key_t *signer;        /**< Pointer to the signer used for this signature */
     cose_hdr_t hdrs[COSE_SIG_HDR_MAX];  /**< Headers included in this signature */
 } cose_signature_t;
 /** @} */
@@ -114,15 +114,15 @@ void cose_sign_set_payload(cose_sign_t *sign, void *payload, size_t len);
 void cose_sign_set_external_aad(cose_sign_t *sign, void *ext, size_t len);
 
 /**
- * cose_sign_add_signer adds a signer to the sign struct to sign with
+ * cose_sign_add_signer adds a key to the sign struct to sign with
  *
  * @param sign      Sign struct to operate on
- * @param signer    The signer to sign with
+ * @param key       The key to sign with
  *
  * @return          The index of the allocated sig on success
  * @return          negative on failure
  */
-int cose_sign_add_signer(cose_sign_t *sign, const cose_signer_t *signer);
+int cose_sign_add_signer(cose_sign_t *sign, const cose_key_t *key);
 
 /**
  * cose_sign_sign signs the data from the sign object with the attached
@@ -181,7 +181,7 @@ ssize_t cose_sign_get_kid(cose_sign_t *sign, uint8_t idx, const uint8_t **kid);
  * additional authenticated data.
  *
  * @param   sign        The sign object to verify
- * @param   signer      The signer to verify with
+ * @param   key         The key to verify with
  * @param   idx         The signature index to verify from the sign object
  * @param   buf         Buffer to write in
  * @param   len         Size of the buffer to write in
@@ -190,7 +190,7 @@ ssize_t cose_sign_get_kid(cose_sign_t *sign, uint8_t idx, const uint8_t **kid);
  * @return              0 on verification success
  * @return              Negative on error
  */
-int cose_sign_verify(cose_sign_t *sign, cose_signer_t *signer, uint8_t idx,
+int cose_sign_verify(cose_sign_t *sign, cose_key_t *key, uint8_t idx,
         uint8_t *buf, size_t len,
         cn_cbor_context *ct);
 
