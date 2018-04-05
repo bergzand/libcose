@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['payload',['payload',['../dd/d0c/structcose__sign.html#afed3f6d85c52ddace800aca3dc7d0183',1,'cose_sign']]],
-  ['payload_5flen',['payload_len',['../dd/d0c/structcose__sign.html#a0f7c9203bf892e5980167e9cb731bb4c',1,'cose_sign']]]
+  ['n',['n',['../d8/d89/structtest.html#a398c97c789fab73f1d321c6de7a7ddd9',1,'test']]],
+  ['num_5fsigs',['num_sigs',['../dd/d0c/structcose__sign.html#a8da624f8a088fa92cd3ab5aa76eeb238',1,'cose_sign']]]
 ];

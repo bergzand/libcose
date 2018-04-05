@@ -89,16 +89,16 @@ Functions</h2></td></tr>
 <tr class="separator:ga1279bea013d54db5c8d887df83937897"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gadb8bfe31fb848292403e82d2e74de8eb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/de6/group__cose__sign.html#gadb8bfe31fb848292403e82d2e74de8eb">cose_sign_set_external_aad</a> (<a class="el" href="../../dd/d0c/structcose__sign.html">cose_sign_t</a> *sign, void *ext, size_t len)</td></tr>
 <tr class="separator:gadb8bfe31fb848292403e82d2e74de8eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga8ae1a90cdf429a487b25df120e1b4bfc"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/de6/group__cose__sign.html#ga8ae1a90cdf429a487b25df120e1b4bfc">cose_sign_add_signer</a> (<a class="el" href="../../dd/d0c/structcose__sign.html">cose_sign_t</a> *sign, const <a class="el" href="../../d4/dd8/structcose__signer.html">cose_signer_t</a> *signer)</td></tr>
-<tr class="separator:ga8ae1a90cdf429a487b25df120e1b4bfc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaca43808f56be0d29375d94dec7ade726"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/de6/group__cose__sign.html#gaca43808f56be0d29375d94dec7ade726">cose_sign_add_signer</a> (<a class="el" href="../../dd/d0c/structcose__sign.html">cose_sign_t</a> *sign, const <a class="el" href="../../d7/d07/structcose__key.html">cose_key_t</a> *key)</td></tr>
+<tr class="separator:gaca43808f56be0d29375d94dec7ade726"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga59c5b769b0c9a075e2e5390d32b5173b"><td class="memItemLeft" align="right" valign="top">ssize_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/de6/group__cose__sign.html#ga59c5b769b0c9a075e2e5390d32b5173b">cose_sign_encode</a> (<a class="el" href="../../dd/d0c/structcose__sign.html">cose_sign_t</a> *sign, uint8_t *buf, size_t len, uint8_t **out, cn_cbor_context *ct)</td></tr>
 <tr class="separator:ga59c5b769b0c9a075e2e5390d32b5173b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gafe558658816edda6df3070c3a7cd9b40"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/de6/group__cose__sign.html#gafe558658816edda6df3070c3a7cd9b40">cose_sign_decode</a> (<a class="el" href="../../dd/d0c/structcose__sign.html">cose_sign_t</a> *sign, const uint8_t *buf, size_t len, cn_cbor_context *ct)</td></tr>
 <tr class="separator:gafe558658816edda6df3070c3a7cd9b40"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga23f7639cc1392eaa78f6218de8278385"><td class="memItemLeft" align="right" valign="top">ssize_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/de6/group__cose__sign.html#ga23f7639cc1392eaa78f6218de8278385">cose_sign_get_kid</a> (<a class="el" href="../../dd/d0c/structcose__sign.html">cose_sign_t</a> *sign, uint8_t idx, const uint8_t **kid)</td></tr>
 <tr class="separator:ga23f7639cc1392eaa78f6218de8278385"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaad6f18ee7060d5b43362949fd988fc8a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/de6/group__cose__sign.html#gaad6f18ee7060d5b43362949fd988fc8a">cose_sign_verify</a> (<a class="el" href="../../dd/d0c/structcose__sign.html">cose_sign_t</a> *sign, <a class="el" href="../../d4/dd8/structcose__signer.html">cose_signer_t</a> *signer, uint8_t idx, uint8_t *buf, size_t len, cn_cbor_context *ct)</td></tr>
-<tr class="separator:gaad6f18ee7060d5b43362949fd988fc8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga05fbc6d214711cc4f55e7ffd32e122d1"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/de6/group__cose__sign.html#ga05fbc6d214711cc4f55e7ffd32e122d1">cose_sign_verify</a> (<a class="el" href="../../dd/d0c/structcose__sign.html">cose_sign_t</a> *sign, <a class="el" href="../../d7/d07/structcose__key.html">cose_key_t</a> *key, uint8_t idx, uint8_t *buf, size_t len, cn_cbor_context *ct)</td></tr>
+<tr class="separator:ga05fbc6d214711cc4f55e7ffd32e122d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2323c5c577ec17935d3253f5e519594c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d4d/structcose__hdr.html">cose_hdr_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/de6/group__cose__sign.html#ga2323c5c577ec17935d3253f5e519594c">cose_sign_get_header</a> (<a class="el" href="../../dd/d0c/structcose__sign.html">cose_sign_t</a> *sign, int32_t key)</td></tr>
 <tr class="separator:ga2323c5c577ec17935d3253f5e519594c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga92dedecb37facb96775d9eb22d4aac86"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d4d/structcose__hdr.html">cose_hdr_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/de6/group__cose__sign.html#ga92dedecb37facb96775d9eb22d4aac86">cose_sign_get_protected</a> (<a class="el" href="../../dd/d0c/structcose__sign.html">cose_sign_t</a> *sign, int32_t key)</td></tr>
@@ -463,8 +463,8 @@ Negative when failed </dd></dl>
 
 </div>
 </div>
-<a id="ga8ae1a90cdf429a487b25df120e1b4bfc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga8ae1a90cdf429a487b25df120e1b4bfc">&#9670;&nbsp;</a></span>cose_sign_add_signer()</h2>
+<a id="gaca43808f56be0d29375d94dec7ade726"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaca43808f56be0d29375d94dec7ade726">&#9670;&nbsp;</a></span>cose_sign_add_signer()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -478,8 +478,8 @@ Negative when failed </dd></dl>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="../../d4/dd8/structcose__signer.html">cose_signer_t</a> *&#160;</td>
-          <td class="paramname"><em>signer</em>&#160;</td>
+          <td class="paramtype">const <a class="el" href="../../d7/d07/structcose__key.html">cose_key_t</a> *&#160;</td>
+          <td class="paramname"><em>key</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -488,11 +488,11 @@ Negative when failed </dd></dl>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>cose_sign_add_signer adds a signer to the sign struct to sign with</p>
+<p>cose_sign_add_signer adds a key to the sign struct to sign with</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">sign</td><td>Sign struct to operate on </td></tr>
-    <tr><td class="paramname">signer</td><td>The signer to sign with</td></tr>
+    <tr><td class="paramname">key</td><td>The key to sign with</td></tr>
   </table>
   </dd>
 </dl>
@@ -1332,8 +1332,8 @@ NULL if there is no header with the key </dd></dl>
 
 </div>
 </div>
-<a id="gaad6f18ee7060d5b43362949fd988fc8a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaad6f18ee7060d5b43362949fd988fc8a">&#9670;&nbsp;</a></span>cose_sign_verify()</h2>
+<a id="ga05fbc6d214711cc4f55e7ffd32e122d1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga05fbc6d214711cc4f55e7ffd32e122d1">&#9670;&nbsp;</a></span>cose_sign_verify()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1347,8 +1347,8 @@ NULL if there is no header with the key </dd></dl>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="../../d4/dd8/structcose__signer.html">cose_signer_t</a> *&#160;</td>
-          <td class="paramname"><em>signer</em>, </td>
+          <td class="paramtype"><a class="el" href="../../d7/d07/structcose__key.html">cose_key_t</a> *&#160;</td>
+          <td class="paramname"><em>key</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1386,7 +1386,7 @@ NULL if there is no header with the key </dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">sign</td><td>The sign object to verify </td></tr>
-    <tr><td class="paramname">signer</td><td>The signer to verify with </td></tr>
+    <tr><td class="paramname">key</td><td>The key to verify with </td></tr>
     <tr><td class="paramname">idx</td><td>The signature index to verify from the sign object </td></tr>
     <tr><td class="paramname">buf</td><td>Buffer to write in </td></tr>
     <tr><td class="paramname">len</td><td>Size of the buffer to write in </td></tr>
