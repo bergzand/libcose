@@ -13,12 +13,12 @@
 #include <string.h>
 
 
-int _get_algo(const cose_signer_t *signer)
+int _get_algo(const cose_key_t *key)
 {
     /* TODO: make configurable, P$NUM and ES$NUM don't have to match */
     int res = 0;
 
-    switch (signer->crv) {
+    switch (key->crv) {
         case COSE_EC_CURVE_P256:
             res = COSE_ALGO_ES256;
             break;
@@ -40,38 +40,38 @@ int _get_algo(const cose_signer_t *signer)
     return res;
 }
 
-void cose_signer_init(cose_signer_t *signer)
+void cose_key_init(cose_key_t *key)
 {
-    memset(signer, 0, sizeof(cose_signer_t));
+    memset(key, 0, sizeof(cose_key_t));
 }
 
-void cose_signer_set_keys(cose_signer_t *signer, cose_curve_t curve,
+void cose_key_set_keys(cose_key_t *key, cose_curve_t curve,
                           uint8_t *x, uint8_t *y, uint8_t *d)
 {
     /* Add support for more signing types as soon as they are required */
     if ((curve == COSE_EC_CURVE_P256) ||
         (curve == COSE_EC_CURVE_P384) ||
         (curve == COSE_EC_CURVE_P521)) {
-        signer->kty = COSE_KTY_EC2;
+        key->kty = COSE_KTY_EC2;
     }
     else {
-        signer->kty = COSE_KTY_OCTET;
+        key->kty = COSE_KTY_OCTET;
     }
-    signer->crv = curve;
-    signer->x = x;
-    signer->y = y;
-    signer->d = d;
+    key->crv = curve;
+    key->x = x;
+    key->y = y;
+    key->d = d;
 }
 
-void cose_signer_set_kid(cose_signer_t *signer, uint8_t *kid, size_t len)
+void cose_key_set_kid(cose_key_t *key, uint8_t *kid, size_t len)
 {
-    signer->kid = kid;
-    signer->kid_len = len;
+    key->kid = kid;
+    key->kid_len = len;
 }
 
-int cose_signer_protected_to_map(const cose_signer_t *signer, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp)
+int cose_key_protected_to_map(const cose_key_t *key, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp)
 {
-    cn_cbor *cn_algo = cn_cbor_int_create(_get_algo(signer), ct, errp);
+    cn_cbor *cn_algo = cn_cbor_int_create(_get_algo(key), ct, errp);
 
     if (!cn_algo) {
         return -1;
@@ -83,9 +83,9 @@ int cose_signer_protected_to_map(const cose_signer_t *signer, cn_cbor *map, cn_c
     return 0;
 }
 
-int cose_signer_unprotected_to_map(const cose_signer_t *signer, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp)
+int cose_key_unprotected_to_map(const cose_key_t *key, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp)
 {
-    cn_cbor *cn_kid = cn_cbor_data_create(signer->kid, signer->kid_len, ct, errp);
+    cn_cbor *cn_kid = cn_cbor_data_create(key->kid, key->kid_len, ct, errp);
 
     if (!cn_kid) {
         return -1;

@@ -75,7 +75,7 @@ static ssize_t _sign_sig_encode(cose_sign_t *sign, cose_signature_t *sig, const 
 
 static bool _sig_unprot_to_map(cose_signature_t *sig, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp)
 {
-    if (cose_signer_unprotected_to_map(sig->signer, map, ct, errp) < 0) {
+    if (cose_key_unprotected_to_map(sig->signer, map, ct, errp) < 0) {
         return false;
     }
     if (!cose_hdr_add_to_map(sig->hdrs, COSE_SIG_HDR_MAX, map, false, ct, errp)) {
@@ -86,7 +86,7 @@ static bool _sig_unprot_to_map(cose_signature_t *sig, cn_cbor *map, cn_cbor_cont
 
 static bool _sig_prot_to_map(const cose_signature_t *sig, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp)
 {
-    if (cose_signer_protected_to_map(sig->signer, map, ct, errp) < 0) {
+    if (cose_key_protected_to_map(sig->signer, map, ct, errp) < 0) {
         return false;
     }
     if (!cose_hdr_add_to_map(sig->hdrs, COSE_SIG_HDR_MAX, map, true, ct, errp)) {
@@ -148,7 +148,7 @@ static cn_cbor *_cbor_protected(cose_sign_t *sign,
         return NULL;
     }
     if (_is_sign1(sign)) {
-        if (cose_signer_protected_to_map(sign->sigs[0].signer, map, ct, errp) < 0) {
+        if (cose_key_protected_to_map(sign->sigs[0].signer, map, ct, errp) < 0) {
             cn_cbor_free(map, ct);
             return NULL;
         }
@@ -217,7 +217,7 @@ void cose_sign_set_payload(cose_sign_t *sign, void *payload, size_t len)
     sign->payload_len = len;
 }
 
-int cose_sign_add_signer(cose_sign_t *sign, const cose_signer_t *signer)
+int cose_sign_add_signer(cose_sign_t *sign, const cose_key_t *key)
 {
     /* TODO: define status codes */
     if (sign->num_sigs == COSE_SIGNATURES_MAX) {
@@ -225,7 +225,7 @@ int cose_sign_add_signer(cose_sign_t *sign, const cose_signer_t *signer)
     }
     /* Convenience pointer */
     cose_signature_t *sig = &(sign->sigs[sign->num_sigs]);
-    sig->signer = signer;
+    sig->signer = key;
 
     return sign->num_sigs++;
 }
@@ -564,7 +564,7 @@ cose_hdr_t *cose_sign_sig_get_unprotected(cose_sign_t *sign, uint8_t idx, int32_
 }
 
 /* Try to verify the structure with a signer and a signature idx */
-int cose_sign_verify(cose_sign_t *sign, cose_signer_t *signer, uint8_t idx, uint8_t *buf, size_t len, cn_cbor_context *ct)
+int cose_sign_verify(cose_sign_t *sign, cose_key_t *key, uint8_t idx, uint8_t *buf, size_t len, cn_cbor_context *ct)
 {
     int res = COSE_OK;
 
@@ -578,7 +578,7 @@ int cose_sign_verify(cose_sign_t *sign, cose_signer_t *signer, uint8_t idx, uint
     if (sig_len < 0) {
         return sig_len;
     }
-    if (cose_crypto_verify_ed25519(sig->signature, buf, sig_len, signer->x) < 0) {
+    if (cose_crypto_verify_ed25519(sig->signature, buf, sig_len, key->x) < 0) {
         res = COSE_ERR_CRYPTO;
     }
     return res;

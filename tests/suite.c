@@ -101,14 +101,14 @@ static cn_cbor_context ct =
 void test_suite1(void)
 {
     cose_sign_t verify;
-    cose_signer_t signer;
+    cose_key_t signer;
     const uint8_t *kid = NULL;
     /* Initialize struct */
     cose_sign_init(&verify, 0);
 
     /* First signer */
-    cose_signer_init(&signer);
-    cose_signer_set_keys(&signer, COSE_EC_CURVE_ED25519, pk, NULL, NULL);
+    cose_key_init(&signer);
+    cose_key_set_keys(&signer, COSE_EC_CURVE_ED25519, pk, NULL, NULL);
 
     printf("COSE bytestream: \n");
     print_bytestr(cose_suite, 311);
