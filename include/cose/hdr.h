@@ -22,8 +22,10 @@
 #ifndef COSE_HDR_H
 #define COSE_HDR_H
 
-#include <cn-cbor/cn-cbor.h>
 #include "cose_defines.h"
+#include <cn-cbor/cn-cbor.h>
+#include <stdbool.h>
+
 /**
  * @name COSE header struct
  *
