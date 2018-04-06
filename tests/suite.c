@@ -108,7 +108,7 @@ void test_suite1(void)
 
     /* First signer */
     cose_key_init(&signer);
-    cose_key_set_keys(&signer, COSE_EC_CURVE_ED25519, pk, NULL, NULL);
+    cose_key_set_keys(&signer, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk, NULL, NULL);
 
     printf("COSE bytestream: \n");
     print_bytestr(cose_suite, 311);

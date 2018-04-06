@@ -139,10 +139,11 @@ typedef enum {
  * @{
  */
 typedef enum {
+    COSE_EC_NONE            = 0,    /**< Not an EC key */
     COSE_EC_CURVE_P256      = 1,    /**< secp256r1 */
     COSE_EC_CURVE_P384      = 2,    /**< secp384r1 */
     COSE_EC_CURVE_P521      = 3,    /**< secp521r1 */
-    COSE_EC_CURVE_X22519    = 4,    /**< X25519, ECDH only */
+    COSE_EC_CURVE_X25519    = 4,    /**< X25519, ECDH only */
     COSE_EC_CURVE_X448      = 5,    /**< X448, ECDH only */
     COSE_EC_CURVE_ED25519   = 6,    /**< Ed25519 for EdDSA only */
     COSE_EC_CURVE_ED448     = 7,    /**< Ed25519 for EdDSA only */

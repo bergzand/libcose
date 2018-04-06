@@ -105,7 +105,7 @@ void test_sign1(void)
     /* First signer */
     cose_crypto_keypair_ed25519(pk, sk);
     cose_key_init(&key);
-    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, pk, NULL, sk);
+    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk, NULL, sk);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
 
     cose_sign_add_signer(&sign, &key);
@@ -151,7 +151,7 @@ void test_sign2(void)
     /* First signer */
     cose_crypto_keypair_ed25519(pk, sk);
     cose_key_init(&key);
-    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, pk, NULL, sk);
+    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk, NULL, sk);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
 
     cose_sign_add_signer(&sign, &key);
@@ -196,13 +196,13 @@ void test_sign3(void)
     /* First signer */
     cose_crypto_keypair_ed25519(pk, sk);
     cose_key_init(&key);
-    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, pk, NULL, sk);
+    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk, NULL, sk);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
 
     /* Second signer */
     cose_crypto_keypair_ed25519(pk2, sk2);
     cose_key_init(&key2);
-    cose_key_set_keys(&key2, COSE_EC_CURVE_ED25519, pk2, NULL, sk2);
+    cose_key_set_keys(&key2, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk2, NULL, sk2);
     cose_key_set_kid(&key2, (uint8_t*)kid2, sizeof(kid2) - 1);
     cose_sign_add_signer(&sign, &key);
     cose_sign_add_signer(&sign, &key2);
@@ -233,7 +233,7 @@ void test_sign4(void)
     cose_key_t key;
     cose_crypto_keypair_ed25519(pk, sk);
     cose_key_init(&key);
-    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, pk, NULL, sk);
+    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk, NULL, sk);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
     uint8_t *psign = NULL;
     for (unsigned i = 0; i <= 20; i++)
@@ -254,7 +254,7 @@ void test_sign4(void)
 
         /* First signer */
         cose_key_init(&key);
-        cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, pk, NULL, sk);
+        cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk, NULL, sk);
         cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
 
         cose_sign_add_signer(&sign, &key);
@@ -314,7 +314,7 @@ void test_sign5(void)
     cose_key_t key;
     cose_crypto_keypair_ed25519(pk, sk);
     cose_key_init(&key);
-    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, pk, NULL, sk);
+    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk, NULL, sk);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
     prev_len = 0;
     uint8_t *psign = NULL;
@@ -337,7 +337,7 @@ void test_sign5(void)
 
         /* First signer */
         cose_key_init(&key);
-        cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, pk, NULL, sk);
+        cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk, NULL, sk);
         cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
 
         cose_sign_add_signer(&sign, &key);
@@ -395,10 +395,10 @@ void test_sign6(void)
     cose_key_t key, key2;
     cose_crypto_keypair_ed25519(pk, sk);
     cose_key_init(&key);
-    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, pk, NULL, sk);
+    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk, NULL, sk);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
     cose_key_init(&key2);
-    cose_key_set_keys(&key2, COSE_EC_CURVE_ED25519, pk2, NULL, sk2);
+    cose_key_set_keys(&key2, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk2, NULL, sk2);
     cose_key_set_kid(&key2, (uint8_t*)kid2, sizeof(kid2) - 1);
     prev_len = 0;
     uint8_t *psign = NULL;
@@ -490,7 +490,7 @@ void test_sign7(void)
     /* First signer */
     cose_crypto_keypair_ed25519(pk, sk);
     cose_key_init(&key);
-    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, pk, NULL, sk);
+    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk, NULL, sk);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
     for(unsigned i = 0; i < COSE_SIGNATURES_MAX; i++) {
         CU_ASSERT_EQUAL(cose_sign_add_signer(&sign, &key), i);
@@ -537,7 +537,7 @@ void test_sign9(void)
     /* First signer */
     cose_crypto_keypair_ed25519(pk, sk);
     cose_key_init(&key);
-    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, pk, NULL, sk);
+    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk, NULL, sk);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
 
     cose_sign_add_signer(&sign, &key);
@@ -589,7 +589,7 @@ void test_sign10(void)
     /* First signer */
     cose_crypto_keypair_ed25519(pk, sk);
     cose_key_init(&key);
-    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, pk, NULL, sk);
+    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk, NULL, sk);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
     cose_sign_add_signer(&sign, &key);
 
@@ -640,7 +640,7 @@ void test_sign11(void)
     /* First key */
     cose_crypto_keypair_ed25519(pk, sk);
     cose_key_init(&key);
-    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, pk, NULL, sk);
+    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk, NULL, sk);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
     int idx = cose_sign_add_signer(&sign, &key);
     /* Dummy headers */
@@ -695,13 +695,13 @@ void test_sign12(void)
     /* First key */
     cose_crypto_keypair_ed25519(pk, sk);
     cose_key_init(&key);
-    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, pk, NULL, sk);
+    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk, NULL, sk);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
 
     /* Second signer */
     cose_crypto_keypair_ed25519(pk2, sk2);
     cose_key_init(&key2);
-    cose_key_set_keys(&key2, COSE_EC_CURVE_ED25519, pk2, NULL, sk2);
+    cose_key_set_keys(&key2, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk2, NULL, sk2);
     cose_key_set_kid(&key2, (uint8_t*)kid2, sizeof(kid2) - 1);
 
     int idx = cose_sign_add_signer(&sign, &key);
