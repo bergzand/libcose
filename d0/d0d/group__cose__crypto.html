@@ -59,43 +59,146 @@ $(function() {
 
 <div class="header">
   <div class="summary">
-<a href="#files">Files</a>  </div>
+<a href="#groups">Modules</a> &#124;
+<a href="#files">Files</a> &#124;
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">Crypto glue layer<div class="ingroups"><a class="el" href="../../d1/d86/group__cose.html">COSE common definitions</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="groups"></a>
+Modules</h2></td></tr>
+<tr class="memitem:d1/da3/group__cose__cryto__sodium"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/da3/group__cose__cryto__sodium.html">Crypto glue layer, sodium definitions</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:db/dda/group__cose__cryto__tweetnacl"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/dda/group__cose__cryto__tweetnacl.html">Crypto glue layer, tweetnacl definitions</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="files"></a>
 Files</h2></td></tr>
 <tr class="memitem:da/da0/crypto_8h"><td class="memItemLeft" align="right" valign="top">file &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/da0/crypto_8h.html">crypto.h</a></td></tr>
 <tr class="memdesc:da/da0/crypto_8h"><td class="mdescLeft">&#160;</td><td class="mdescRight">API definitions for crypto operations. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:ga1df5d30d8223b2053b7d3d7f28c144a2"><td class="memItemLeft" align="right" valign="top"><a id="ga1df5d30d8223b2053b7d3d7f28c144a2"></a>
+ssize_t&#160;</td><td class="memItemRight" valign="bottom"><b>cose_crypto_keygen</b> (uint8_t *buf, size_t len, <a class="el" href="../../da/de9/group__cose__defines.html#ga56104458ad96b6caddc1b87db6be245b">cose_algo_t</a> algo)</td></tr>
+<tr class="separator:ga1df5d30d8223b2053b7d3d7f28c144a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
 crypto AEAD functions</h2></td></tr>
-<tr class="memitem:ga6ea245bd60a8e849945b6ce17119dcc2"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/ddd/group__cose__cryto.html#ga6ea245bd60a8e849945b6ce17119dcc2">cose_crypto_aead_encrypt_chachapoly</a> (unsigned char *c, unsigned char *mac, unsigned long long *maclen_p, const unsigned char *m, unsigned long long mlen, const unsigned char *ad, unsigned long long adlen, const unsigned char *npub, const unsigned char *k)</td></tr>
-<tr class="separator:ga6ea245bd60a8e849945b6ce17119dcc2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga46cc615ded31203c914b145ad2d9b16e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/ddd/group__cose__cryto.html#ga46cc615ded31203c914b145ad2d9b16e">cose_crypto_aead_decrypt_chachapoly</a> (unsigned char *m, const unsigned char *c, unsigned long long clen, const unsigned char *mac, const unsigned char *ad, unsigned long long adlen, const unsigned char *npub, const unsigned char *k)</td></tr>
-<tr class="separator:ga46cc615ded31203c914b145ad2d9b16e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaaf7cfa71c0b3d896d484a2de5c11bf53"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/ddd/group__cose__cryto.html#gaaf7cfa71c0b3d896d484a2de5c11bf53">cose_crypto_aead_keypair_chachapoly</a> (uint8_t *sk)</td></tr>
-<tr class="separator:gaaf7cfa71c0b3d896d484a2de5c11bf53"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab28dcb59ba6596be3487c72feff0051a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d0d/group__cose__crypto.html#gab28dcb59ba6596be3487c72feff0051a">cose_crypto_aead</a> (uint8_t *c, size_t *clen, const uint8_t *msg, size_t msglen, const uint8_t *aad, size_t aadlen, const uint8_t *nsec, const uint8_t *npub, const uint8_t *key, <a class="el" href="../../da/de9/group__cose__defines.html#ga56104458ad96b6caddc1b87db6be245b">cose_algo_t</a> algo)</td></tr>
+<tr class="separator:gab28dcb59ba6596be3487c72feff0051a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaaffa2aff01fe03f9b26042d5c01d0f28"><td class="memItemLeft" align="right" valign="top"><a id="gaaffa2aff01fe03f9b26042d5c01d0f28"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>cose_crypto_is_aead</b> (<a class="el" href="../../da/de9/group__cose__defines.html#ga56104458ad96b6caddc1b87db6be245b">cose_algo_t</a> algo)</td></tr>
+<tr class="separator:gaaffa2aff01fe03f9b26042d5c01d0f28"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gafd9883ed81302904ae9c6d67f3d5e633"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d0d/group__cose__crypto.html#gafd9883ed81302904ae9c6d67f3d5e633">cose_crypto_aead_encrypt_chachapoly</a> (uint8_t *c, size_t *clen, const uint8_t *msg, size_t msglen, const uint8_t *aad, size_t aadlen, const uint8_t *npub, const uint8_t *k)</td></tr>
+<tr class="separator:gafd9883ed81302904ae9c6d67f3d5e633"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga917c50f4f000296ab09424af38d88f8b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d0d/group__cose__crypto.html#ga917c50f4f000296ab09424af38d88f8b">cose_crypto_aead_decrypt_chachapoly</a> (uint8_t *msg, size_t *msglen, const uint8_t *c, size_t clen, const uint8_t *aad, size_t aadlen, const uint8_t *npub, const uint8_t *k)</td></tr>
+<tr class="separator:ga917c50f4f000296ab09424af38d88f8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacbbf79f41ea3d1eb03a8d683ee00d30c"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d0d/group__cose__crypto.html#gacbbf79f41ea3d1eb03a8d683ee00d30c">cose_crypto_aead_keypair_chachapoly</a> (uint8_t *sk, size_t len)</td></tr>
+<tr class="separator:gacbbf79f41ea3d1eb03a8d683ee00d30c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9870171247d7686ee909411bc31d4764"><td class="memItemLeft" align="right" valign="top"><a id="ga9870171247d7686ee909411bc31d4764"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><b>cose_crypto_aead_nonce_chachapoly</b> (uint8_t *nonce, size_t len)</td></tr>
+<tr class="separator:ga9870171247d7686ee909411bc31d4764"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae1d7e184c89624e4f471a4a261c20751"><td class="memItemLeft" align="right" valign="top"><a id="gae1d7e184c89624e4f471a4a261c20751"></a>
+ssize_t&#160;</td><td class="memItemRight" valign="bottom"><b>cose_crypto_aead_nonce_size</b> (<a class="el" href="../../da/de9/group__cose__defines.html#ga56104458ad96b6caddc1b87db6be245b">cose_algo_t</a> algo)</td></tr>
+<tr class="separator:gae1d7e184c89624e4f471a4a261c20751"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
 Signing related functions</h2></td></tr>
-<tr class="memitem:ga12ad318415c67b59194dd699283009f8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/ddd/group__cose__cryto.html#ga12ad318415c67b59194dd699283009f8">cose_crypto_sign_ed25519</a> (uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen, uint8_t *skey)</td></tr>
+<tr class="memitem:ga12ad318415c67b59194dd699283009f8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d0d/group__cose__crypto.html#ga12ad318415c67b59194dd699283009f8">cose_crypto_sign_ed25519</a> (uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen, uint8_t *skey)</td></tr>
 <tr class="separator:ga12ad318415c67b59194dd699283009f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga7701a389ebdc7232ac420831d979ca8a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/ddd/group__cose__cryto.html#ga7701a389ebdc7232ac420831d979ca8a">cose_crypto_verify_ed25519</a> (const uint8_t *sign, uint8_t *msg, uint64_t msglen, uint8_t *pkey)</td></tr>
+<tr class="memitem:ga7701a389ebdc7232ac420831d979ca8a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d0d/group__cose__crypto.html#ga7701a389ebdc7232ac420831d979ca8a">cose_crypto_verify_ed25519</a> (const uint8_t *sign, uint8_t *msg, uint64_t msglen, uint8_t *pkey)</td></tr>
 <tr class="separator:ga7701a389ebdc7232ac420831d979ca8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga2da2df548ae802b2c7f418895257e093"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/ddd/group__cose__cryto.html#ga2da2df548ae802b2c7f418895257e093">cose_crypto_keypair_ed25519</a> (uint8_t *pk, uint8_t *sk)</td></tr>
+<tr class="memitem:ga2da2df548ae802b2c7f418895257e093"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d0d/group__cose__crypto.html#ga2da2df548ae802b2c7f418895257e093">cose_crypto_keypair_ed25519</a> (uint8_t *pk, uint8_t *sk)</td></tr>
 <tr class="separator:ga2da2df548ae802b2c7f418895257e093"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga0a0ca99f4f44cadf4d890590d48f4524"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/ddd/group__cose__cryto.html#ga0a0ca99f4f44cadf4d890590d48f4524">cose_crypto_sig_size_ed25519</a> (void)</td></tr>
+<tr class="memitem:ga0a0ca99f4f44cadf4d890590d48f4524"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d0d/group__cose__crypto.html#ga0a0ca99f4f44cadf4d890590d48f4524">cose_crypto_sig_size_ed25519</a> (void)</td></tr>
 <tr class="separator:ga0a0ca99f4f44cadf4d890590d48f4524"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Generic crypto function api for glueing purposes. </p>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="ga46cc615ded31203c914b145ad2d9b16e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga46cc615ded31203c914b145ad2d9b16e">&#9670;&nbsp;</a></span>cose_crypto_aead_decrypt_chachapoly()</h2>
+<a id="gab28dcb59ba6596be3487c72feff0051a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gab28dcb59ba6596be3487c72feff0051a">&#9670;&nbsp;</a></span>cose_crypto_aead()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int cose_crypto_aead </td>
+          <td>(</td>
+          <td class="paramtype">uint8_t *&#160;</td>
+          <td class="paramname"><em>c</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t *&#160;</td>
+          <td class="paramname"><em>clen</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const uint8_t *&#160;</td>
+          <td class="paramname"><em>msg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>msglen</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const uint8_t *&#160;</td>
+          <td class="paramname"><em>aad</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>aadlen</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const uint8_t *&#160;</td>
+          <td class="paramname"><em>nsec</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const uint8_t *&#160;</td>
+          <td class="paramname"><em>npub</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const uint8_t *&#160;</td>
+          <td class="paramname"><em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../da/de9/group__cose__defines.html#ga56104458ad96b6caddc1b87db6be245b">cose_algo_t</a>&#160;</td>
+          <td class="paramname"><em>algo</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Generic AEAD function, key must match sizes of selected algo </p>
+
+</div>
+</div>
+<a id="ga917c50f4f000296ab09424af38d88f8b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga917c50f4f000296ab09424af38d88f8b">&#9670;&nbsp;</a></span>cose_crypto_aead_decrypt_chachapoly()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -103,49 +206,49 @@ Signing related functions</h2></td></tr>
         <tr>
           <td class="memname">int cose_crypto_aead_decrypt_chachapoly </td>
           <td>(</td>
-          <td class="paramtype">unsigned char *&#160;</td>
-          <td class="paramname"><em>m</em>, </td>
+          <td class="paramtype">uint8_t *&#160;</td>
+          <td class="paramname"><em>msg</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const unsigned char *&#160;</td>
+          <td class="paramtype">size_t *&#160;</td>
+          <td class="paramname"><em>msglen</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const uint8_t *&#160;</td>
           <td class="paramname"><em>c</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">unsigned long long&#160;</td>
+          <td class="paramtype">size_t&#160;</td>
           <td class="paramname"><em>clen</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const unsigned char *&#160;</td>
-          <td class="paramname"><em>mac</em>, </td>
+          <td class="paramtype">const uint8_t *&#160;</td>
+          <td class="paramname"><em>aad</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const unsigned char *&#160;</td>
-          <td class="paramname"><em>ad</em>, </td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>aadlen</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">unsigned long long&#160;</td>
-          <td class="paramname"><em>adlen</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const unsigned char *&#160;</td>
+          <td class="paramtype">const uint8_t *&#160;</td>
           <td class="paramname"><em>npub</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const unsigned char *&#160;</td>
+          <td class="paramtype">const uint8_t *&#160;</td>
           <td class="paramname"><em>k</em>&#160;</td>
         </tr>
         <tr>
@@ -159,8 +262,8 @@ Signing related functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga6ea245bd60a8e849945b6ce17119dcc2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga6ea245bd60a8e849945b6ce17119dcc2">&#9670;&nbsp;</a></span>cose_crypto_aead_encrypt_chachapoly()</h2>
+<a id="gafd9883ed81302904ae9c6d67f3d5e633"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gafd9883ed81302904ae9c6d67f3d5e633">&#9670;&nbsp;</a></span>cose_crypto_aead_encrypt_chachapoly()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -168,55 +271,49 @@ Signing related functions</h2></td></tr>
         <tr>
           <td class="memname">int cose_crypto_aead_encrypt_chachapoly </td>
           <td>(</td>
-          <td class="paramtype">unsigned char *&#160;</td>
+          <td class="paramtype">uint8_t *&#160;</td>
           <td class="paramname"><em>c</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">unsigned char *&#160;</td>
-          <td class="paramname"><em>mac</em>, </td>
+          <td class="paramtype">size_t *&#160;</td>
+          <td class="paramname"><em>clen</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">unsigned long long *&#160;</td>
-          <td class="paramname"><em>maclen_p</em>, </td>
+          <td class="paramtype">const uint8_t *&#160;</td>
+          <td class="paramname"><em>msg</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const unsigned char *&#160;</td>
-          <td class="paramname"><em>m</em>, </td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>msglen</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">unsigned long long&#160;</td>
-          <td class="paramname"><em>mlen</em>, </td>
+          <td class="paramtype">const uint8_t *&#160;</td>
+          <td class="paramname"><em>aad</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const unsigned char *&#160;</td>
-          <td class="paramname"><em>ad</em>, </td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>aadlen</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">unsigned long long&#160;</td>
-          <td class="paramname"><em>adlen</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const unsigned char *&#160;</td>
+          <td class="paramtype">const uint8_t *&#160;</td>
           <td class="paramname"><em>npub</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const unsigned char *&#160;</td>
+          <td class="paramtype">const uint8_t *&#160;</td>
           <td class="paramname"><em>k</em>&#160;</td>
         </tr>
         <tr>
@@ -230,18 +327,28 @@ Signing related functions</h2></td></tr>
 
 </div>
 </div>
-<a id="gaaf7cfa71c0b3d896d484a2de5c11bf53"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaaf7cfa71c0b3d896d484a2de5c11bf53">&#9670;&nbsp;</a></span>cose_crypto_aead_keypair_chachapoly()</h2>
+<a id="gacbbf79f41ea3d1eb03a8d683ee00d30c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gacbbf79f41ea3d1eb03a8d683ee00d30c">&#9670;&nbsp;</a></span>cose_crypto_aead_keypair_chachapoly()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void cose_crypto_aead_keypair_chachapoly </td>
+          <td class="memname">size_t cose_crypto_aead_keypair_chachapoly </td>
           <td>(</td>
           <td class="paramtype">uint8_t *&#160;</td>
-          <td class="paramname"><em>sk</em></td><td>)</td>
+          <td class="paramname"><em>sk</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">

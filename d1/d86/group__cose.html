@@ -71,7 +71,9 @@ $(function() {
 Modules</h2></td></tr>
 <tr class="memitem:d3/d83/group__cose__cbor"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d83/group__cose__cbor.html">COSE CBOR auxiliary functions</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:de/ddd/group__cose__cryto"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/ddd/group__cose__cryto.html">Crypto glue layer</a></td></tr>
+<tr class="memitem:d0/d0d/group__cose__crypto"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d0d/group__cose__crypto.html">Crypto glue layer</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:d0/dfa/group__cose__encrypt"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/dfa/group__cose__encrypt.html">COSE encrypt defintions</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:dd/dae/group__cose__hdr"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/dae/group__cose__hdr.html">COSE header manipulation definitions</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -94,17 +96,38 @@ Files</h2></td></tr>
 Macros</h2></td></tr>
 <tr class="memitem:ga198b547d7290ce20f55f75926d433af3"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d86/group__cose.html#ga198b547d7290ce20f55f75926d433af3">COSE_SIGNATURES_MAX</a>&#160;&#160;&#160;4</td></tr>
 <tr class="separator:ga198b547d7290ce20f55f75926d433af3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7ef9dbde482a76048774f085018af599"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d86/group__cose.html#ga7ef9dbde482a76048774f085018af599">COSE_RECIPIENTS_MAX</a>&#160;&#160;&#160;4</td></tr>
+<tr class="separator:ga7ef9dbde482a76048774f085018af599"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga15b7dc184750cc32552c70d714626078"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d86/group__cose.html#ga15b7dc184750cc32552c70d714626078">COSE_HDR_MAX</a>&#160;&#160;&#160;4</td></tr>
 <tr class="separator:ga15b7dc184750cc32552c70d714626078"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3ad0a51017191d062cfc23df49d0a509"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d86/group__cose.html#ga3ad0a51017191d062cfc23df49d0a509">COSE_SIGN_HDR_MAX</a>&#160;&#160;&#160;<a class="el" href="../../d1/d86/group__cose.html#ga15b7dc184750cc32552c70d714626078">COSE_HDR_MAX</a></td></tr>
 <tr class="separator:ga3ad0a51017191d062cfc23df49d0a509"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gac131cf6a02ff7e20110030abec7b7167"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d86/group__cose.html#gac131cf6a02ff7e20110030abec7b7167">COSE_SIG_HDR_MAX</a>&#160;&#160;&#160;<a class="el" href="../../d1/d86/group__cose.html#ga15b7dc184750cc32552c70d714626078">COSE_HDR_MAX</a></td></tr>
 <tr class="separator:gac131cf6a02ff7e20110030abec7b7167"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga832340ea6481de368bede5334471e6eb"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d86/group__cose.html#ga832340ea6481de368bede5334471e6eb">COSE_ENCRYPT_HDR_MAX</a>&#160;&#160;&#160;<a class="el" href="../../d1/d86/group__cose.html#ga15b7dc184750cc32552c70d714626078">COSE_HDR_MAX</a></td></tr>
+<tr class="separator:ga832340ea6481de368bede5334471e6eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaada531f55d6591eb7001de8b0614cd27"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d86/group__cose.html#gaada531f55d6591eb7001de8b0614cd27">COSE_RECP_HDR_MAX</a>&#160;&#160;&#160;<a class="el" href="../../d1/d86/group__cose.html#ga15b7dc184750cc32552c70d714626078">COSE_HDR_MAX</a></td></tr>
+<tr class="separator:gaada531f55d6591eb7001de8b0614cd27"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaebddfde16fd2886293ec8a3485da73e1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d86/group__cose.html#gaebddfde16fd2886293ec8a3485da73e1">COSE_MSGSIZE_MAX</a>&#160;&#160;&#160;512</td></tr>
 <tr class="separator:gaebddfde16fd2886293ec8a3485da73e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="ga832340ea6481de368bede5334471e6eb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga832340ea6481de368bede5334471e6eb">&#9670;&nbsp;</a></span>COSE_ENCRYPT_HDR_MAX</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define COSE_ENCRYPT_HDR_MAX&#160;&#160;&#160;<a class="el" href="../../d1/d86/group__cose.html#ga15b7dc184750cc32552c70d714626078">COSE_HDR_MAX</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Combined maximum number of headers in an encrypt struct </p>
+
+</div>
+</div>
 <a id="ga15b7dc184750cc32552c70d714626078"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga15b7dc184750cc32552c70d714626078">&#9670;&nbsp;</a></span>COSE_HDR_MAX</h2>
 
@@ -132,6 +155,36 @@ Macros</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Maximum payload in a COSE object </p>
+
+</div>
+</div>
+<a id="ga7ef9dbde482a76048774f085018af599"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga7ef9dbde482a76048774f085018af599">&#9670;&nbsp;</a></span>COSE_RECIPIENTS_MAX</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define COSE_RECIPIENTS_MAX&#160;&#160;&#160;4</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Maximum number of signatures in a single sign object </p>
+
+</div>
+</div>
+<a id="gaada531f55d6591eb7001de8b0614cd27"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaada531f55d6591eb7001de8b0614cd27">&#9670;&nbsp;</a></span>COSE_RECP_HDR_MAX</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define COSE_RECP_HDR_MAX&#160;&#160;&#160;<a class="el" href="../../d1/d86/group__cose.html#ga15b7dc184750cc32552c70d714626078">COSE_HDR_MAX</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Combined maximum number of headers in a encrypt recipient </p>
 
 </div>
 </div>

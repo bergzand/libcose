@@ -99,7 +99,9 @@ Enumerations</h2></td></tr>
 &#160;&#160;<a class="el" href="../../da/de9/group__cose__defines.html#ggaeca2b554bcfb4b65ba9447c5b25b3799a271f700bcb8c449908f29c6606711f7c">COSE_ERR_INVALID_CBOR</a> = -4, 
 <a class="el" href="../../da/de9/group__cose__defines.html#ggaeca2b554bcfb4b65ba9447c5b25b3799a3659a8050057328cb97dc1e31556975c">COSE_ERR_CBOR_NOTSUP</a> = -5, 
 <a class="el" href="../../da/de9/group__cose__defines.html#ggaeca2b554bcfb4b65ba9447c5b25b3799a5157ccb5457e45bfcd99be5160d4446f">COSE_ERR_INVALID_PARAM</a> = -6, 
-<a class="el" href="../../da/de9/group__cose__defines.html#ggaeca2b554bcfb4b65ba9447c5b25b3799ac0efe36ae001c6f7cfd27be65c002108">COSE_ERR_NOT_FOUND</a> = -7
+<a class="el" href="../../da/de9/group__cose__defines.html#ggaeca2b554bcfb4b65ba9447c5b25b3799ac0efe36ae001c6f7cfd27be65c002108">COSE_ERR_NOT_FOUND</a> = -7, 
+<br />
+&#160;&#160;<a class="el" href="../../da/de9/group__cose__defines.html#ggaeca2b554bcfb4b65ba9447c5b25b3799a9c02601d3557e1f57e86e737feea7536">COSE_ERR_NOTIMPLEMENTED</a> = -8
 <br />
  }</td></tr>
 <tr class="separator:gaeca2b554bcfb4b65ba9447c5b25b3799"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -167,22 +169,32 @@ Enumerations</h2></td></tr>
 <tr class="separator:gad8236d3cc2f215ce7ff913b6e4b8c471"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">COSE curve numbers</div></td></tr>
 <tr class="memitem:gab9f88c1fa4f40c20e183bc008fd980a2"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de9/group__cose__defines.html#gab9f88c1fa4f40c20e183bc008fd980a2">cose_curve_t</a> { <br />
-&#160;&#160;<a class="el" href="../../da/de9/group__cose__defines.html#ggab9f88c1fa4f40c20e183bc008fd980a2a8274a362872ed07bac0f4f3007239f96">COSE_EC_CURVE_P256</a> = 1, 
+&#160;&#160;<a class="el" href="../../da/de9/group__cose__defines.html#ggab9f88c1fa4f40c20e183bc008fd980a2a3b54ad5e7beaf8fe6264d8b80b14cb27">COSE_EC_NONE</a> = 0, 
+<a class="el" href="../../da/de9/group__cose__defines.html#ggab9f88c1fa4f40c20e183bc008fd980a2a8274a362872ed07bac0f4f3007239f96">COSE_EC_CURVE_P256</a> = 1, 
 <a class="el" href="../../da/de9/group__cose__defines.html#ggab9f88c1fa4f40c20e183bc008fd980a2a95f4758301854d6aead016d764261c85">COSE_EC_CURVE_P384</a> = 2, 
 <a class="el" href="../../da/de9/group__cose__defines.html#ggab9f88c1fa4f40c20e183bc008fd980a2a6913c48fc2b02d7a0391ca5bb3989994">COSE_EC_CURVE_P521</a> = 3, 
-<a class="el" href="../../da/de9/group__cose__defines.html#ggab9f88c1fa4f40c20e183bc008fd980a2a452f61ebf0688c8a90aa6f15d5bcf71e">COSE_EC_CURVE_X22519</a> = 4, 
 <br />
-&#160;&#160;<a class="el" href="../../da/de9/group__cose__defines.html#ggab9f88c1fa4f40c20e183bc008fd980a2a2e3d4d5cabe37838a1e25737d1e2c634">COSE_EC_CURVE_X448</a> = 5, 
+&#160;&#160;<a class="el" href="../../da/de9/group__cose__defines.html#ggab9f88c1fa4f40c20e183bc008fd980a2a165f9c5d9fc779cbca4d064f166893e8">COSE_EC_CURVE_X25519</a> = 4, 
+<a class="el" href="../../da/de9/group__cose__defines.html#ggab9f88c1fa4f40c20e183bc008fd980a2a2e3d4d5cabe37838a1e25737d1e2c634">COSE_EC_CURVE_X448</a> = 5, 
 <a class="el" href="../../da/de9/group__cose__defines.html#ggab9f88c1fa4f40c20e183bc008fd980a2a814cf23bb758429e4276c6ebba81afa8">COSE_EC_CURVE_ED25519</a> = 6, 
 <a class="el" href="../../da/de9/group__cose__defines.html#ggab9f88c1fa4f40c20e183bc008fd980a2aec951c8e041ca75f8076a5c344bb0166">COSE_EC_CURVE_ED448</a> = 7
 <br />
  }</td></tr>
 <tr class="separator:gab9f88c1fa4f40c20e183bc008fd980a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">COSE signature algorithm numbers</div></td></tr>
-<tr class="memitem:ga56104458ad96b6caddc1b87db6be245b"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de9/group__cose__defines.html#ga56104458ad96b6caddc1b87db6be245b">cose_algo_t</a> { <a class="el" href="../../da/de9/group__cose__defines.html#gga56104458ad96b6caddc1b87db6be245bad65f1294a406d75c90261af99df62ad2">COSE_ALGO_ES512</a> = -36, 
+<tr class="memitem:ga56104458ad96b6caddc1b87db6be245b"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de9/group__cose__defines.html#ga56104458ad96b6caddc1b87db6be245b">cose_algo_t</a> { <br />
+&#160;&#160;<a class="el" href="../../da/de9/group__cose__defines.html#gga56104458ad96b6caddc1b87db6be245bad65f1294a406d75c90261af99df62ad2">COSE_ALGO_ES512</a> = -36, 
 <a class="el" href="../../da/de9/group__cose__defines.html#gga56104458ad96b6caddc1b87db6be245bab032091b36ea330420682d21be02b92f">COSE_ALGO_ES384</a> = -35, 
+<a class="el" href="../../da/de9/group__cose__defines.html#gga56104458ad96b6caddc1b87db6be245ba1eca8795d4684bed273d919742695a38">COSE_ALGO_EDDSA</a> = -8, 
 <a class="el" href="../../da/de9/group__cose__defines.html#gga56104458ad96b6caddc1b87db6be245baa2b17d42e45d4effcbe0f63046ea114b">COSE_ALGO_ES256</a> = -7, 
-<a class="el" href="../../da/de9/group__cose__defines.html#gga56104458ad96b6caddc1b87db6be245ba1eca8795d4684bed273d919742695a38">COSE_ALGO_EDDSA</a> = -8
+<br />
+&#160;&#160;<a class="el" href="../../da/de9/group__cose__defines.html#gga56104458ad96b6caddc1b87db6be245bacba47cff08452f2e7133c03ccfebec29">COSE_ALGO_DIRECT</a> = -6, 
+<a class="el" href="../../da/de9/group__cose__defines.html#gga56104458ad96b6caddc1b87db6be245ba9f9d45b8b73399a5ee2b3301806daf0c">COSE_ALGO_A128GCM</a> = 1, 
+<a class="el" href="../../da/de9/group__cose__defines.html#gga56104458ad96b6caddc1b87db6be245bad2efedfb0bac5f76dd88548c13933194">COSE_ALGO_A192GCM</a> = 2, 
+<a class="el" href="../../da/de9/group__cose__defines.html#gga56104458ad96b6caddc1b87db6be245bafff841acc5085e58ceff97ba3b2d296f">COSE_ALGO_A256GCM</a> = 3, 
+<br />
+&#160;&#160;<a class="el" href="../../da/de9/group__cose__defines.html#gga56104458ad96b6caddc1b87db6be245bae312e206c2dc2bf3368e4e568ce6ca52">COSE_ALGO_CHACHA20POLY1305</a> = 24
+<br />
  }</td></tr>
 <tr class="separator:ga56104458ad96b6caddc1b87db6be245b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>

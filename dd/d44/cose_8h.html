@@ -77,6 +77,8 @@ $(function() {
 <code>#include &quot;<a class="el" href="../../d0/d75/hdr_8h_source.html">cose/hdr.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d3/dcd/sign_8h_source.html">cose/sign.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../de/de5/key_8h_source.html">cose/key.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../df/d2f/recipient_8h_source.html">cose/recipient.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d6/db6/encrypt_8h_source.html">cose/encrypt.h</a>&quot;</code><br />
 <code>#include &quot;cn-cbor/cn-cbor.h&quot;</code><br />
 </div>
 <p><a href="../../dd/d44/cose_8h_source.html">Go to the source code of this file.</a></p>
@@ -85,12 +87,18 @@ $(function() {
 Macros</h2></td></tr>
 <tr class="memitem:ga198b547d7290ce20f55f75926d433af3"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d86/group__cose.html#ga198b547d7290ce20f55f75926d433af3">COSE_SIGNATURES_MAX</a>&#160;&#160;&#160;4</td></tr>
 <tr class="separator:ga198b547d7290ce20f55f75926d433af3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7ef9dbde482a76048774f085018af599"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d86/group__cose.html#ga7ef9dbde482a76048774f085018af599">COSE_RECIPIENTS_MAX</a>&#160;&#160;&#160;4</td></tr>
+<tr class="separator:ga7ef9dbde482a76048774f085018af599"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga15b7dc184750cc32552c70d714626078"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d86/group__cose.html#ga15b7dc184750cc32552c70d714626078">COSE_HDR_MAX</a>&#160;&#160;&#160;4</td></tr>
 <tr class="separator:ga15b7dc184750cc32552c70d714626078"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3ad0a51017191d062cfc23df49d0a509"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d86/group__cose.html#ga3ad0a51017191d062cfc23df49d0a509">COSE_SIGN_HDR_MAX</a>&#160;&#160;&#160;<a class="el" href="../../d1/d86/group__cose.html#ga15b7dc184750cc32552c70d714626078">COSE_HDR_MAX</a></td></tr>
 <tr class="separator:ga3ad0a51017191d062cfc23df49d0a509"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gac131cf6a02ff7e20110030abec7b7167"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d86/group__cose.html#gac131cf6a02ff7e20110030abec7b7167">COSE_SIG_HDR_MAX</a>&#160;&#160;&#160;<a class="el" href="../../d1/d86/group__cose.html#ga15b7dc184750cc32552c70d714626078">COSE_HDR_MAX</a></td></tr>
 <tr class="separator:gac131cf6a02ff7e20110030abec7b7167"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga832340ea6481de368bede5334471e6eb"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d86/group__cose.html#ga832340ea6481de368bede5334471e6eb">COSE_ENCRYPT_HDR_MAX</a>&#160;&#160;&#160;<a class="el" href="../../d1/d86/group__cose.html#ga15b7dc184750cc32552c70d714626078">COSE_HDR_MAX</a></td></tr>
+<tr class="separator:ga832340ea6481de368bede5334471e6eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaada531f55d6591eb7001de8b0614cd27"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d86/group__cose.html#gaada531f55d6591eb7001de8b0614cd27">COSE_RECP_HDR_MAX</a>&#160;&#160;&#160;<a class="el" href="../../d1/d86/group__cose.html#ga15b7dc184750cc32552c70d714626078">COSE_HDR_MAX</a></td></tr>
+<tr class="separator:gaada531f55d6591eb7001de8b0614cd27"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaebddfde16fd2886293ec8a3485da73e1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d86/group__cose.html#gaebddfde16fd2886293ec8a3485da73e1">COSE_MSGSIZE_MAX</a>&#160;&#160;&#160;512</td></tr>
 <tr class="separator:gaebddfde16fd2886293ec8a3485da73e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
