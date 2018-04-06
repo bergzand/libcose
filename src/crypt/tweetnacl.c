@@ -20,6 +20,7 @@
 #include "cose.h"
 #include "cose/crypto.h"
 
+static uint8_t msg_buf[2048];
 static uint8_t verify_buf[2048];
 
 void cose_crypto_sign_ed25519(uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen, uint8_t *skey)
@@ -34,9 +35,9 @@ int cose_crypto_verify_ed25519(const uint8_t *sign, uint8_t *msg, uint64_t msgle
 {
     unsigned long long mlen;
 
-    memcpy(sign_buf, sign, crypto_sign_BYTES);
-    memcpy(sign_buf + crypto_sign_BYTES, msg, msglen);
-    return crypto_sign_open(sign_buf + crypto_sign_BYTES, &mlen, sign_buf, crypto_sign_BYTES + msglen, pkey);
+    memcpy(verify_buf + crypto_sign_BYTES, msg, msglen);
+    memcpy(verify_buf, sign, crypto_sign_BYTES);
+    return crypto_sign_open(msg_buf, &mlen, verify_buf, crypto_sign_BYTES + msglen, pkey);
 }
 
 void cose_crypto_keypair_ed25519(uint8_t *pk, uint8_t *sk)
