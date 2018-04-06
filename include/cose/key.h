@@ -45,7 +45,7 @@ typedef struct cose_key {
     size_t kid_len;     /**< length of the key identifier */
     uint8_t *x;         /**< Public key part 1, must match the expected size of the algorithm */
     uint8_t *y;         /**< Public key part 2, when not NULL, must match the expected size of the algorithm */
-    uint8_t *d;         /**< Private key, must match the expected size of the algorithm */
+    uint8_t *d;         /**< Private or secret key, must match the expected size of the algorithm */
 } cose_key_t;
 /** @} */
 
@@ -78,7 +78,7 @@ int cose_key_from_cbor(cose_key_t *key, cn_cbor *cn);
  * @param   y           Pointer to the "y-coordinate" of the key
  * @param   d           Pointer to the private part of the key
  */
-void cose_key_set_keys(cose_key_t *key, cose_curve_t curve,
+void cose_key_set_keys(cose_key_t *key, cose_curve_t curve, cose_algo_t algo,
                           uint8_t *x, uint8_t *y, uint8_t *d);
 
 
