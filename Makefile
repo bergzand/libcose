@@ -10,6 +10,7 @@ INC_DIR=include
 SRC_DIR=src
 TEST_DIR=tests
 BIN_DIR=bin
+MK_DIR=makefiles
 OBJ_DIR=$(BIN_DIR)/objs
 
 LIB_DIR=lib
@@ -29,18 +30,10 @@ CFLAGS += -fPIC -Wall -Wextra -pedantic -Werror -I$(INC_DIR) -I$(INC_GLOBAL) -I$
 CFLAGS +=-DUSE_CBOR_CONTEXT
 
 ifeq ($(CRYPTO), sodium)
-	CFLAGS+=-DCRYPTO_SODIUM
-	CRYPTOLIB=libsodium
-	CRYPTOSRC=$(SRC_DIR)/crypt/sodium.c
-	CFLAGS_CRYPTO += $(shell pkg-config --cflags $(CRYPTOLIB))
-	LDFLAGS_CRYPTO += -Wl,$(shell pkg-config --libs $(CRYPTOLIB))
+	include $(MK_DIR)/sodium.mk
 endif
 ifeq ($(CRYPTO), tweetnacl)
-	CFLAGS+=-DCRYPTO_TWEETNACL -I../tweetnacl
-	CRYPTOLIB=tweetnacl
-	CRYPTOSRC=../tweetnacl/tweetnacl.c
-	CRYPTOSRC+=$(SRC_DIR)/crypt/helpers.c
-	CRYPTOSRC+=$(SRC_DIR)/crypt/tweetnacl.c
+	include $(MK_DIR)/tweetnacl.mk
 endif
 
 SRCS+=$(wildcard $(SRC_DIR)/*.c)
