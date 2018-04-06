@@ -8,7 +8,7 @@
  */
 
 /**
- * @defgroup    cose_cryto Crypto glue layer
+ * @defgroup    cose_crypto Crypto glue layer
  * @ingroup     cose
  *
  * Generic crypto function api for glueing purposes.
