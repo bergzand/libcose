@@ -36,10 +36,11 @@ ifeq ($(CRYPTO), sodium)
 	LDFLAGS_CRYPTO += -Wl,$(shell pkg-config --libs $(CRYPTOLIB))
 endif
 ifeq ($(CRYPTO), tweetnacl)
-	CFLAGS+=-DCRYPTO_TWEETNACL
+	CFLAGS+=-DCRYPTO_TWEETNACL -I../tweetnacl
 	CRYPTOLIB=tweetnacl
-	CRYPTOSRC=$(SRC_DIR)/crypt/tweetnacl.c
+	CRYPTOSRC=../tweetnacl/tweetnacl.c
 	CRYPTOSRC+=$(SRC_DIR)/crypt/helpers.c
+	CRYPTOSRC+=$(SRC_DIR)/crypt/tweetnacl.c
 endif
 
 SRCS+=$(wildcard $(SRC_DIR)/*.c)
