@@ -23,12 +23,18 @@
 #ifndef COSE_CRYPTO_H
 #define COSE_CRYPTO_H
 
-#include <stdlib.h>
+#include "cose_defines.h"
 #include <stdint.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <unistd.h>
+
 #ifdef CRYPTO_SODIUM
 #include <sodium.h>
-#elif defined(CRYPO_TWEETNACL)
+#include "cose/crypto/sodium.h"
+#elif defined(CRYPTO_TWEETNACL)
 #include <tweetnacl.h>
+#include "cose/crypto/tweetnacl.h"
 #endif
 
 

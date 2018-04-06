@@ -34,6 +34,7 @@ typedef enum {
     COSE_ERR_CBOR_NOTSUP    = -5,   /**< CBOR unsupported error */
     COSE_ERR_INVALID_PARAM  = -6,   /**< Invalid parameter passed to function */
     COSE_ERR_NOT_FOUND      = -7,   /**< Header not found */
+    COSE_ERR_NOTIMPLEMENTED = -8,   /**< Algorithm not implemented */
 } cose_err_t;
 /** @} */
 
@@ -155,10 +156,15 @@ typedef enum {
  * @{
  */
 typedef enum {
-    COSE_ALGO_ES512 = -36,  /**< ECDSA w/ SHA512 */
-    COSE_ALGO_ES384 = -35,  /**< ECDSA w/ SHA384 */
-    COSE_ALGO_ES256 = -7,   /**< ECDSA w/ SHA256 */
-    COSE_ALGO_EDDSA = -8,   /**< EdDSA */
+    COSE_ALGO_ES512 = -36,              /**< ECDSA w/ SHA512 */
+    COSE_ALGO_ES384 = -35,              /**< ECDSA w/ SHA384 */
+    COSE_ALGO_EDDSA = -8,               /**< EdDSA */
+    COSE_ALGO_ES256 = -7,               /**< ECDSA w/ SHA256 */
+    COSE_ALGO_DIRECT = -6,              /**< Direct use of CEK */
+    COSE_ALGO_A128GCM = 1,              /**< AES-GCM mode w/ 128-bit key, 128-bit tag */
+    COSE_ALGO_A192GCM = 2,              /**< AES-GCM mode w/ 192-bit key, 128-bit tag */
+    COSE_ALGO_A256GCM = 3,              /**< AES-GCM mode w/ 256-bit key, 128-bit tag */
+    COSE_ALGO_CHACHA20POLY1305 = 24,    /**< IETF ChaCha20/Poly1305 w/ 256-bit key, 128-bit tag */
 } cose_algo_t;
 /** @} */
 
