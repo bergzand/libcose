@@ -12,16 +12,20 @@
 #include "cose/test.h"
 #include <CUnit/CUnit.h>
 
-static char payload[] = "Input string";
-static char additional_data[] = "Extra signed data";
-static unsigned char pk[crypto_sign_PUBLICKEYBYTES];
-static unsigned char sk[crypto_sign_SECRETKEYBYTES];
-static unsigned char aead_sk[crypto_aead_xchacha20poly1305_ietf_KEYBYTES];
-static unsigned char nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES] = { 0 };
+static uint8_t payload[] = "Input string";
+static uint8_t pk[COSE_CRYPTO_SIGN_PUBLICKEYBYTES];
+static uint8_t sk[COSE_CRYPTO_SIGN_SECRETKEYBYTES];
 
-unsigned char ciphertext[sizeof(payload)];
+#ifdef HAVE_CRYPTO_CHACHA20POLY1305
+static uint8_t additional_data[] = "Extra signed data";
+static uint8_t aead_sk[COSE_CRYPTO_AEAD_CHACHA20POLY1305_KEYBYTES];
+static uint8_t nonce[COSE_CRYPTO_AEAD_CHACHA20POLY1305_NONCEBYTES] = { 0 };
+
+unsigned char ciphertext[sizeof(payload) + COSE_CRYPTO_AEAD_CHACHA20POLY1305_ABYTES];
 unsigned char plaintext[sizeof(payload)];
-unsigned char tag[crypto_aead_chacha20poly1305_IETF_ABYTES];
+unsigned char tag[COSE_CRYPTO_AEAD_CHACHA20POLY1305_ABYTES];
+#endif
+
 
 
 #define MLEN (sizeof(payload))
@@ -39,27 +43,33 @@ void test_crypto1(void)
     CU_ASSERT_EQUAL(res, 0);
 }
 
+#ifdef HAVE_CRYPTO_CHACHA20POLY1305
 void test_crypto2(void)
 {
     /* Generate key */
-    unsigned long long taglen;
-    cose_crypto_aead_keypair_chachapoly(aead_sk);
-    cose_crypto_aead_encrypt_chachapoly(ciphertext, tag, &taglen, (unsigned char *)payload, sizeof(payload), (unsigned char *)additional_data, sizeof(additional_data), nonce, aead_sk);
+    size_t cipherlen;
+    size_t msglen = 0;
+    cose_crypto_aead_keypair_chachapoly(aead_sk, sizeof(aead_sk));
+    cose_crypto_aead_encrypt_chachapoly(ciphertext, &cipherlen, (unsigned char *)payload, sizeof(payload), (unsigned char *)additional_data, sizeof(additional_data), nonce, aead_sk);
     CU_ASSERT_EQUAL(
-        cose_crypto_aead_decrypt_chachapoly(plaintext, ciphertext, sizeof(payload), tag, (unsigned char *)additional_data, sizeof(additional_data), nonce, aead_sk),
+        cose_crypto_aead_decrypt_chachapoly(plaintext, &msglen, ciphertext, cipherlen, additional_data, sizeof(additional_data), nonce, aead_sk),
         0 );
+    CU_ASSERT_EQUAL(msglen, sizeof(payload));
     CU_ASSERT_EQUAL(memcmp(payload, plaintext, sizeof(payload)), 0);
 }
+#endif
 
 const test_t tests_crypto[] = {
     {
         .f = test_crypto1,
         .n = "Simple sign and verify",
     },
+#ifdef HAVE_CRYPTO_CHACHA20POLY1305
     {
         .f = test_crypto2,
         .n = "Simple AEAD encrypt/decrypt",
     },
+#endif
     {
         .f = NULL,
         .n = NULL,

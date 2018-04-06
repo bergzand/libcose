@@ -18,35 +18,62 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-int cose_crypto_aead_encrypt_chachapoly(unsigned char *c,
-                                        unsigned char *mac,
-                                        unsigned long long *maclen_p,
-                                        const unsigned char *m,
-                                        unsigned long long mlen,
-                                        const unsigned char *ad,
-                                        unsigned long long adlen,
-                                        const unsigned char *npub,
-                                        const unsigned char *k)
+int cose_crypto_aead_encrypt_chachapoly(uint8_t *c,
+                                        size_t *clen,
+                                        const uint8_t *msg,
+                                        size_t msglen,
+                                        const uint8_t *aad,
+                                        size_t aadlen,
+                                        const uint8_t *npub,
+                                        const uint8_t *k)
 {
-    return crypto_aead_xchacha20poly1305_ietf_encrypt_detached(c, mac, maclen_p, m, mlen, ad, adlen, NULL, npub, k);
+    unsigned long long cipherlen = 0;
+    int res = crypto_aead_chacha20poly1305_ietf_encrypt((unsigned char*)c, &cipherlen, (const unsigned char*)msg, msglen, (const unsigned char *)aad, aadlen, NULL, (const unsigned char*)npub, (const unsigned char*)k);
+    *clen = cipherlen;
+    return res;
 }
 
-int cose_crypto_aead_decrypt_chachapoly(unsigned char *m,
-                                        const unsigned char *c,
-                                        unsigned long long clen,
-                                        const unsigned char *mac,
-                                        const unsigned char *ad,
-                                        unsigned long long adlen,
-                                        const unsigned char *npub,
-                                        const unsigned char *k)
+int cose_crypto_aead_decrypt_chachapoly(uint8_t *msg,
+                                        size_t *msglen,
+                                        const uint8_t *c,
+                                        size_t clen,
+                                        const uint8_t *aad,
+                                        size_t aadlen,
+                                        const uint8_t *npub,
+                                        const uint8_t *k)
 {
-    return crypto_aead_xchacha20poly1305_ietf_decrypt_detached(m, NULL, c, clen, mac, ad, adlen, npub, k);
+    unsigned long long messagelen = 0;
+    int res = crypto_aead_chacha20poly1305_ietf_decrypt((unsigned char *)msg,
+            &messagelen,
+            NULL,
+            (const unsigned char*)c,
+            clen,
+            (const unsigned char *)aad,
+            aadlen,
+            (const unsigned char*)npub,
+            (const unsigned char *)k);
+    *msglen = messagelen;
+    return res;
 }
 
-void cose_crypto_aead_keypair_chachapoly(uint8_t *sk)
+size_t cose_crypto_aead_keypair_chachapoly(uint8_t *sk, size_t len)
 {
-    crypto_aead_xchacha20poly1305_ietf_keygen((unsigned char*)sk);
+    if (len < crypto_aead_chacha20poly1305_ietf_KEYBYTES) {
+        return 0;
+    }
+    crypto_aead_chacha20poly1305_ietf_keygen((unsigned char*)sk);
+    return crypto_aead_chacha20poly1305_ietf_KEYBYTES;
 }
+
+size_t cose_crypto_aead_nonce_chachapoly(uint8_t *nonce, size_t len)
+{
+    if (len < crypto_aead_chacha20poly1305_ietf_NPUBBYTES) {
+        return 0;
+    }
+    randombytes_buf(nonce, crypto_aead_chacha20poly1305_ietf_NPUBBYTES);
+    return crypto_aead_chacha20poly1305_ietf_NPUBBYTES;
+}
+
 
 void cose_crypto_sign_ed25519(uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen, uint8_t *skey)
 {
