@@ -13,7 +13,6 @@
  */
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <stdint.h>
 #include <string.h>
 #include <tweetnacl.h>
@@ -42,7 +41,6 @@ int cose_crypto_verify_ed25519(const uint8_t *sign, uint8_t *msg, uint64_t msgle
 
 void cose_crypto_keypair_ed25519(uint8_t *pk, uint8_t *sk)
 {
-    printf("Generating keypair");
     crypto_sign_keypair(pk, sk);
 }
 
