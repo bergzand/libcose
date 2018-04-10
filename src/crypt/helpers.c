@@ -8,9 +8,11 @@
  */
 
 #include <stdint.h>
-#include <sys/random.h>
+#include <stdlib.h>
 
 void randombytes(uint8_t *target, uint64_t n)
 {
-    getrandom(target, n, 0);
+    for(uint64_t i = 0; i < n; i++) {
+        target[i] = rand() % 256;
+    }
 }

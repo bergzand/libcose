@@ -21,6 +21,7 @@ void cose_crypt_set_rng(cose_crypt_rng f_rng, void *p_rng)
     cose_crypt_rng_arg = p_rng;
 }
 
+/* NOLINTNEXTLINE(readability-non-const-parameter) */
 ssize_t cose_crypto_keygen(uint8_t *buf, size_t len, cose_algo_t algo)
 {
     switch(algo) {
@@ -45,8 +46,9 @@ bool cose_crypto_is_aead(cose_algo_t algo)
     }
 }
 
-int cose_crypto_aead(uint8_t *c,
-        size_t *clen,
+
+int cose_crypto_aead(uint8_t *c,  /* NOLINT(readability-non-const-parameter) */
+        size_t *clen,             /* NOLINT(readability-non-const-parameter) */
         const uint8_t *msg,
         size_t msglen,
         const uint8_t *aad,
