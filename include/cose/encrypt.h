@@ -22,7 +22,9 @@
 #ifndef COSE_ENCRYPT_H
 #define COSE_ENCRYPT_H
 
-#include "cose.h"
+#include "cose_defines.h"
+#include "cose/hdr.h"
+#include "cose/recipient.h"
 
 /**
  * @name COSE recipient struct

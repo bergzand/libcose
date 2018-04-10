@@ -7,12 +7,14 @@
  * directory for more details.
  */
 
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 
 #include "CUnit/CUnit.h"
 #include "CUnit/Basic.h"
+#include "cose/crypto.h"
 #include "cose/test.h"
 
 /* External list of tests */
@@ -22,6 +24,14 @@ extern test_t tests_sign[];
 extern test_t tests_suite[];
 extern test_t tests_encrypt[];
 
+int getrandom(void *arg, unsigned char *buf, size_t bytes)
+{
+    (void)arg;
+    for(unsigned i = 0; i < bytes; i++) {
+        buf[i] = rand() % 256;
+    }
+    return 0;
+}
 
 int add_tests(CU_pSuite pSuite, const test_t* tests)
 {
@@ -75,6 +85,9 @@ int main()
         return CU_get_error();
     }
     add_tests(pSuite, tests_encrypt);
+
+    srand(time(NULL));
+    cose_crypt_set_rng(getrandom, NULL);
 
     CU_basic_set_mode(CU_BRM_VERBOSE);
     CU_basic_run_tests();

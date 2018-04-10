@@ -14,7 +14,7 @@ be skipped.
 ### Dependencies:
 
 - [cn-cbor]
-- Either [TweetNaCl] or [libsodium] as crypto library
+- Either [TweetNaCl], [libsodium] or [mbed TLS] as crypto library
 - A memory block allocator (can be malloc/calloc based)
 
 ### Building
@@ -58,3 +58,4 @@ signatures that are allowed in a single signature structure.
 [cn-cbor]: https://github.com/cabo/cn-cbor
 [TweetNaCl]: https://tweetnacl.cr.yp.to/
 [libsodium]: https://github.com/jedisct1/libsodium
+[mbed TLS]: https://tls.mbed.org/

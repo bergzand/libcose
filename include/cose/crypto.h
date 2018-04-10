@@ -36,7 +36,12 @@
 #elif defined(CRYPTO_TWEETNACL)
 #include "cose/crypto/tweetnacl.h"
 #include <tweetnacl.h>
+#elif defined(CRYPTO_MBEDTLS)
+#include "cose/crypto/mbedtls.h"
 #endif
+
+typedef int (*cose_crypt_rng)(void *, unsigned char *, size_t);
+void cose_crypt_set_rng(cose_crypt_rng f_rng, void *p_rng);
 
 /**
  * Generated a key suitable for the requisted algo
@@ -105,6 +110,15 @@ int cose_crypto_verify(const cose_key_t *key, const uint8_t *sign, size_t signle
 size_t cose_crypto_sig_size(const cose_key_t *key);
 
 /**
+ * Sign a byte string with an ECDSA keypair
+ *
+ * @note This function can return COSE_ERR_NOTIMPLEMENTED when the specific
+ * combination of hashing and curve is not available.
+ */
+int cose_crypto_sign_ecdsa(const cose_key_t *key, uint8_t *sign, size_t *signlen, uint8_t *msg,  size_t msglen);
+int cose_crypto_verify_ecdsa(const cose_key_t *key, const uint8_t *sign, size_t signlen, uint8_t *msg, size_t msglen);
+size_t cose_crypto_sig_size_ecdsa(cose_curve_t curve);
+/**
  * Sign a byte string with an ed25519 private key
  *
  * @param[out]  sign    The resulting signature
@@ -136,6 +150,7 @@ int cose_crypto_verify_ed25519(const cose_key_t *key, const uint8_t *sign, size_
  * @note key->x and key->d should provide large enough buffers for the key pair
  */
 void cose_crypto_keypair_ed25519(cose_key_t *key);
+void cose_crypto_keypair_ecdsa(cose_key_t *key, cose_curve_t curve);
 
 /**
  * Get the size of an ed25519 signature

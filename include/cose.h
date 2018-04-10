@@ -54,11 +54,11 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include "cose_defines.h"
+#include "cose/encrypt.h"
 #include "cose/hdr.h"
-#include "cose/sign.h"
 #include "cose/key.h"
 #include "cose/recipient.h"
-#include "cose/encrypt.h"
+#include "cose/sign.h"
 #include "cn-cbor/cn-cbor.h"
 
 #endif

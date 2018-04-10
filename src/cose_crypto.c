@@ -12,6 +12,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+cose_crypt_rng cose_crypt_get_random = NULL;
+void *cose_crypt_rng_arg = NULL;
+
+void cose_crypt_set_rng(cose_crypt_rng f_rng, void *p_rng)
+{
+    cose_crypt_get_random = f_rng;
+    cose_crypt_rng_arg = p_rng;
+}
+
 ssize_t cose_crypto_keygen(uint8_t *buf, size_t len, cose_algo_t algo)
 {
     switch(algo) {
@@ -81,6 +90,13 @@ ssize_t cose_crypto_aead_nonce_size(cose_algo_t algo)
 int cose_crypto_sign(const cose_key_t *key, uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen)
 {
     switch(key->algo) {
+#ifdef HAVE_ALGO_ECDSA
+        case COSE_ALGO_ES256:
+        case COSE_ALGO_ES384:
+        case COSE_ALGO_ES512:
+            return cose_crypto_sign_ecdsa(key, sign, signlen, msg, msglen);
+            break;
+#endif
 #ifdef HAVE_ALGO_EDDSA
         case COSE_ALGO_EDDSA:
             /* Needs to be splitted as soon as ed448 support is required */
@@ -96,6 +112,13 @@ int cose_crypto_sign(const cose_key_t *key, uint8_t *sign, size_t *signlen, uint
 int cose_crypto_verify(const cose_key_t *key, const uint8_t *sign, size_t signlen, uint8_t *msg, uint64_t msglen)
 {
     switch(key->algo) {
+#ifdef HAVE_ALGO_ECDSA
+        case COSE_ALGO_ES256:
+        case COSE_ALGO_ES384:
+        case COSE_ALGO_ES512:
+            return cose_crypto_verify_ecdsa(key, sign, signlen, msg, msglen);
+            break;
+#endif
 #ifdef HAVE_ALGO_EDDSA
         case COSE_ALGO_EDDSA:
             /* Needs to be splitted as soon as ed448 support is required */
@@ -111,6 +134,13 @@ int cose_crypto_verify(const cose_key_t *key, const uint8_t *sign, size_t signle
 size_t cose_crypto_sig_size(const cose_key_t *key)
 {
     switch(key->algo) {
+#ifdef HAVE_ALGO_ECDSA
+        case COSE_ALGO_ES256:
+        case COSE_ALGO_ES384:
+        case COSE_ALGO_ES512:
+            return cose_crypto_sig_size_ecdsa(key->crv);
+            break;
+#endif
 #ifdef HAVE_ALGO_EDDSA
         case COSE_ALGO_EDDSA:
             /* Needs to be splitted as soon as ed448 support is required */
