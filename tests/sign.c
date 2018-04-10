@@ -26,6 +26,9 @@ static char kid2[] = "koen@example.org";
 #ifdef HAVE_ALGO_EDDSA
 #define TEST_CRYPTO_SIGN_PUBLICKEYBYTES COSE_CRYPTO_SIGN_ED25519_PUBLICKEYBYTES
 #define TEST_CRYPTO_SIGN_SECRETKEYBYTES COSE_CRYPTO_SIGN_ED25519_SECRETKEYBYTES
+#elif defined(HAVE_ALGO_ECDSA)
+#define TEST_CRYPTO_SIGN_PUBLICKEYBYTES COSE_CRYPTO_SIGN_P521_PUBLICKEYBYTES
+#define TEST_CRYPTO_SIGN_SECRETKEYBYTES COSE_CRYPTO_SIGN_P521_SECRETKEYBYTES
 #endif
 
 
@@ -55,6 +58,9 @@ static void genkey(cose_key_t *key, uint8_t *pkx, uint8_t *pky, uint8_t *sk)
     #ifdef HAVE_ALGO_EDDSA
     cose_key_set_keys(key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pkx, pky, sk);
     cose_crypto_keypair_ed25519(key);
+    #elif defined(HAVE_ALGO_ECDSA)
+    cose_key_set_keys(key, COSE_EC_CURVE_P256, COSE_ALGO_ES512, pkx, pky, sk);
+    cose_crypto_keypair_ecdsa(key, COSE_EC_CURVE_P256);
     #endif
 }
 

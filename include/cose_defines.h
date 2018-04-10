@@ -147,7 +147,7 @@ typedef enum {
     COSE_EC_CURVE_X25519    = 4,    /**< X25519, ECDH only */
     COSE_EC_CURVE_X448      = 5,    /**< X448, ECDH only */
     COSE_EC_CURVE_ED25519   = 6,    /**< Ed25519 for EdDSA only */
-    COSE_EC_CURVE_ED448     = 7,    /**< Ed25519 for EdDSA only */
+    COSE_EC_CURVE_ED448     = 7,    /**< Ed448 for EdDSA only */
 } cose_curve_t;
 /** @} */
 
