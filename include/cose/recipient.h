@@ -22,7 +22,8 @@
 #ifndef COSE_RECIPIENT_H
 #define COSE_RECIPIENT_H
 
-#include "cose.h"
+#include "cose/hdr.h"
+#include "cose/key.h"
 
 typedef enum {
     TEST

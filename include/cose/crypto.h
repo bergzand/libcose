@@ -23,6 +23,7 @@
 #ifndef COSE_CRYPTO_H
 #define COSE_CRYPTO_H
 
+#include "cose/key.h"
 #include "cose_defines.h"
 #include <stdint.h>
 #include <stdlib.h>
@@ -30,13 +31,23 @@
 #include <unistd.h>
 
 #ifdef CRYPTO_SODIUM
-#include <sodium.h>
 #include "cose/crypto/sodium.h"
+#include <sodium.h>
 #elif defined(CRYPTO_TWEETNACL)
-#include <tweetnacl.h>
 #include "cose/crypto/tweetnacl.h"
+#include <tweetnacl.h>
 #endif
 
+/**
+ * Generated a key suitable for the requisted algo
+ *
+ * @param[out]      buf     Buffer to fill
+ * @param           len     Size of the buffer
+ * @param           algo    Algorithm to get the key for
+ *
+ * @return                  Size of the generated key
+ * @return                  Negative on error
+ */
 ssize_t cose_crypto_keygen(uint8_t *buf, size_t len, cose_algo_t algo);
 
 /**
@@ -89,6 +100,10 @@ ssize_t cose_crypto_aead_nonce_size(cose_algo_t algo);
  * @{
  */
 
+int cose_crypto_sign(const cose_key_t *key, uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen);
+int cose_crypto_verify(const cose_key_t *key, const uint8_t *sign, size_t signlen, uint8_t *msg, uint64_t msglen);
+size_t cose_crypto_sig_size(const cose_key_t *key);
+
 /**
  * Sign a byte string with an ed25519 private key
  *
@@ -98,7 +113,7 @@ ssize_t cose_crypto_aead_nonce_size(cose_algo_t algo);
  * @param       msglen  The length of the message
  * @param       skey    The secret key to sign with
  */
-void cose_crypto_sign_ed25519(uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen, uint8_t *skey);
+int cose_crypto_sign_ed25519(const cose_key_t *key, uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen);
 
 
 /**
@@ -111,15 +126,16 @@ void cose_crypto_sign_ed25519(uint8_t *sign, size_t *signlen, uint8_t *msg, unsi
  *
  * @return              0 if verification succeeded
  */
-int cose_crypto_verify_ed25519(const uint8_t *sign, uint8_t *msg, uint64_t msglen,  uint8_t *pkey);
+int cose_crypto_verify_ed25519(const cose_key_t *key, const uint8_t *sign, size_t signlen, uint8_t *msg, uint64_t msglen);
 
 /**
  * generate an ed25519 keypair
  *
- * @param[out]  pk  Generated public key
- * @param[out]  sk  Generated secret key
+ * @param[out]  key  key struct to fill with generated keys
+ *
+ * @note key->x and key->d should provide large enough buffers for the key pair
  */
-void cose_crypto_keypair_ed25519(uint8_t *pk, uint8_t *sk);
+void cose_crypto_keypair_ed25519(cose_key_t *key);
 
 /**
  * Get the size of an ed25519 signature

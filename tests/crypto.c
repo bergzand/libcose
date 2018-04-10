@@ -8,15 +8,21 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include "cose.h"
 #include "cose/crypto.h"
 #include "cose/test.h"
 #include <CUnit/CUnit.h>
 
+#if defined(HAVE_ALGO_EDDSA) || defined(HAVE_CRYPTO_CHACHA20POLY1305)
 static uint8_t payload[] = "Input string";
-static uint8_t pk[COSE_CRYPTO_SIGN_PUBLICKEYBYTES];
-static uint8_t sk[COSE_CRYPTO_SIGN_SECRETKEYBYTES];
+#endif
+#ifdef HAVE_ALGO_EDDSA
+static uint8_t pk[COSE_CRYPTO_SIGN_ED25519_PUBLICKEYBYTES];
+static uint8_t sk[COSE_CRYPTO_SIGN_ED25519_SECRETKEYBYTES];
+static unsigned char signature[crypto_sign_BYTES];
+#endif
 
-#ifdef HAVE_CRYPTO_CHACHA20POLY1305
+#ifdef HAVE_ALGO_CHACHA20POLY1305
 static uint8_t additional_data[] = "Extra signed data";
 static uint8_t aead_sk[COSE_CRYPTO_AEAD_CHACHA20POLY1305_KEYBYTES];
 static uint8_t nonce[COSE_CRYPTO_AEAD_CHACHA20POLY1305_NONCEBYTES] = { 0 };
@@ -28,22 +34,24 @@ unsigned char tag[COSE_CRYPTO_AEAD_CHACHA20POLY1305_ABYTES];
 
 
 
-#define MLEN (sizeof(payload))
-#define SMLEN (sizeof(payload)+ crypto_sign_BYTES)
-static unsigned char signature[crypto_sign_BYTES];
 
 
+#ifdef HAVE_ALGO_EDDSA
 void test_crypto1(void)
 {
     size_t signaturelen = 0;
-    cose_crypto_keypair_ed25519(pk, sk);
+    cose_key_t key;
+    key.d = sk;
+    key.x = pk;
+    cose_crypto_keypair_ed25519(&key);
 
-    cose_crypto_sign_ed25519(signature, &signaturelen, (uint8_t*)payload, MLEN, sk);
-    int res = cose_crypto_verify_ed25519(signature, (uint8_t*)payload, MLEN, pk);
+    cose_crypto_sign_ed25519(&key, signature, &signaturelen, (uint8_t*)payload, sizeof(payload));
+    int res = cose_crypto_verify_ed25519(&key, signature, signaturelen, (uint8_t*)payload, sizeof(payload));
     CU_ASSERT_EQUAL(res, 0);
 }
+#endif
 
-#ifdef HAVE_CRYPTO_CHACHA20POLY1305
+#ifdef HAVE_ALGO_CHACHA20POLY1305
 void test_crypto2(void)
 {
     /* Generate key */
@@ -60,11 +68,13 @@ void test_crypto2(void)
 #endif
 
 const test_t tests_crypto[] = {
+#ifdef HAVE_ALGO_EDDSA
     {
         .f = test_crypto1,
         .n = "Simple sign and verify",
     },
-#ifdef HAVE_CRYPTO_CHACHA20POLY1305
+#endif
+#ifdef HAVE_ALGO_CHACHA20POLY1305
     {
         .f = test_crypto2,
         .n = "Simple AEAD encrypt/decrypt",
