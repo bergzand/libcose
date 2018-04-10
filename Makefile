@@ -40,10 +40,11 @@ ifeq ($(CRYPTO), tweetnacl)
 endif
 
 SRCS+=$(wildcard $(SRC_DIR)/*.c)
-SRCS+=$(CRYPTOSRC)
+BUILDSRCS=$(SRCS) $(CRYPTOSRC)
+TIDYSRCS=$(SRCS) 
 TESTS+=$(wildcard $(TEST_DIR)/*.c)
 
-OBJS=$(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRCS))
+OBJS=$(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(BUILDSRCS))
 OTESTS=$(patsubst %.c,$(OBJ_DIR)/%.o,$(TESTS))
 
 CFLAGS_TEST += $(shell pkg-config --cflags cunit) $(CFLAGS_COVERAGE)
@@ -81,7 +82,7 @@ debug-test: $(BIN_DIR)/test
 	LD_LIBRARY_PATH=$(LIB_CBOR_PATH) gdb $<
 
 clang-tidy:
-	$(TIDY) $(TIDYFLAGS) $(SRCS) -- $(CFLAGS)
+	$(TIDY) $(TIDYFLAGS) $(TIDYSRCS) -- $(CFLAGS)
 
 clean:
 	$(RM) $(BIN_DIR)
