@@ -233,8 +233,8 @@ int cose_sign_add_signer(cose_sign_t *sign, const cose_key_t *key)
 int cose_sign_generate_signature(cose_sign_t *sign, cose_signature_t *sig, uint8_t *buf, size_t len, cn_cbor_context *ct)
 {
     cn_cbor_errback errp;
-    uint8_t *buf_cbor = buf + cose_crypto_sig_size_ed25519();
-    size_t cbor_space = len - cose_crypto_sig_size_ed25519();
+    uint8_t *buf_cbor = buf + cose_crypto_sig_size(sig->signer);
+    size_t cbor_space = len - cose_crypto_sig_size(sig->signer);
 
     if (!sig->signer) {
         return COSE_ERR_NOINIT;
@@ -268,10 +268,10 @@ int cose_sign_generate_signature(cose_sign_t *sign, cose_signature_t *sig, uint8
         }
     }
     cn_cbor_free(cn_arr, ct);
-    cose_crypto_sign_ed25519(buf, &(sig->signature_len), buf_cbor, sig_struct_len, sig->signer->d);
+    int res = cose_crypto_sign(sig->signer, buf, &(sig->signature_len), buf_cbor, sig_struct_len);
     /* Store pointer to the signature */
     sig->signature = buf;
-    return COSE_OK;
+    return res;
 }
 
 
@@ -578,7 +578,7 @@ int cose_sign_verify(cose_sign_t *sign, cose_key_t *key, uint8_t idx, uint8_t *b
     if (sig_len < 0) {
         return sig_len;
     }
-    if (cose_crypto_verify_ed25519(sig->signature, buf, sig_len, key->x) < 0) {
+    if (cose_crypto_verify(key, sig->signature, sig->signature_len, buf, sig_len) < 0) {
         res = COSE_ERR_CRYPTO;
     }
     return res;

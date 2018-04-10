@@ -16,32 +16,34 @@
 #include <stdint.h>
 #include <string.h>
 #include <tweetnacl.h>
-#include "cose.h"
+#include "cose_defines.h"
 #include "cose/crypto.h"
 
 static uint8_t msg_buf[2048];
 static uint8_t verify_buf[2048];
 
-void cose_crypto_sign_ed25519(uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen, uint8_t *skey)
+int cose_crypto_sign_ed25519(const cose_key_t *key, uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen)
 {
     unsigned long long int signature_len = 0;
 
-    crypto_sign(sign, &signature_len, msg, msglen, (unsigned char *)skey);
+    crypto_sign(sign, &signature_len, msg, msglen, (unsigned char *)key->d);
     *signlen = (size_t)crypto_sign_BYTES;
+    return COSE_OK;
 }
 
-int cose_crypto_verify_ed25519(const uint8_t *sign, uint8_t *msg, uint64_t msglen,  uint8_t *pkey)
+int cose_crypto_verify_ed25519(const cose_key_t *key, const uint8_t *sign, size_t signlen, uint8_t *msg, uint64_t msglen)
 {
+    (void)signlen;
     unsigned long long mlen;
 
     memcpy(verify_buf + crypto_sign_BYTES, msg, msglen);
     memcpy(verify_buf, sign, crypto_sign_BYTES);
-    return crypto_sign_open(msg_buf, &mlen, verify_buf, crypto_sign_BYTES + msglen, pkey);
+    return crypto_sign_open(msg_buf, &mlen, verify_buf, crypto_sign_BYTES + msglen, key->x);
 }
 
-void cose_crypto_keypair_ed25519(uint8_t *pk, uint8_t *sk)
+void cose_crypto_keypair_ed25519(cose_key_t *key)
 {
-    crypto_sign_keypair(pk, sk);
+    crypto_sign_keypair(key->x, key->d);
 }
 
 size_t cose_crypto_sig_size_ed25519(void)

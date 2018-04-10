@@ -77,3 +77,48 @@ ssize_t cose_crypto_aead_nonce_size(cose_algo_t algo)
             return COSE_ERR_NOTIMPLEMENTED;
     }
 }
+
+int cose_crypto_sign(const cose_key_t *key, uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen)
+{
+    switch(key->algo) {
+#ifdef HAVE_ALGO_EDDSA
+        case COSE_ALGO_EDDSA:
+            /* Needs to be splitted as soon as ed448 support is required */
+            return cose_crypto_sign_ed25519(key, sign, signlen, msg, msglen);
+            break;
+#endif
+        default:
+            return COSE_ERR_NOTIMPLEMENTED;
+    }
+    return 0;
+}
+
+int cose_crypto_verify(const cose_key_t *key, const uint8_t *sign, size_t signlen, uint8_t *msg, uint64_t msglen)
+{
+    switch(key->algo) {
+#ifdef HAVE_ALGO_EDDSA
+        case COSE_ALGO_EDDSA:
+            /* Needs to be splitted as soon as ed448 support is required */
+            return cose_crypto_verify_ed25519(key, sign, signlen, msg, msglen);
+            break;
+#endif
+        default:
+            return COSE_ERR_NOTIMPLEMENTED;
+    }
+    return 0;
+}
+
+size_t cose_crypto_sig_size(const cose_key_t *key)
+{
+    switch(key->algo) {
+#ifdef HAVE_ALGO_EDDSA
+        case COSE_ALGO_EDDSA:
+            /* Needs to be splitted as soon as ed448 support is required */
+            return cose_crypto_sig_size_ed25519();
+            break;
+#endif
+        default:
+            return COSE_ERR_NOTIMPLEMENTED;
+    }
+    return 0;
+}

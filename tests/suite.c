@@ -20,6 +20,7 @@
 #include "CUnit/Basic.h"
 #include "CUnit/Automated.h"
 
+#ifdef HAVE_ALGO_EDDSA
 static uint8_t buf[2048];
 
 static const unsigned char cose_suite[] = {
@@ -131,12 +132,15 @@ void test_suite1(void)
     printf("Current usage %d, Max usage: %d\n", cur, max);
     CU_ASSERT_EQUAL(cur, 0);
 }
+#endif
 
 const test_t tests_suite[] = {
+#ifdef HAVE_ALGO_EDDSA
     {
         .f = test_suite1,
         .n = "Verify with known signed",
     },
+#endif
     {
         .f = NULL,
         .n = NULL,

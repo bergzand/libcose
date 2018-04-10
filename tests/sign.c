@@ -22,10 +22,19 @@
 
 static char kid[] = "koen@example.org";
 static char kid2[] = "koen@example.org";
-static unsigned char pk[crypto_sign_PUBLICKEYBYTES];
-static unsigned char sk[crypto_sign_SECRETKEYBYTES];
-static unsigned char pk2[crypto_sign_PUBLICKEYBYTES];
-static unsigned char sk2[crypto_sign_SECRETKEYBYTES];
+
+#ifdef HAVE_ALGO_EDDSA
+#define TEST_CRYPTO_SIGN_PUBLICKEYBYTES COSE_CRYPTO_SIGN_ED25519_PUBLICKEYBYTES
+#define TEST_CRYPTO_SIGN_SECRETKEYBYTES COSE_CRYPTO_SIGN_ED25519_SECRETKEYBYTES
+#endif
+
+
+static unsigned char pkx[TEST_CRYPTO_SIGN_PUBLICKEYBYTES];
+static unsigned char pky[TEST_CRYPTO_SIGN_PUBLICKEYBYTES];
+static unsigned char sk[TEST_CRYPTO_SIGN_SECRETKEYBYTES];
+static unsigned char pkx2[TEST_CRYPTO_SIGN_PUBLICKEYBYTES];
+static unsigned char pky2[TEST_CRYPTO_SIGN_PUBLICKEYBYTES];
+static unsigned char sk2[TEST_CRYPTO_SIGN_SECRETKEYBYTES];
 
 /* Memory usage tracking */
 static int max = 0;
@@ -34,13 +43,20 @@ static int total = 0;
 static int cap_limit = 1000;
 static int alloc_limit = 1000;
 
-#define MLEN (sizeof(payload))
-#define SMLEN (sizeof(payload)+ crypto_sign_BYTES)
 #define NUM_TESTS (sizeof(tests)/sizeof(struct test))
 static uint8_t buf[2048];
 static uint8_t ver_buf[2048];
 static uint8_t prev_result[2048];
 static size_t prev_len = 0;
+
+static void genkey(cose_key_t *key, uint8_t *pkx, uint8_t *pky, uint8_t *sk)
+{
+    cose_key_init(key);
+    #ifdef HAVE_ALGO_EDDSA
+    cose_key_set_keys(key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pkx, pky, sk);
+    cose_crypto_keypair_ed25519(key);
+    #endif
+}
 
 static void print_bytestr(const uint8_t *bytes, size_t len)
 {
@@ -103,17 +119,16 @@ void test_sign1(void)
     cose_sign_set_payload(&sign, sign1_payload, strlen(sign1_payload));
 
     /* First signer */
-    cose_crypto_keypair_ed25519(pk, sk);
-    cose_key_init(&key);
-    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk, NULL, sk);
+    genkey(&key, pkx, pky, sk);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
 
     cose_sign_add_signer(&sign, &key);
 
     /* Encode COSE sign object */
-    size_t encode_size = cose_sign_encode(&sign, buf, sizeof(buf), &psign, &ct);
+    ssize_t encode_size = cose_sign_encode(&sign, buf, sizeof(buf), &psign, &ct);
 
     CU_ASSERT_NOT_EQUAL_FATAL(encode_size, 0);
+    printf("Encode size: %ld\n", encode_size);
 
     cose_sign_init(&verify, 0);
     /* Decode again */
@@ -149,11 +164,8 @@ void test_sign2(void)
     cose_sign_set_payload(&sign, sign1_payload, strlen(sign1_payload));
 
     /* First signer */
-    cose_crypto_keypair_ed25519(pk, sk);
-    cose_key_init(&key);
-    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk, NULL, sk);
+    genkey(&key, pkx, pky, sk);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
-
     cose_sign_add_signer(&sign, &key);
 
     /* Encode COSE sign object */
@@ -194,15 +206,11 @@ void test_sign3(void)
     cose_sign_set_payload(&sign, payload, strlen(payload));
 
     /* First signer */
-    cose_crypto_keypair_ed25519(pk, sk);
-    cose_key_init(&key);
-    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk, NULL, sk);
+    genkey(&key, pkx, pky, sk);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
 
     /* Second signer */
-    cose_crypto_keypair_ed25519(pk2, sk2);
-    cose_key_init(&key2);
-    cose_key_set_keys(&key2, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk2, NULL, sk2);
+    genkey(&key2, pkx2, pky2, sk2);
     cose_key_set_kid(&key2, (uint8_t*)kid2, sizeof(kid2) - 1);
     cose_sign_add_signer(&sign, &key);
     cose_sign_add_signer(&sign, &key2);
@@ -231,9 +239,7 @@ void test_sign3(void)
 void test_sign4(void)
 {
     cose_key_t key;
-    cose_crypto_keypair_ed25519(pk, sk);
-    cose_key_init(&key);
-    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk, NULL, sk);
+    genkey(&key, pkx, pky, sk);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
     uint8_t *psign = NULL;
     for (unsigned i = 0; i <= 20; i++)
@@ -245,17 +251,11 @@ void test_sign4(void)
         char sign1_payload[] = "Input string";
         memset(buf, 0, sizeof(buf));
         cose_sign_t sign;
-        cose_key_t key;
         /* Initialize struct */
         cose_sign_init(&sign, 0);
 
         /* Add payload */
         cose_sign_set_payload(&sign, sign1_payload, strlen(sign1_payload));
-
-        /* First signer */
-        cose_key_init(&key);
-        cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk, NULL, sk);
-        cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
 
         cose_sign_add_signer(&sign, &key);
 
@@ -312,9 +312,7 @@ void test_sign4(void)
 void test_sign5(void)
 {
     cose_key_t key;
-    cose_crypto_keypair_ed25519(pk, sk);
-    cose_key_init(&key);
-    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk, NULL, sk);
+    genkey(&key, pkx, pky, sk);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
     prev_len = 0;
     uint8_t *psign = NULL;
@@ -335,10 +333,6 @@ void test_sign5(void)
         /* Add payload */
         cose_sign_set_payload(&sign, sign1_payload, strlen(sign1_payload));
 
-        /* First signer */
-        cose_key_init(&key);
-        cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk, NULL, sk);
-        cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
 
         cose_sign_add_signer(&sign, &key);
 
@@ -393,12 +387,9 @@ void test_sign5(void)
 void test_sign6(void)
 {
     cose_key_t key, key2;
-    cose_crypto_keypair_ed25519(pk, sk);
-    cose_key_init(&key);
-    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk, NULL, sk);
+    genkey(&key, pkx, pky, sk);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
-    cose_key_init(&key2);
-    cose_key_set_keys(&key2, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk2, NULL, sk2);
+    genkey(&key2, pkx2, pky2, sk2);
     cose_key_set_kid(&key2, (uint8_t*)kid2, sizeof(kid2) - 1);
     prev_len = 0;
     uint8_t *psign = NULL;
@@ -417,9 +408,6 @@ void test_sign6(void)
 
         /* Add payload */
         cose_sign_set_payload(&sign, sign1_payload, strlen(sign1_payload));
-
-        /* First signer */
-        cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
 
         cose_sign_add_signer(&sign, &key);
         cose_sign_add_signer(&sign, &key2);
@@ -488,9 +476,7 @@ void test_sign7(void)
     cose_sign_set_payload(&sign, sign1_payload, strlen(sign1_payload));
 
     /* First signer */
-    cose_crypto_keypair_ed25519(pk, sk);
-    cose_key_init(&key);
-    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk, NULL, sk);
+    genkey(&key, pkx, pky, sk);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
     for(unsigned i = 0; i < COSE_SIGNATURES_MAX; i++) {
         CU_ASSERT_EQUAL(cose_sign_add_signer(&sign, &key), i);
@@ -535,9 +521,7 @@ void test_sign9(void)
     cose_sign_set_payload(&sign, sign1_payload, strlen(sign1_payload));
 
     /* First signer */
-    cose_crypto_keypair_ed25519(pk, sk);
-    cose_key_init(&key);
-    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk, NULL, sk);
+    genkey(&key, pkx, pky, sk);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
 
     cose_sign_add_signer(&sign, &key);
@@ -587,9 +571,7 @@ void test_sign10(void)
     cose_sign_set_payload(&sign, sign1_payload, strlen(sign1_payload));
 
     /* First signer */
-    cose_crypto_keypair_ed25519(pk, sk);
-    cose_key_init(&key);
-    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk, NULL, sk);
+    genkey(&key, pkx, pky, sk);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
     cose_sign_add_signer(&sign, &key);
 
@@ -638,9 +620,7 @@ void test_sign11(void)
     cose_sign_set_payload(&sign, sign1_payload, strlen(sign1_payload));
 
     /* First key */
-    cose_crypto_keypair_ed25519(pk, sk);
-    cose_key_init(&key);
-    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk, NULL, sk);
+    genkey(&key, pkx, pky, sk);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
     int idx = cose_sign_add_signer(&sign, &key);
     /* Dummy headers */
@@ -693,15 +673,11 @@ void test_sign12(void)
     cose_sign_set_payload(&sign, payload, strlen(payload));
 
     /* First key */
-    cose_crypto_keypair_ed25519(pk, sk);
-    cose_key_init(&key);
-    cose_key_set_keys(&key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk, NULL, sk);
+    genkey(&key, pkx, pky, sk);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
 
     /* Second signer */
-    cose_crypto_keypair_ed25519(pk2, sk2);
-    cose_key_init(&key2);
-    cose_key_set_keys(&key2, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pk2, NULL, sk2);
+    genkey(&key2, pkx2, pky2, sk2);
     cose_key_set_kid(&key2, (uint8_t*)kid2, sizeof(kid2) - 1);
 
     int idx = cose_sign_add_signer(&sign, &key);

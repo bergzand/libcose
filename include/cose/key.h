@@ -22,11 +22,10 @@
 #ifndef COSE_SIGNER_H
 #define COSE_SIGNER_H
 
+#include "cose_defines.h"
+#include "cn-cbor/cn-cbor.h"
 #include <stdlib.h>
 #include <stdint.h>
-#include "cose_defines.h"
-#include "cose.h"
-#include "cn-cbor/cn-cbor.h"
 
 /**
  * @name COSE key object
