@@ -59,8 +59,8 @@ static void genkey(cose_key_t *key, uint8_t *pkx, uint8_t *pky, uint8_t *sk)
     cose_key_set_keys(key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pkx, pky, sk);
     cose_crypto_keypair_ed25519(key);
     #elif defined(HAVE_ALGO_ECDSA)
-    cose_key_set_keys(key, COSE_EC_CURVE_P256, COSE_ALGO_ES512, pkx, pky, sk);
-    cose_crypto_keypair_ecdsa(key, COSE_EC_CURVE_P256);
+    cose_key_set_keys(key, COSE_EC_CURVE_P521, COSE_ALGO_ES512, pkx, pky, sk);
+    cose_crypto_keypair_ecdsa(key, COSE_EC_CURVE_P521);
     #endif
 }
 
@@ -484,7 +484,7 @@ void test_sign7(void)
     /* First signer */
     genkey(&key, pkx, pky, sk);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
-    for(unsigned i = 0; i < COSE_SIGNATURES_MAX; i++) {
+    for(int i = 0; i < COSE_SIGNATURES_MAX; i++) {
         CU_ASSERT_EQUAL(cose_sign_add_signer(&sign, &key), i);
     }
     CU_ASSERT_EQUAL(cose_sign_add_signer(&sign, &key), COSE_ERR_NOMEM);

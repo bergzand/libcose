@@ -109,7 +109,7 @@ void test_hdr5(void)
     cn_cbor *value = key->next;
     CU_ASSERT_EQUAL(key->type, CN_CBOR_INT);
     CU_ASSERT_EQUAL(value->type, CN_CBOR_UINT);
-    CU_ASSERT_EQUAL(value->v.uint, header.v.value);
+    CU_ASSERT_EQUAL(value->v.uint, (unsigned long)header.v.value);
 }
 
 void test_hdr6(void)
