@@ -2,6 +2,10 @@ dist: trusty
 
 language: c
 
+sudo: required
+services:
+ - docker
+
 compiler:
  - gcc
  
@@ -10,15 +14,17 @@ env:
  - CRYPT=tweetnacl
 
 before_install:
- - sudo add-apt-repository -y ppa:ondrej/php
- - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
- - sudo apt-get update
- - sudo apt-get --yes install gcc-6 cmake cmake-data libcunit1-dev libsodium-dev clang-tidy-3.9 libc6-dev
- - git clone https://github.com/cabo/cn-cbor ../cn-cbor
- - pushd ../cn-cbor && mkdir build && pushd build && cmake -Duse_context=on .. && make all && popd
- - popd
- - git clone https://github.com/RIOT-OS/tweetnacl ../tweetnacl
+ - docker pull ubuntu:artful
+ - docker run -it -d -v ${TRAVIS_BUILD_DIR}/..:/mnt  --name build ubuntu:artful bash
+ - docker exec build ls -al /mnt
+ - docker exec build ls -al /mnt/libcose
+ - docker exec build apt-get update
+ - docker exec build apt-get --yes install build-essential cmake cmake-data pkg-config libcunit1-dev libsodium-dev llvm clang clang-tidy libmbedtls-dev git
+ - docker exec build git clone https://github.com/cabo/cn-cbor /mnt/cn-cbor
+ - docker exec build mkdir /mnt/cn-cbor/build
+ - docker exec -i build bash -c 'cd /mnt/cn-cbor/build && cmake -Duse_context=on .. && make all'
+ - docker exec build git clone https://github.com/RIOT-OS/tweetnacl /mnt/tweetnacl
 
 script:
- - make clang-tidy CRYPTO=$CRYPT CBOR_ROOT=${PWD}/../cn-cbor
- - make test CRYPTO=$CRYPT CBOR_ROOT=${PWD}/../cn-cbor CC=gcc-6
+ - docker exec build bash -c "cd /mnt/libcose && make clean clang-tidy CRYPTO=$CRYPT CBOR_ROOT=/mnt/cn-cbor"
+ - docker exec build bash -c "cd /mnt/libcose && make clean test CRYPTO=$CRYPT CBOR_ROOT=/mnt/cn-cbor"

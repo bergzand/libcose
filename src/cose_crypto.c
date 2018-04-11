@@ -21,8 +21,8 @@ void cose_crypt_set_rng(cose_crypt_rng f_rng, void *p_rng)
     cose_crypt_rng_arg = p_rng;
 }
 
-/* NOLINTNEXTLINE(readability-non-const-parameter) */
-ssize_t cose_crypto_keygen(uint8_t *buf, size_t len, cose_algo_t algo)
+ssize_t cose_crypto_keygen(uint8_t *buf, /* NOLINT(readability-non-const-parameter) */
+        size_t len, cose_algo_t algo)
 {
     switch(algo) {
 #ifdef HAVE_ALGO_CHACHA20POLY1305
@@ -45,7 +45,6 @@ bool cose_crypto_is_aead(cose_algo_t algo)
             return false;
     }
 }
-
 
 int cose_crypto_aead(uint8_t *c,  /* NOLINT(readability-non-const-parameter) */
         size_t *clen,             /* NOLINT(readability-non-const-parameter) */

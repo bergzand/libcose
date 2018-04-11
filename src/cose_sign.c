@@ -253,7 +253,7 @@ int cose_sign_generate_signature(cose_sign_t *sign, cose_signature_t *sig, uint8
     cn_cbor *cn_prot = cn_cbor_index(cn_arr, 1);
 
     if (!(_serialize_cbor_protected(sign,
-                                    (uint8_t *)cn_prot->v.bytes, cn_prot->length + 5,
+                                    (uint8_t *)cn_prot->v.bytes, (size_t)cn_prot->length + 5,
                                     ct, &errp))) {
         cn_cbor_free(cn_arr, ct);
         return cose_intern_err_translate(&errp);
@@ -262,7 +262,7 @@ int cose_sign_generate_signature(cose_sign_t *sign, cose_signature_t *sig, uint8
 
 
     if (!(_is_sign1(sign))) {
-        if (!(_sig_serialize_protected(sig, (uint8_t *)cn_prot->v.bytes, cn_prot->length + 5, ct, &errp))) {
+        if (!(_sig_serialize_protected(sig, (uint8_t *)cn_prot->v.bytes,(size_t)cn_prot->length + 5, ct, &errp))) {
             cn_cbor_free(cn_arr, ct);
             return cose_intern_err_translate(&errp);
         }
@@ -396,7 +396,7 @@ ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, uint8_t **
     }
     /* add body protected header */
     cn_prot = cn_cbor_index(cn_arr, 0);
-    if (!(_serialize_cbor_protected(sign, (uint8_t *)cn_prot->v.bytes, cn_prot->length + 5, ct, &errp))) {
+    if (!(_serialize_cbor_protected(sign, (uint8_t *)cn_prot->v.bytes, (size_t)cn_prot->length + 5, ct, &errp))) {
         cn_cbor_free(cn_top, ct);
         return cose_intern_err_translate(&errp);
     }
@@ -407,7 +407,7 @@ ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, uint8_t **
         for (int i = 0; i < sign->num_sigs; i++) {
             const cose_signature_t *sig = &sign->sigs[i];
             cn_cbor *cn_sig_prot = cn_cbor_index(cn_cbor_index(cn_sigs, i), 0);
-            if (!(_sig_serialize_protected(sig, (uint8_t *)cn_sig_prot->v.bytes, cn_sig_prot->length + 5, ct, &errp))) {
+            if (!(_sig_serialize_protected(sig, (uint8_t *)cn_sig_prot->v.bytes, (size_t)cn_sig_prot->length + 5, ct, &errp))) {
                 cn_cbor_free(cn_top, ct);
                 return cose_intern_err_translate(&errp);
             }
