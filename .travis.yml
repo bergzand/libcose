@@ -13,6 +13,7 @@ compiler:
 env:
  - CRYPT=sodium
  - CRYPT=tweetnacl
+ - CRYPT=mbedtls
 
 before_install:
  - docker pull ubuntu:artful
@@ -28,4 +29,4 @@ before_install:
 
 script:
  - docker exec build bash -c "cd /mnt/libcose && make clean clang-tidy CRYPTO=$CRYPT CC=$CC CBOR_ROOT=/mnt/cn-cbor"
- - docker exec build bash -c "cd /mnt/libcose && make clean test CRYPTO=$CRYPT CC=$CC CBOR_ROOT=/mnt/cn-cbor"
+ - docker exec build bash -c "cd /mnt/libcose && make clean test CRYPTO=$CRYPT CC=$CC CBOR_ROOT=/mnt/cn-cbor MBEDTLS_LIB=/usr/lib/x86_64-linux-gnu/libmbedcrypto.so"
