@@ -157,7 +157,7 @@ static ssize_t _encrypt_payload(cose_encrypt_t *encrypt, uint8_t *buf, size_t le
         cn_cbor *cn_prot = cn_cbor_index(cn_arr, 1);
 
         if (!(_encrypt_serialize_protected(encrypt,
-                                    (uint8_t *)cn_prot->v.bytes, cn_prot->length + 5,
+                                    (uint8_t *)cn_prot->v.bytes, (size_t)cn_prot->length + 5,
                                     ct, &errp))) {
             cn_cbor_free(cn_arr, ct);
             return cose_intern_err_translate(&errp);
@@ -286,7 +286,7 @@ ssize_t cose_encrypt_encode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len, u
     }
     /* add body protected header */
     cn_prot = cn_cbor_index(cn_arr, 0);
-    if (!(_encrypt_serialize_protected(encrypt, (uint8_t *)cn_prot->v.bytes, cn_prot->length + 5, ct, &errp))) {
+    if (!(_encrypt_serialize_protected(encrypt, (uint8_t *)cn_prot->v.bytes, (size_t)cn_prot->length + 5, ct, &errp))) {
         cn_cbor_free(cn_top, ct);
         return cose_intern_err_translate(&errp);
     }
