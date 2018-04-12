@@ -332,7 +332,6 @@ void test_sign5(void)
         char sign1_payload[] = "Input string";
         memset(buf, 0, sizeof(buf));
         cose_sign_t sign;
-        cose_key_t key;
         /* Initialize struct */
         cose_sign_init(&sign, 0);
 
