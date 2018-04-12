@@ -97,17 +97,35 @@ size_t _hash(cose_algo_t algo, const uint8_t *msg, size_t msglen, uint8_t *hash)
     /* Algo determines hash function, curve determines ECDSA curve */
     switch(algo) {
         case COSE_ALGO_ES256:
-            mbedtls_sha256_ret(msg, msglen, hash, 0);
-            return 32;
-            break;
+            {
+                mbedtls_sha256_context ctx;
+                mbedtls_sha256_init(&ctx);
+                mbedtls_sha256_starts(&ctx, 0);
+                mbedtls_sha256_update(&ctx, msg, msglen);
+                mbedtls_sha256_finish(&ctx, hash);
+                return 32;
+                break;
+            }
         case COSE_ALGO_ES384:
-            mbedtls_sha512_ret(msg, msglen, hash, 1);
-            return 48;
-            break;
+            {
+                mbedtls_sha512_context ctx;
+                mbedtls_sha512_init(&ctx);
+                mbedtls_sha512_starts(&ctx, 1);
+                mbedtls_sha512_update(&ctx, msg, msglen);
+                mbedtls_sha512_finish(&ctx, hash);
+                return 48;
+                break;
+            }
         case COSE_ALGO_ES512:
-            mbedtls_sha512_ret(msg, msglen, hash, 0);
-            return 64;
-            break;
+            {
+                mbedtls_sha512_context ctx;
+                mbedtls_sha512_init(&ctx);
+                mbedtls_sha512_starts(&ctx, 0);
+                mbedtls_sha512_update(&ctx, msg, msglen);
+                mbedtls_sha512_finish(&ctx, hash);
+                return 64;
+                break;
+            }
         default:
             return 0;
     }
