@@ -211,7 +211,7 @@ void cose_sign_init(cose_sign_t *sign, uint16_t flags)
     sign->flags = flags;
 }
 
-void cose_sign_set_payload(cose_sign_t *sign, void *payload, size_t len)
+void cose_sign_set_payload(cose_sign_t *sign, const void *payload, size_t len)
 {
     sign->payload = payload;
     sign->payload_len = len;

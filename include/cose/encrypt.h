@@ -86,9 +86,9 @@ void cose_encrypt_init(cose_encrypt_t *encrypt);
  *
  * @param   encrypt     Encrypt struct to set the payload for
  * @param   payload     The payload to set
- * @param   len         The length of the payload
+ * @param   len         The length of the payload in bytes
  */
-void cose_encrypt_set_payload(cose_encrypt_t *encrypt, void *payload, size_t len);
+void cose_encrypt_set_payload(cose_encrypt_t *encrypt, const void *payload, size_t len);
 
 /**
  * cose encrypt_get_algo returns the algorithm used in the encrypt package

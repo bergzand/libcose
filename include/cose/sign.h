@@ -99,9 +99,9 @@ void cose_sign_init(cose_sign_t *sign, uint16_t flags);
  *
  * @param sign      Sign struct to set the payload for
  * @param payload   The payload to set
- * @param len       The length of the payload
+ * @param len       The length of the payload in bytes
  */
-void cose_sign_set_payload(cose_sign_t *sign, void *payload, size_t len);
+void cose_sign_set_payload(cose_sign_t *sign, const void *payload, size_t len);
 
 /**
  * cose_sign_set_external_aad adds a reference to the external data that

@@ -181,7 +181,7 @@ void cose_encrypt_init(cose_encrypt_t *encrypt)
     memset(encrypt, 0, sizeof(cose_encrypt_t));
 }
 
-void cose_encrypt_set_payload(cose_encrypt_t *encrypt, void *payload, size_t len)
+void cose_encrypt_set_payload(cose_encrypt_t *encrypt, const void *payload, size_t len)
 {
     encrypt->payload = payload;
     encrypt->payload_len = len;
