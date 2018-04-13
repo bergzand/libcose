@@ -31,7 +31,6 @@ static char kid2[] = "koen@example.org";
 #define TEST_CRYPTO_SIGN_SECRETKEYBYTES COSE_CRYPTO_SIGN_P521_SECRETKEYBYTES
 #endif
 
-
 static unsigned char pkx[TEST_CRYPTO_SIGN_PUBLICKEYBYTES];
 static unsigned char pky[TEST_CRYPTO_SIGN_PUBLICKEYBYTES];
 static unsigned char sk[TEST_CRYPTO_SIGN_SECRETKEYBYTES];
@@ -247,6 +246,7 @@ void test_sign4(void)
     cose_key_t key;
     genkey(&key, pkx, pky, sk);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
+    prev_len = 0;
     uint8_t *psign = NULL;
     for (unsigned i = 0; i <= 20; i++)
     {
@@ -338,13 +338,10 @@ void test_sign5(void)
         /* Add payload */
         cose_sign_set_payload(&sign, sign1_payload, strlen(sign1_payload));
 
-
         cose_sign_add_signer(&sign, &key);
 
         /* Encode COSE sign object */
         ssize_t res = cose_sign_encode(&sign, buf, sizeof(buf), &psign, &ct);
-        if (res > 0) {
-        }
         CU_ASSERT_EQUAL(cur, 0);
         if (res < 0)
         {
