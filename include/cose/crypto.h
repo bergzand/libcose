@@ -38,6 +38,8 @@
 #include <tweetnacl.h>
 #elif defined(CRYPTO_MBEDTLS)
 #include "cose/crypto/mbedtls.h"
+#elif defined(CRYPTO_HACL)
+#include "cose/crypto/hacl.h"
 #endif
 
 typedef int (*cose_crypt_rng)(void *, unsigned char *, size_t);
