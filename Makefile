@@ -26,7 +26,8 @@ CFLAGS_COVERAGE += -coverage
 CFLAGS_DEBUG += $(CFLAGS_COVERAGE) -g3
 
 
-CFLAGS += -fPIC -Wall -Wextra -pedantic -Werror -I$(INC_DIR) -I$(INC_GLOBAL) -I$(INC_CBOR) -std=c99 
+CFLAGS_WARN += -Wall -Wextra -pedantic -Werror -Wshadow
+CFLAGS += -fPIC $(CFLAGS_WARN) -I$(INC_DIR) -I$(INC_GLOBAL) -I$(INC_CBOR) -std=c99
 CFLAGS +=-DUSE_CBOR_CONTEXT
 
 ifeq ($(CRYPTO), sodium)
