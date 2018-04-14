@@ -31,9 +31,9 @@ static char kid2[] = "koen@example.org";
 #define TEST_CRYPTO_SIGN_SECRETKEYBYTES COSE_CRYPTO_SIGN_P521_SECRETKEYBYTES
 #endif
 
-static unsigned char pkx[TEST_CRYPTO_SIGN_PUBLICKEYBYTES];
-static unsigned char pky[TEST_CRYPTO_SIGN_PUBLICKEYBYTES];
-static unsigned char sk[TEST_CRYPTO_SIGN_SECRETKEYBYTES];
+static unsigned char pkx1[TEST_CRYPTO_SIGN_PUBLICKEYBYTES];
+static unsigned char pky1[TEST_CRYPTO_SIGN_PUBLICKEYBYTES];
+static unsigned char sk1[TEST_CRYPTO_SIGN_SECRETKEYBYTES];
 static unsigned char pkx2[TEST_CRYPTO_SIGN_PUBLICKEYBYTES];
 static unsigned char pky2[TEST_CRYPTO_SIGN_PUBLICKEYBYTES];
 static unsigned char sk2[TEST_CRYPTO_SIGN_SECRETKEYBYTES];
@@ -124,7 +124,7 @@ void test_sign1(void)
     cose_sign_set_payload(&sign, sign1_payload, strlen(sign1_payload));
 
     /* First signer */
-    genkey(&key, pkx, pky, sk);
+    genkey(&key, pkx1, pky1, sk1);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
 
     cose_sign_add_signer(&sign, &key);
@@ -169,7 +169,7 @@ void test_sign2(void)
     cose_sign_set_payload(&sign, sign1_payload, strlen(sign1_payload));
 
     /* First signer */
-    genkey(&key, pkx, pky, sk);
+    genkey(&key, pkx1, pky1, sk1);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
     cose_sign_add_signer(&sign, &key);
 
@@ -211,7 +211,7 @@ void test_sign3(void)
     cose_sign_set_payload(&sign, payload, strlen(payload));
 
     /* First signer */
-    genkey(&key, pkx, pky, sk);
+    genkey(&key, pkx1, pky1, sk1);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
 
     /* Second signer */
@@ -244,7 +244,7 @@ void test_sign3(void)
 void test_sign4(void)
 {
     cose_key_t key;
-    genkey(&key, pkx, pky, sk);
+    genkey(&key, pkx1, pky1, sk1);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
     prev_len = 0;
     uint8_t *psign = NULL;
@@ -318,7 +318,7 @@ void test_sign4(void)
 void test_sign5(void)
 {
     cose_key_t key;
-    genkey(&key, pkx, pky, sk);
+    genkey(&key, pkx1, pky1, sk1);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
     prev_len = 0;
     uint8_t *psign = NULL;
@@ -389,7 +389,7 @@ void test_sign5(void)
 void test_sign6(void)
 {
     cose_key_t key, key2;
-    genkey(&key, pkx, pky, sk);
+    genkey(&key, pkx1, pky1, sk1);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
     genkey(&key2, pkx2, pky2, sk2);
     cose_key_set_kid(&key2, (uint8_t*)kid2, sizeof(kid2) - 1);
@@ -478,7 +478,7 @@ void test_sign7(void)
     cose_sign_set_payload(&sign, sign1_payload, strlen(sign1_payload));
 
     /* First signer */
-    genkey(&key, pkx, pky, sk);
+    genkey(&key, pkx1, pky1, sk1);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
     for(int i = 0; i < COSE_SIGNATURES_MAX; i++) {
         CU_ASSERT_EQUAL(cose_sign_add_signer(&sign, &key), i);
@@ -523,7 +523,7 @@ void test_sign9(void)
     cose_sign_set_payload(&sign, sign1_payload, strlen(sign1_payload));
 
     /* First signer */
-    genkey(&key, pkx, pky, sk);
+    genkey(&key, pkx1, pky1, sk1);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
 
     cose_sign_add_signer(&sign, &key);
@@ -573,7 +573,7 @@ void test_sign10(void)
     cose_sign_set_payload(&sign, sign1_payload, strlen(sign1_payload));
 
     /* First signer */
-    genkey(&key, pkx, pky, sk);
+    genkey(&key, pkx1, pky1, sk1);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
     cose_sign_add_signer(&sign, &key);
 
@@ -622,7 +622,7 @@ void test_sign11(void)
     cose_sign_set_payload(&sign, sign1_payload, strlen(sign1_payload));
 
     /* First key */
-    genkey(&key, pkx, pky, sk);
+    genkey(&key, pkx1, pky1, sk1);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
     int idx = cose_sign_add_signer(&sign, &key);
     /* Dummy headers */
@@ -675,7 +675,7 @@ void test_sign12(void)
     cose_sign_set_payload(&sign, payload, strlen(payload));
 
     /* First key */
-    genkey(&key, pkx, pky, sk);
+    genkey(&key, pkx1, pky1, sk1);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
 
     /* Second signer */
