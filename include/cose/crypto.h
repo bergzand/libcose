@@ -92,10 +92,32 @@ int cose_crypto_aead_decrypt_chachapoly(uint8_t *msg,
                                         const uint8_t *npub,
                                         const uint8_t *k);
 
+
+int cose_crypto_aead_encrypt_aesgcm(uint8_t *c,
+                                    size_t *clen,
+                                    const uint8_t *msg,
+                                    size_t msglen,
+                                    const uint8_t *aad,
+                                    size_t aadlen,
+                                    const uint8_t *npub,
+                                    const uint8_t *k,
+                                    size_t keysize);
+
+int cose_crypto_aead_decrypt_aesgcm(uint8_t *msg,
+                                    size_t *msglen,
+                                    const uint8_t *c,
+                                    size_t clen,
+                                    const uint8_t *aad,
+                                    size_t aadlen,
+                                    const uint8_t *npub,
+                                    const uint8_t *k,
+                                    size_t keysize);
+
 /**
  * Generate a symmetric key for AEAD operations
  */
-size_t cose_crypto_aead_keypair_chachapoly(uint8_t *sk, size_t len);
+ssize_t cose_crypto_keygen_chachapoly(uint8_t *sk, size_t len);
+ssize_t cose_crypto_keygen_aesgcm(uint8_t *buf, size_t len, cose_algo_t algo);
 size_t cose_crypto_aead_nonce_chachapoly(uint8_t *nonce, size_t len);
 ssize_t cose_crypto_aead_nonce_size(cose_algo_t algo);
 
