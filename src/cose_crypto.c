@@ -27,8 +27,14 @@ ssize_t cose_crypto_keygen(uint8_t *buf, /* NOLINT(readability-non-const-paramet
     switch(algo) {
 #ifdef HAVE_ALGO_CHACHA20POLY1305
         case COSE_ALGO_CHACHA20POLY1305:
-            return cose_crypto_aead_keypair_chachapoly(buf, len);
+            return cose_crypto_keygen_chachapoly(buf, len);
 #endif /* HAVE_ALGO_CHACHA20POLY1305 */
+#if defined(HAVE_ALGO_AES128GCM) || defined(HAVE_ALGO_AES192GCM) || defined(HAVE_ALGO_AES256GCM)
+        case COSE_ALGO_A128GCM:
+        case COSE_ALGO_A192GCM:
+        case COSE_ALGO_A256GCM:
+            return cose_crypto_keygen_aesgcm(buf, len, algo);
+#endif
         default:
             (void)buf;
             (void)len;
@@ -62,6 +68,18 @@ int cose_crypto_aead(uint8_t *c,  /* NOLINT(readability-non-const-parameter) */
         case COSE_ALGO_CHACHA20POLY1305:
             return cose_crypto_aead_encrypt_chachapoly(c, clen, msg, msglen, aad, aadlen, npub, key);
 #endif /* HAVE_ALGO_CHACHA20POLY1305 */
+#ifdef HAVE_ALGO_AES256GCM
+        case COSE_ALGO_A256GCM:
+            return cose_crypto_aead_encrypt_aesgcm(c, clen, msg, msglen, aad, aadlen, npub, key, COSE_CRYPTO_AEAD_AES256GCM_KEYBYTES);
+#endif
+#ifdef HAVE_ALGO_AES192GCM
+        case COSE_ALGO_A192GCM:
+            return cose_crypto_aead_encrypt_aesgcm(c, clen, msg, msglen, aad, aadlen, npub, key, COSE_CRYPTO_AEAD_AES192GCM_KEYBYTES);
+#endif
+#ifdef HAVE_ALGO_AES128GCM
+        case COSE_ALGO_A128GCM:
+            return cose_crypto_aead_encrypt_aesgcm(c, clen, msg, msglen, aad, aadlen, npub, key, COSE_CRYPTO_AEAD_AES128GCM_KEYBYTES);
+#endif
         default:
             (void)c;
             (void)clen;

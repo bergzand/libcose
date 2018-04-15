@@ -16,6 +16,7 @@
 #include "cose/crypto.h"
 #include <mbedtls/ecp.h>
 #include <mbedtls/ecdsa.h>
+#include <mbedtls/gcm.h>
 #include <mbedtls/sha256.h>
 #include <mbedtls/sha512.h>
 #include <stdint.h>
@@ -130,6 +131,94 @@ size_t _hash(cose_algo_t algo, const uint8_t *msg, size_t msglen, uint8_t *hash)
             return 0;
     }
 }
+
+ssize_t cose_crypto_keygen_aesgcm(uint8_t *buf, size_t len, cose_algo_t algo)
+{
+    (void)len;
+    switch(algo) {
+        case COSE_ALGO_A128GCM:
+            if (len < COSE_CRYPTO_AEAD_AES128GCM_KEYBYTES) {
+                return COSE_ERR_NOMEM;
+            }
+            if (!cose_crypt_get_random(cose_crypt_rng_arg, buf, COSE_CRYPTO_AEAD_AES128GCM_KEYBYTES)) {
+                return COSE_CRYPTO_AEAD_AES128GCM_KEYBYTES;
+            }
+            return COSE_ERR_CRYPTO;
+        case COSE_ALGO_A192GCM:
+            if (len < COSE_CRYPTO_AEAD_AES192GCM_KEYBYTES) {
+                return COSE_ERR_NOMEM;
+            }
+            if (!cose_crypt_get_random(cose_crypt_rng_arg, buf, COSE_CRYPTO_AEAD_AES192GCM_KEYBYTES)) {
+                return COSE_CRYPTO_AEAD_AES192GCM_KEYBYTES;
+            }
+            return COSE_ERR_CRYPTO;
+        case COSE_ALGO_A256GCM:
+            if (len < COSE_CRYPTO_AEAD_AES256GCM_KEYBYTES) {
+                return COSE_ERR_NOMEM;
+            }
+            if (!cose_crypt_get_random(cose_crypt_rng_arg, buf, COSE_CRYPTO_AEAD_AES256GCM_KEYBYTES)) {
+                return COSE_CRYPTO_AEAD_AES256GCM_KEYBYTES;
+            }
+            return COSE_ERR_CRYPTO;
+        default:
+            return COSE_ERR_NOTIMPLEMENTED;
+    }
+}
+
+int cose_crypto_aead_encrypt_aesgcm(uint8_t *c,
+                                    size_t *clen,
+                                    const uint8_t *msg,
+                                    size_t msglen,
+                                    const uint8_t *aad,
+                                    size_t aadlen,
+                                    const uint8_t *npub,
+                                    const uint8_t *k,
+                                    size_t keysize)
+{
+    uint8_t *ptag = c + msglen;
+    int res = 0;
+    *clen = msglen + COSE_CRYPTO_AEAD_AES256GCM_ABYTES;
+    mbedtls_gcm_context ctx;
+    mbedtls_gcm_init(&ctx);
+    res = mbedtls_gcm_setkey(&ctx, MBEDTLS_CIPHER_ID_AES, k, keysize * 8);
+    if (res) {
+        return COSE_ERR_CRYPTO;
+    }
+    res = mbedtls_gcm_crypt_and_tag(&ctx, MBEDTLS_GCM_ENCRYPT, msglen,
+            npub, COSE_CRYPTO_AEAD_AES128GCM_NONCEBYTES,
+            aad, aadlen, msg, c,
+            COSE_CRYPTO_AEAD_AES128GCM_ABYTES, ptag);
+    mbedtls_gcm_free(&ctx);
+    printf("Crypt res: %d", res);
+    return res ? COSE_ERR_CRYPTO : COSE_OK;
+}
+
+int cose_crypto_aead_decrypt_aesgcm(uint8_t *msg,
+                                    size_t *msglen,
+                                    const uint8_t *c,
+                                    size_t clen,
+                                    const uint8_t *aad,
+                                    size_t aadlen,
+                                    const uint8_t *npub,
+                                    const uint8_t *k,
+                                    size_t keysize)
+{
+    const uint8_t *ptag = c + clen - COSE_CRYPTO_AEAD_AES256GCM_ABYTES;
+    int res = 0;
+    *msglen = clen - COSE_CRYPTO_AEAD_AES256GCM_ABYTES;
+    mbedtls_gcm_context ctx;
+    mbedtls_gcm_init(&ctx);
+    res = mbedtls_gcm_setkey(&ctx, MBEDTLS_CIPHER_ID_AES, k, keysize * 8);
+    if (res) {
+        return COSE_ERR_CRYPTO;
+    }
+    res = mbedtls_gcm_auth_decrypt(&ctx, *msglen, npub, COSE_CRYPTO_AEAD_AES128GCM_NONCEBYTES,
+            aad, aadlen, ptag, COSE_CRYPTO_AEAD_AES256GCM_ABYTES, c, msg);
+    return res ? COSE_ERR_CRYPTO : COSE_OK;
+
+}
+
+
 
 size_t cose_crypto_sig_size_ecdsa(cose_curve_t curve)
 {

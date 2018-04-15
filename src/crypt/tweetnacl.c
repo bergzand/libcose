@@ -25,8 +25,8 @@ static uint8_t verify_buf[2048];
 int cose_crypto_sign_ed25519(const cose_key_t *key, uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen)
 {
     unsigned long long int signature_len = 0;
-
-    crypto_sign(sign, &signature_len, msg, msglen, (unsigned char *)key->d);
+    crypto_sign(msg_buf, &signature_len, msg, msglen, (unsigned char *)key->d);
+    memcpy(sign, msg_buf, crypto_sign_BYTES);
     *signlen = (size_t)crypto_sign_BYTES;
     return COSE_OK;
 }
