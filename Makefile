@@ -22,9 +22,8 @@ LIB_CBOR=$(LIB_CBOR_PATH)/libcn-cbor.so
 
 TIDYFLAGS=-checks=* -warnings-as-errors=*
 
-CFLAGS_COVERAGE += -coverage 
+CFLAGS_COVERAGE += -coverage
 CFLAGS_DEBUG += $(CFLAGS_COVERAGE) -g3
-
 
 CFLAGS_WARN += -Wall -Wextra -pedantic -Werror -Wshadow
 CFLAGS += -fPIC $(CFLAGS_WARN) -I$(INC_DIR) -I$(INC_GLOBAL) -I$(INC_CBOR) -std=c99
@@ -39,10 +38,16 @@ endif
 ifeq ($(CRYPTO), tweetnacl)
 	include $(MK_DIR)/tweetnacl.mk
 endif
+ifeq ($(CRYPTO), hacl)
+	include $(MK_DIR)/hacl.mk
+endif
+
+CFLAGS += $(CFLAGS_CRYPTO)
+LDFLAGS += $(LDFLAGS_CRYPTO)
 
 SRCS+=$(wildcard $(SRC_DIR)/*.c)
 BUILDSRCS=$(SRCS) $(CRYPTOSRC)
-TIDYSRCS=$(SRCS) 
+TIDYSRCS=$(SRCS)
 TESTS+=$(wildcard $(TEST_DIR)/*.c)
 
 OBJS=$(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(BUILDSRCS))
