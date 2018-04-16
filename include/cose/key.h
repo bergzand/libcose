@@ -71,8 +71,9 @@ int cose_key_from_cbor(cose_key_t *key, cn_cbor *cn);
  * cose_key_set_key sets the key data of a key
  * Parameters according to https://tools.ietf.org/html/rfc8152#section-13
  *
- * @param   key      The key to set the key data for
+ * @param   key         The key to set the key data for
  * @param   curve       The curve used
+ * @param   algo        The algo to use
  * @param   x           Pointer to the "x-coordinate" of the key
  * @param   y           Pointer to the "y-coordinate" of the key
  * @param   d           Pointer to the private part of the key

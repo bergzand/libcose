@@ -64,7 +64,16 @@ ssize_t cose_crypto_keygen(uint8_t *buf, size_t len, cose_algo_t algo);
 /**
  * Generic AEAD function, key must match sizes of selected algo
  */
-int cose_crypto_aead(uint8_t *c, size_t *clen, const uint8_t *msg, size_t msglen, const uint8_t *aad, size_t aadlen, const uint8_t *nsec, const uint8_t *npub, const uint8_t *key, cose_algo_t algo);
+int cose_crypto_aead_encrypt(uint8_t *c, size_t *clen, const uint8_t *msg, size_t msglen, const uint8_t *aad, size_t aadlen, const uint8_t *nsec, const uint8_t *npub, const uint8_t *key, cose_algo_t algo);
+int cose_crypto_aead_decrypt(uint8_t *msg,
+                             size_t *msglen,
+                             const uint8_t *c,
+                             size_t clen,
+                             const uint8_t *aad,
+                             size_t aadlen,
+                             const uint8_t *npub,
+                             const uint8_t *k,
+                             cose_algo_t algo);
 
 bool cose_crypto_is_aead(cose_algo_t algo);
 
@@ -145,11 +154,11 @@ size_t cose_crypto_sig_size_ecdsa(cose_curve_t curve);
 /**
  * Sign a byte string with an ed25519 private key
  *
+ * @param       key     The Key struct to sign with
  * @param[out]  sign    The resulting signature
  * @param[out]  signlen The length of the signature
  * @param       msg     The message to sign
  * @param       msglen  The length of the message
- * @param       skey    The secret key to sign with
  */
 int cose_crypto_sign_ed25519(const cose_key_t *key, uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen);
 
@@ -157,10 +166,11 @@ int cose_crypto_sign_ed25519(const cose_key_t *key, uint8_t *sign, size_t *signl
 /**
  * Verify a byte string and signature with an ed25519 public key
  *
+ * @param       key     The Key struct to verify with
  * @param[out]  sign    The signature
+ * @param       signlen The signature length
  * @param       msg     The message to verify
  * @param       msglen  The length of the message
- * @param       pkey    The public key to verify with
  *
  * @return              0 if verification succeeded
  */

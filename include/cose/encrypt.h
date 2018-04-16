@@ -133,6 +133,34 @@ void cose_encrypt_set_algo(cose_encrypt_t *encrypt, cose_algo_t algo);
  */
 ssize_t cose_encrypt_encode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len, uint8_t *nonce, uint8_t **out, cn_cbor_context *ct);
 
+/**
+ * cose_encrypt_decode decodes a buffer containing a COSE encrypt object into
+ * into a cose_encrypt_t struct
+ *
+ * @param[out]  encrypt     Encrypt struct to fill
+ * @param       buf         Buffer to read from
+ * @param       len         Size of the buffer
+ * @param       ct          CN_CBOR context for cbor block allocation
+ *
+ * @return                  COSE_OK when successful
+ */
+int cose_encrypt_decode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len, cn_cbor_context *ct);
+
+/**
+ * cose_encrypt_decrypt tries to verify and decrypt the payload of a
+ * cose_encrypt_t object
+ *
+ * @param       encrypt     Encrypt struct to work on
+ * @param       key         Key to use for decryption
+ * @param       buf         Temporary buffer to use for serialized intermediates
+ * @param       len         Size of the temporary buffer
+ * @param[out]  payload     Buffer to write the plaintext payload to
+ * @param[out]  payload_len Size of the plaintext
+ * @param       ct          CN_CBOR context for cbor block allocation
+ *
+ * @return                  COSE_OK on successful verification and decryption
+ */
+int cose_encrypt_decrypt(cose_encrypt_t *encrypt, cose_key_t *key, unsigned idx, uint8_t *buf, size_t len, uint8_t *payload, size_t *payload_len, cn_cbor_context *ct);
 #endif
 
 /** @} */

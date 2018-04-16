@@ -37,7 +37,7 @@ typedef struct cose_recp cose_recp_t;
 struct cose_recp {
     struct cose_recp *parent;           /**< Parent recipient structure */
     const cose_key_t *key;              /**< Pointer to the key structure used */
-    uint8_t *skey;                      /**< Secret key used */
+    const uint8_t *skey;                /**< Secret key used */
     size_t key_len;                     /**< Length of the secret key */
     cose_recp_type_t type;              /**< Type of key contained in this structure */
     cose_hdr_t hdrs[COSE_RECP_HDR_MAX]; /**< Headers included with this recipient */

@@ -23,6 +23,7 @@
 #ifdef HAVE_ALGO_CHACHA20POLY1305
 static uint8_t chachakey[] = { 0x0F, 0x1E, 0x2D, 0x3C, 0x4B, 0x5A, 0x69, 0x78, 0x87, 0x96, 0xA5, 0xB4, 0xC3, 0xD2, 0xE1, 0xF0, 0x1F, 0x2E, 0x3D, 0x4C, 0x5B, 0x6A, 0x79, 0x88, 0x97, 0xA6, 0xB5, 0xC4, 0xD3, 0xE2, 0xF1, 0x00 };
 static uint8_t buf[2048];
+static uint8_t plaintext[2048];
 static uint8_t nonce[12U] = {0x26, 0x68, 0x23, 0x06, 0xd4, 0xfb, 0x28, 0xca, 0x01, 0xb4, 0x3b, 0x80};
 static uint8_t payload[] = "This is the content.";
 
@@ -83,14 +84,14 @@ static cn_cbor_context ct =
 #ifdef HAVE_ALGO_CHACHA20POLY1305
 void test_encrypt1(void)
 {
-    printf("Cur usage: %d, max usage: %d\n", cur, max);
     uint8_t *out;
     printf("Using nonce: ");
     print_bytestr(nonce, sizeof(nonce));
     printf("\n");
-    cose_encrypt_t crypt;
+    cose_encrypt_t crypt, decrypt;
     cose_key_t key;
     cose_encrypt_init(&crypt);
+    cose_encrypt_init(&decrypt);
     cose_key_init(&key);
     cose_key_set_kid(&key, kid, sizeof(kid) - 1);
     cose_key_set_keys(&key, 0, COSE_ALGO_CHACHA20POLY1305, NULL, NULL, chachakey);
@@ -103,6 +104,12 @@ void test_encrypt1(void)
         print_bytestr(out, len);
         printf("\n");
     }
+    CU_ASSERT_NOT_EQUAL_FATAL(len, 0);
+    CU_ASSERT_EQUAL(cose_encrypt_decode(&decrypt, out, len, &ct), 0);
+    size_t plaintext_len = 0;
+    CU_ASSERT_EQUAL(cose_encrypt_decrypt(&decrypt, &key, 0, buf, sizeof(buf), plaintext, &plaintext_len, &ct), 0);
+    CU_ASSERT_EQUAL(plaintext_len, sizeof(payload)-1);
+
     CU_ASSERT_EQUAL(cur, 0);
     printf("Cur usage: %d, max usage: %d\n", cur, max);
 }
