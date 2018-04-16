@@ -30,7 +30,6 @@ void test_crypto1(void)
 
     cose_crypto_sign_ed25519(&key, signature, &signaturelen, (uint8_t*)payload, sizeof(payload));
     int res = cose_crypto_verify_ed25519(&key, signature, signaturelen, (uint8_t*)payload, sizeof(payload));
-    printf("Sig size %lu\n", signaturelen);
     CU_ASSERT_EQUAL(res, 0);
 }
 #endif

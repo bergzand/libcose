@@ -156,6 +156,7 @@ typedef enum {
  * @{
  */
 typedef enum {
+    COSE_ALGO_NONE  = 0,                /**< Invalid algo */
     COSE_ALGO_ES512 = -36,              /**< ECDSA w/ SHA512 */
     COSE_ALGO_ES384 = -35,              /**< ECDSA w/ SHA384 */
     COSE_ALGO_EDDSA = -8,               /**< EdDSA */

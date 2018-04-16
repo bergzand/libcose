@@ -130,46 +130,53 @@ ssize_t cose_encrypt_build_enc(cose_encrypt_t *encrypt, uint8_t *buf, size_t len
 
 cose_algo_t cose_encrypt_get_algo(const cose_encrypt_t *encrypt)
 {
-    return encrypt->algo == COSE_ALGO_DIRECT ? encrypt->recps[0].key->algo : encrypt->algo;
+    cose_algo_t recp_algo = encrypt->recps[0].key ? encrypt->recps[0].key->algo
+        : cose_hdr_get((cose_hdr_t*)encrypt->recps[0].hdrs, COSE_RECP_HDR_MAX, COSE_HDR_ALG)->v.value;
+    return encrypt->algo == COSE_ALGO_DIRECT ? recp_algo : encrypt->algo;
+}
+
+static ssize_t _encrypt_build_aad(cose_encrypt_t *encrypt, uint8_t *buf, size_t len, cn_cbor_context *ct)
+{
+    cn_cbor_errback errp;
+    ssize_t enc_size = cose_encrypt_build_enc(encrypt, buf, len, ct);
+    if (enc_size < 0) {
+        return enc_size;
+    }
+    cn_cbor *cn_arr = cn_cbor_decode(buf, enc_size, ct, &errp);
+    if (!cn_arr)
+    {
+        return cose_intern_err_translate(&errp);
+    }
+    cn_cbor *cn_prot = cn_cbor_index(cn_arr, 1);
+
+    if (!(_encrypt_serialize_protected(encrypt,
+                                (uint8_t *)cn_prot->v.bytes, (size_t)cn_prot->length + 5,
+                                ct, &errp))) {
+        cn_cbor_free(cn_arr, ct);
+        return cose_intern_err_translate(&errp);
+    }
+    cn_cbor_free(cn_arr, ct);
+    return enc_size;
 }
 
 static ssize_t _encrypt_payload(cose_encrypt_t *encrypt, uint8_t *buf, size_t len, uint8_t *nonce, uint8_t **out, cn_cbor_context *ct)
 {
     cose_algo_t algo = cose_encrypt_get_algo(encrypt);
-    cn_cbor_errback errp;
     encrypt->nonce = nonce;
     if (cose_crypto_is_aead(algo)) {
-        printf("Current algo %d is aead\n", algo);
         /* Determine length of the protected headers */
 
         /* Protected enc structure with nonsense protected headers */
         uint8_t *encp = buf;
-        ssize_t enc_size = cose_encrypt_build_enc(encrypt, buf, len, ct);
+        ssize_t enc_size = _encrypt_build_aad(encrypt, encp, len, ct);
         if (enc_size < 0) {
             return enc_size;
         }
         buf += enc_size;
-        cn_cbor *cn_arr = cn_cbor_decode(encp, enc_size, ct, &errp);
-        if (!cn_arr)
-        {
-            return cose_intern_err_translate(&errp);
-        }
-        cn_cbor *cn_prot = cn_cbor_index(cn_arr, 1);
-
-        if (!(_encrypt_serialize_protected(encrypt,
-                                    (uint8_t *)cn_prot->v.bytes, (size_t)cn_prot->length + 5,
-                                    ct, &errp))) {
-            cn_cbor_free(cn_arr, ct);
-            return cose_intern_err_translate(&errp);
-        }
         /* At this point we have our AAD at encp with length enc_size and the
          * encrypt->payload@encrypt->payload_len to feed our algo */
         size_t cipherlen = 0;
-        printf("AAD_HEX: \n");
-        print_bytestr(encp, enc_size);
-        printf("\n");
-        cn_cbor_free(cn_arr, ct);
-        cose_crypto_aead(buf, &cipherlen, encrypt->payload, encrypt->payload_len, encp, enc_size, NULL, nonce, encrypt->cek, algo);
+        cose_crypto_aead_encrypt(buf, &cipherlen, encrypt->payload, encrypt->payload_len, encp, enc_size, NULL, nonce, encrypt->cek, algo);
         *out = buf;
         return cipherlen;
     }
@@ -301,3 +308,106 @@ ssize_t cose_encrypt_encode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len, u
     return res;
 }
 
+int cose_encrypt_decode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len, cn_cbor_context *ct)
+{
+    cn_cbor_errback errp;
+    cn_cbor *cn_in = cn_cbor_decode(buf, len, ct, &errp);
+    cn_cbor *cn_start = cn_in;
+
+    if (!(cn_in)) {
+        return cose_intern_err_translate(&errp);
+    }
+
+    if (cn_in->type == CN_CBOR_TAG && (cn_in->v.uint == COSE_ENCRYPT)) {
+        cn_start = cn_in->first_child;
+    }
+    if (cn_start->type != CN_CBOR_ARRAY || cn_start->length != 4) {
+        return -2;
+    }
+    cn_cbor *cn_hdr_prot = cn_cbor_index(cn_start, 0);
+    cn_cbor *cn_hdr_unprot = cn_cbor_index(cn_start, 1);
+    cn_cbor *cn_payload = cn_cbor_index(cn_start, 2);
+    cn_cbor *cn_recps = cn_cbor_index(cn_start, 3);
+    encrypt->payload_len = cn_payload->length;
+    if (!encrypt->payload_len) {
+        /* Zero payload length, thus external payload */
+        encrypt->flags |= COSE_FLAGS_EXTDATA;
+        encrypt->payload = NULL;
+    }
+    else {
+        encrypt->payload = cn_payload->v.bytes;
+    }
+    encrypt->hdr_prot_ser = cn_hdr_prot->v.bytes;
+    encrypt->hdr_prot_ser_len = cn_hdr_prot->length;
+    /* Fill protected headers */
+    cose_hdr_add_prot_from_cbor(encrypt->hdrs, COSE_ENCRYPT_HDR_MAX, cn_hdr_prot->v.bytes, cn_hdr_prot->length, ct, &errp);
+    /* Fill unprotected headers */
+    cose_hdr_add_unprot_from_cbor(encrypt->hdrs, COSE_ENCRYPT_HDR_MAX, cn_hdr_unprot, ct, &errp);
+
+    cose_hdr_t *alg_hdr = cose_hdr_get(encrypt->hdrs, COSE_ENCRYPT_HDR_MAX, COSE_HDR_ALG);
+    encrypt->algo = alg_hdr->v.value;
+
+    if (cn_recps->type == CN_CBOR_ARRAY) {
+        cn_cbor *cp;
+        unsigned int i = 0;
+        for (cp = cn_recps->first_child; cp; cp = cp->next) {
+            if (cp->type != CN_CBOR_ARRAY) {
+                continue;
+            }
+            if (i >= COSE_RECIPIENTS_MAX) {
+                break;
+            }
+            cose_recp_t *precp = &(encrypt->recps[i]);
+            cn_cbor *prot = cn_cbor_index(cp, 0);
+            /* TODO: copy array */
+            cn_cbor *key = cn_cbor_index(cp, 2);
+            precp->key_len = key->length;
+            if (key->length) {
+                precp->skey = key->v.bytes;
+            }
+            else {
+                precp->skey = NULL;
+            }
+            cose_hdr_add_prot_from_cbor(precp->hdrs, COSE_SIG_HDR_MAX, prot->v.bytes, prot->length, ct, &errp);
+            cose_hdr_add_from_cbor(precp->hdrs, COSE_SIG_HDR_MAX, cn_cbor_index(cp, 1), 0, ct, &errp);
+            cose_hdr_t *recp_alg = cose_hdr_get(precp->hdrs, COSE_ENCRYPT_HDR_MAX, COSE_HDR_ALG);
+            if (recp_alg && recp_alg->v.value == COSE_ALGO_DIRECT) {
+                /* Mark cose encrypt as direct */
+                encrypt->algo = COSE_ALGO_DIRECT;
+            }
+            i++;
+        }
+        encrypt->num_recps = i;
+        /* Probably a SIGN1 struct then */
+    }
+    cn_cbor_free(cn_in, ct);
+    return 0;
+}
+
+
+/* Try to decrypt a packet */
+int cose_encrypt_decrypt(cose_encrypt_t *encrypt, cose_key_t *key, unsigned idx, uint8_t *buf, size_t len, uint8_t *payload, size_t *payload_len, cn_cbor_context *ct)
+{
+    if (idx >= COSE_RECIPIENTS_MAX) {
+        return COSE_ERR_NOMEM;
+    }
+    cose_recp_t *recp = &encrypt->recps[idx];
+    (void)recp;
+    ssize_t aad_len = cose_encrypt_build_enc(encrypt, buf, len, ct);
+    if (aad_len < 0) {
+       return aad_len;
+    }
+    cose_hdr_t *nonce_hdr = cose_hdr_get(encrypt->hdrs, COSE_ENCRYPT_HDR_MAX, COSE_HDR_IV);
+    if (!nonce_hdr) {
+        return COSE_ERR_CRYPTO;
+    }
+    const uint8_t *nonce = nonce_hdr->v.data;
+    cose_algo_t algo = encrypt->algo;
+    const uint8_t *cek = encrypt->cek;
+    if (algo == COSE_ALGO_DIRECT) {
+        cose_hdr_t *algo_hdr = cose_hdr_get(encrypt->hdrs, COSE_ENCRYPT_HDR_MAX, COSE_HDR_ALG);
+        algo = algo_hdr->v.value;
+        cek = key->d;
+    }
+    return cose_crypto_aead_decrypt(payload, payload_len, encrypt->payload, encrypt->payload_len, buf, aad_len, nonce, cek, algo);
+}

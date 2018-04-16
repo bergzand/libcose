@@ -52,7 +52,7 @@ bool cose_crypto_is_aead(cose_algo_t algo)
     }
 }
 
-int cose_crypto_aead(uint8_t *c,  /* NOLINT(readability-non-const-parameter) */
+int cose_crypto_aead_encrypt(uint8_t *c,  /* NOLINT(readability-non-const-parameter) */
         size_t *clen,             /* NOLINT(readability-non-const-parameter) */
         const uint8_t *msg,
         size_t msglen,
@@ -90,6 +90,46 @@ int cose_crypto_aead(uint8_t *c,  /* NOLINT(readability-non-const-parameter) */
             (void)nsec;
             (void)npub;
             (void)key;
+            return COSE_ERR_NOTIMPLEMENTED;
+    }
+}
+
+int cose_crypto_aead_decrypt(uint8_t *msg, /* NOLINT(readability-non-const-parameter) */
+                             size_t *msglen, /* NOLINT(readability-non-const-parameter) */
+                             const uint8_t *c,
+                             size_t clen,
+                             const uint8_t *aad,
+                             size_t aadlen,
+                             const uint8_t *npub,
+                             const uint8_t *k,
+                             cose_algo_t algo)
+{
+    switch(algo) {
+#ifdef HAVE_ALGO_CHACHA20POLY1305
+        case COSE_ALGO_CHACHA20POLY1305:
+            return cose_crypto_aead_decrypt_chachapoly(msg, msglen, c, clen, aad, aadlen, npub, k);
+#endif
+#ifdef HAVE_ALGO_AES256GCM
+        case COSE_ALGO_A256GCM:
+            return cose_crypto_aead_decrypt_aesgcm(msg, msglen, c, clen, aad, aadlen, npub, k, COSE_CRYPTO_AEAD_AES256GCM_KEYBYTES);
+#endif
+#ifdef HAVE_ALGO_AES192GCM
+        case COSE_ALGO_A192GCM:
+            return cose_crypto_aead_decrypt_aesgcm(msg, msglen, c, clen, aad, aadlen, npub, k, COSE_CRYPTO_AEAD_AES192GCM_KEYBYTES);
+#endif
+#ifdef HAVE_ALGO_AES128GCM
+        case COSE_ALGO_A128GCM:
+            return cose_crypto_aead_decrypt_aesgcm(msg, msglen, c, clen, aad, aadlen, npub, k, COSE_CRYPTO_AEAD_AES128GCM_KEYBYTES);
+#endif
+        default:
+            (void)c;
+            (void)clen;
+            (void)msg;
+            (void)msglen;
+            (void)aad;
+            (void)aadlen;
+            (void)npub;
+            (void)k;
             return COSE_ERR_NOTIMPLEMENTED;
     }
 }
