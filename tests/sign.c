@@ -23,13 +23,13 @@
 static char kid[] = "koen@example.org";
 static char kid2[] = "koen@example.net";
 
-//#ifdef HAVE_ALGO_EDDSA
+#ifdef HAVE_ALGO_EDDSA
 #define TEST_CRYPTO_SIGN_PUBLICKEYBYTES COSE_CRYPTO_SIGN_ED25519_PUBLICKEYBYTES
 #define TEST_CRYPTO_SIGN_SECRETKEYBYTES COSE_CRYPTO_SIGN_ED25519_SECRETKEYBYTES
-//#elif defined(HAVE_ALGO_ECDSA)
-//#define TEST_CRYPTO_SIGN_PUBLICKEYBYTES COSE_CRYPTO_SIGN_P521_PUBLICKEYBYTES
-//#define TEST_CRYPTO_SIGN_SECRETKEYBYTES COSE_CRYPTO_SIGN_P521_SECRETKEYBYTES
-//#endif
+#elif defined(HAVE_ALGO_ECDSA)
+#define TEST_CRYPTO_SIGN_PUBLICKEYBYTES COSE_CRYPTO_SIGN_P521_PUBLICKEYBYTES
+#define TEST_CRYPTO_SIGN_SECRETKEYBYTES COSE_CRYPTO_SIGN_P521_SECRETKEYBYTES
+#endif
 
 static unsigned char pkx1[TEST_CRYPTO_SIGN_PUBLICKEYBYTES];
 static unsigned char pky1[TEST_CRYPTO_SIGN_PUBLICKEYBYTES];
@@ -41,8 +41,6 @@ static unsigned char sk2[TEST_CRYPTO_SIGN_SECRETKEYBYTES];
 #define NUM_TESTS (sizeof(tests)/sizeof(struct test))
 static uint8_t buf[2048];
 static uint8_t ver_buf[2048];
-//static uint8_t prev_result[2048];
-//static size_t prev_len = 0;
 
 static void genkey(cose_key_t *key, uint8_t *pkx, uint8_t *pky, uint8_t *sk)
 {
