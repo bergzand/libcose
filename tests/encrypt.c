@@ -27,12 +27,6 @@ static uint8_t plaintext[2048];
 static uint8_t nonce[12U] = {0x26, 0x68, 0x23, 0x06, 0xd4, 0xfb, 0x28, 0xca, 0x01, 0xb4, 0x3b, 0x80};
 static uint8_t payload[] = "This is the content.";
 
-/* Memory usage tracking */
-static int max = 0;
-static int cur = 0;
-static int total = 0;
-static int cap_limit = 1000;
-static int alloc_limit = 1000;
 static uint8_t kid[] = "sec-256";
 
 static void print_bytestr(const uint8_t *bytes, size_t len)
@@ -42,41 +36,6 @@ static void print_bytestr(const uint8_t *bytes, size_t len)
         printf("%02X", bytes[idx]);
     }
 }
-
-/* CN_CBOR calloc functions */
-static void *cose_calloc(size_t count, size_t size, void *context)
-{
-    (void)context;
-    if (cur >= cap_limit)
-    {
-        return NULL;
-    }
-    if (total >= alloc_limit)
-    {
-        return NULL;
-    }
-    total++;
-    cur++;
-    if(cur > max)
-    {
-        max = cur;
-    }
-    return calloc(count, size);
-}
-
-static void cose_free(void *ptr, void *context)
-{
-    (void)context;
-    cur--;
-    free(ptr);
-}
-
-static cn_cbor_context ct =
-{
-    .calloc_func = cose_calloc,
-    .free_func = cose_free,
-    .context = NULL
-};
 #endif
 
 
@@ -98,20 +57,16 @@ void test_encrypt1(void)
     cose_encrypt_add_recipient(&crypt, &key);
     cose_encrypt_set_payload(&crypt, payload, sizeof(payload)-1);
     cose_encrypt_set_algo(&crypt, COSE_ALGO_DIRECT);
-    printf("Cur usage: %d, max usage: %d\n", cur, max);
-    ssize_t len = cose_encrypt_encode(&crypt, buf, sizeof(buf), nonce, &out, &ct);
+    ssize_t len = cose_encrypt_encode(&crypt, buf, sizeof(buf), nonce, &out);
     if (len > 0) {
         print_bytestr(out, len);
         printf("\n");
     }
     CU_ASSERT_NOT_EQUAL_FATAL(len, 0);
-    CU_ASSERT_EQUAL(cose_encrypt_decode(&decrypt, out, len, &ct), 0);
+    CU_ASSERT_EQUAL(cose_encrypt_decode(&decrypt, out, len), 0);
     size_t plaintext_len = 0;
-    CU_ASSERT_EQUAL(cose_encrypt_decrypt(&decrypt, &key, 0, buf, sizeof(buf), plaintext, &plaintext_len, &ct), 0);
+    CU_ASSERT_EQUAL(cose_encrypt_decrypt(&decrypt, &key, 0, buf, sizeof(buf), plaintext, &plaintext_len), 0);
     CU_ASSERT_EQUAL(plaintext_len, sizeof(payload)-1);
-
-    CU_ASSERT_EQUAL(cur, 0);
-    printf("Cur usage: %d, max usage: %d\n", cur, max);
 }
 #endif
 

@@ -10,7 +10,7 @@
 #include <string.h>
 #include <cbor.h>
 
-int cose_cbor_get_string(CborValue *it, const uint8_t **buf, size_t *len)
+int cose_cbor_get_string(const CborValue *it, const uint8_t **buf, size_t *len)
 {
     if (!(cbor_value_is_text_string(it) || cbor_value_is_byte_string(it) || cbor_value_is_length_known(it))) {
          return -1;

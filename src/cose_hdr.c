@@ -75,7 +75,7 @@ bool cose_hdr_from_cbor_map(cose_hdr_t *hdr, CborValue *key)
     return true;
 }
 
-int cose_hdr_add_from_cbor(cose_hdr_t *hdr, size_t num, CborValue *map,
+int cose_hdr_add_from_cbor(cose_hdr_t *hdr, size_t num, const CborValue *map,
         uint8_t flags)
 {
     CborValue val;
@@ -93,6 +93,8 @@ int cose_hdr_add_from_cbor(cose_hdr_t *hdr, size_t num, CborValue *map,
         hdr->flags |= flags;
         hdr++;
         idx++;
+        /* Advance twice */
+        cbor_value_advance(&val);
         cbor_value_advance(&val);
     }
     return 0;
@@ -141,20 +143,6 @@ int cose_hdr_add_hdr_data(cose_hdr_t *start, size_t num, int32_t key, uint8_t fl
     return COSE_OK;
 }
 
-//int cose_hdr_add_hdr_cbor(cose_hdr_t *start, size_t num, int32_t key, uint8_t flags, cn_cbor *cbor)
-//{
-//    cose_hdr_t *hdr = cose_hdr_next_empty(start, num);
-//
-//    if (!hdr) {
-//        return COSE_ERR_NOMEM;
-//    }
-//    hdr->type = COSE_HDR_TYPE_CBOR;
-//    hdr->key = key;
-//    hdr->v.cbor = cbor;
-//    hdr->flags = flags;
-//    return COSE_OK;
-//}
-//
 cose_hdr_t *cose_hdr_next_empty(cose_hdr_t *hdr, size_t num)
 {
     cose_hdr_t *res = NULL;
@@ -180,4 +168,15 @@ bool cose_hdr_add_to_map(const cose_hdr_t *hdr, size_t num, CborEncoder *map, bo
         }
     }
     return true;
+}
+
+size_t cose_hdr_size(const cose_hdr_t *hdr, size_t num, bool prot)
+{
+    size_t res = 0;
+    for (unsigned i = 0; i < num; i++, hdr++) {
+        if (hdr->key != 0 && (cose_hdr_is_protected(hdr) == prot)) {
+            res++;
+        }
+    }
+    return res;
 }

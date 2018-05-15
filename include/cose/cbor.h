@@ -22,7 +22,7 @@
 
 #include <cbor.h>
 
-int cose_cbor_get_string(CborValue *it, const uint8_t **buf, size_t *len);
+int cose_cbor_get_string(const CborValue *it, const uint8_t **buf, size_t *len);
 
 #endif
 

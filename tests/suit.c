@@ -70,36 +70,7 @@ static void print_bytestr(const uint8_t *bytes, size_t len)
     }
 }
 
-/* Memory usage tracking */
-static int max = 0;
-static int cur = 0;
-/* CN_CBOR calloc functions */
-static void *cose_calloc(size_t count, size_t size, void *context)
-{
-    (void)context;
-    cur++;
-    if(cur > max)
-    {
-        max = cur;
-    }
-    return calloc(count, size);
-}
-
-static void cose_free(void *ptr, void *context)
-{
-    (void)context;
-    cur--;
-    free(ptr);
-}
-
-static cn_cbor_context ct =
-{
-    .calloc_func = cose_calloc,
-    .free_func = cose_free,
-    .context = NULL
-};
-
-void test_suite1(void)
+void test_suit1(void)
 {
     cose_sign_t verify;
     cose_key_t signer;
@@ -115,11 +86,11 @@ void test_suite1(void)
     print_bytestr(cose_suite, 311);
     printf("\n");
     /* Decode again */
-    int decode_success = cose_sign_decode(&verify, cose_suite, 311, &ct);
+    int decode_success = cose_sign_decode(&verify, cose_suite, 311);
     printf("Decoding: %d\n", decode_success);
     /* Verify with signature slot 0 */
     CU_ASSERT_EQUAL_FATAL(decode_success, 0);
-    int verification = cose_sign_verify(&verify, &signer, 0, buf, sizeof(buf), &ct);
+    int verification = cose_sign_verify(&verify, &signer, 0, buf, sizeof(buf));
     printf("Verification: %d\n", verification);
     CU_ASSERT_EQUAL(verification, 0);
     cose_hdr_t *hdr = cose_sign_get_protected(&verify, COSE_HDR_CONTENT_TYPE);
@@ -128,16 +99,13 @@ void test_suite1(void)
     ssize_t res = cose_sign_get_kid(&verify, 0, &kid);
     CU_ASSERT_EQUAL(res, COSE_OK);
     CU_ASSERT_EQUAL(memcmp(kid, keyid, sizeof(keyid) - 1), 0);
-    /* Modify payload */
-    printf("Current usage %d, Max usage: %d\n", cur, max);
-    CU_ASSERT_EQUAL(cur, 0);
 }
 #endif
 
-const test_t tests_suite[] = {
+const test_t tests_suit[] = {
 #ifdef HAVE_ALGO_EDDSA
     {
-        .f = test_suite1,
+        .f = test_suit1,
         .n = "Verify with known signed",
     },
 #endif

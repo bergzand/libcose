@@ -22,9 +22,14 @@
 #ifndef COSE_ENCRYPT_H
 #define COSE_ENCRYPT_H
 
+#include <cbor.h>
 #include "cose_defines.h"
 #include "cose/hdr.h"
 #include "cose/recipient.h"
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
 
 /**
  * @name COSE recipient struct
@@ -131,7 +136,7 @@ void cose_encrypt_set_algo(cose_encrypt_t *encrypt, cose_algo_t algo);
  * @return                  Size of the COSE encrypt object
  * @return                  Negative on failure
  */
-ssize_t cose_encrypt_encode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len, uint8_t *nonce, uint8_t **out, cn_cbor_context *ct);
+ssize_t cose_encrypt_encode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len, uint8_t *nonce, uint8_t **out);
 
 /**
  * cose_encrypt_decode decodes a buffer containing a COSE encrypt object into
@@ -144,7 +149,7 @@ ssize_t cose_encrypt_encode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len, u
  *
  * @return                  COSE_OK when successful
  */
-int cose_encrypt_decode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len, cn_cbor_context *ct);
+int cose_encrypt_decode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len);
 
 /**
  * cose_encrypt_decrypt tries to verify and decrypt the payload of a
@@ -156,11 +161,10 @@ int cose_encrypt_decode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len, cn_cb
  * @param       len         Size of the temporary buffer
  * @param[out]  payload     Buffer to write the plaintext payload to
  * @param[out]  payload_len Size of the plaintext
- * @param       ct          CN_CBOR context for cbor block allocation
  *
  * @return                  COSE_OK on successful verification and decryption
  */
-int cose_encrypt_decrypt(cose_encrypt_t *encrypt, cose_key_t *key, unsigned idx, uint8_t *buf, size_t len, uint8_t *payload, size_t *payload_len, cn_cbor_context *ct);
+int cose_encrypt_decrypt(cose_encrypt_t *encrypt, cose_key_t *key, unsigned idx, uint8_t *buf, size_t len, uint8_t *payload, size_t *payload_len);
 #endif
 
 /** @} */

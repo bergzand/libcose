@@ -10,7 +10,7 @@
 /* Shared recipient handling between MAC and Encrypt structs */
 #include "cose.h"
 #include "cose/intern.h"
-#include <cn-cbor/cn-cbor.h>
+#include <cbor.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>

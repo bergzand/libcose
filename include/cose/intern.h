@@ -10,7 +10,7 @@
 #define COSE_INTERN_H
 
 #include <stdio.h>
-#include <cn-cbor/cn-cbor.h>
+#include <cbor.h>
 
 /**
  * @defgroup    cose_internal COSE internal convenience functions
@@ -25,32 +25,13 @@
  */
 
 /**
- * @brief Check the cn_new struct for a valid value,
- * free the cn_top cbor struct and return NULL.
- */
-#define CBOR_CATCH_ERR(cn_new, cn_top, ct)  if (!(cn_new)) { \
-        cn_cbor_free(cn_top, ct); \
-        return NULL; \
-} \
-
-/**
- * @brief Check the cn_new struct for a valid value,
- * free the cn_top cbor struct and return the error.
- */
-#define CBOR_CATCH_RET_ERR(cn_new, cn_top, ct, errp) \
-    if (!(cn_new)) { \
-        cn_cbor_free(cn_top, ct); \
-        return cose_intern_err_translate(errp); \
-    } \
-
-/**
- * Translate a cn-cbor error to a COSE error
+ * Translate a tinycbor error to a COSE error
  *
- * @param   errp   cn-cbor error
+ * @param   err     tinycbor error
  *
  * @return          COSE error
  */
-cose_err_t cose_intern_err_translate(cn_cbor_errback *errp);
+cose_err_t cose_intern_err_translate(CborError err);
 
 /**
  * Debugging convenience function for printing byte strings as hex

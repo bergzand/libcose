@@ -45,6 +45,8 @@ typedef enum {
  */
 #define COSE_FLAGS_EXTDATA   0x8000 /**< Data is carried externally and not included in the COSE object */
 #define COSE_FLAGS_UNTAGGED  0x4000 /**< The COSE object is untagged */
+#define COSE_FLAGS_DECODE    0x0200 /**< The COSE object is used for decoding */
+#define COSE_FLAGS_ENCODE    0x0100 /**< The COSE object is used for encoding */
 
 #define COSE_FLAGS_SIGN1     0x0001 /**< The COSE sign structure is a SIGN1 object */
 /** @} */

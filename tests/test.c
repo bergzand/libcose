@@ -21,7 +21,7 @@
 extern test_t tests_hdr[];
 extern test_t tests_crypto[];
 extern test_t tests_sign[];
-extern test_t tests_suite[];
+extern test_t tests_suit[];
 extern test_t tests_encrypt[];
 
 int getrandom(void *arg, unsigned char *buf, size_t bytes)
@@ -72,12 +72,12 @@ int main()
     }
     add_tests(pSuite, tests_sign);
 
-    pSuite = CU_add_suite("Suite_suite", NULL, NULL);
+    pSuite = CU_add_suite("Suite_suit", NULL, NULL);
     if (NULL == pSuite) {
         CU_cleanup_registry();
         return CU_get_error();
     }
-    add_tests(pSuite, tests_suite);
+    add_tests(pSuite, tests_suit);
 
     pSuite = CU_add_suite("Suite_encrypt", NULL, NULL);
     if (NULL == pSuite) {
@@ -92,8 +92,6 @@ int main()
     CU_basic_set_mode(CU_BRM_VERBOSE);
     CU_basic_run_tests();
     printf("\n");
-    //CU_basic_show_failures(CU_get_failure_list());
-    printf("\n\n");
 
     CU_cleanup_registry();
     if (CU_get_number_of_failure_records()) {
