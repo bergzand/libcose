@@ -100,7 +100,7 @@ void cose_key_set_kid(cose_key_t *key, uint8_t *kid, size_t len);
  * @return          0 on success
  * @return          Negative on error
  */
-int cose_key_protected_to_map(const cose_key_t *key, CborEncoder *map);
+void cose_key_protected_to_map(const cose_key_t *key, CborEncoder *map);
 
 /**
  * Add the unprotected header information to the provided CBOR map
@@ -111,6 +111,6 @@ int cose_key_protected_to_map(const cose_key_t *key, CborEncoder *map);
  * @return          0 on success
  * @return          Negative on error
  */
-int cose_key_unprotected_to_map(const cose_key_t *key, CborEncoder *map);
+void cose_key_unprotected_to_map(const cose_key_t *key, CborEncoder *map);
 #endif
 /** @} */

@@ -19,6 +19,10 @@
 #ifndef COSE_CONF_H
 #define COSE_CONF_H
 
+#ifndef COSE_CBOR_VALIDATION
+#define COSE_CBOR_VALIDATION   CborValidateStrictMode /**< tinycbor validate */
+#endif
+
 #ifndef COSE_SIGNATURES_MAX
 #define COSE_SIGNATURES_MAX    4 /**< Maximum number of signatures in a single sign object */
 #endif /* COSE_SIGNATURES_MAX */

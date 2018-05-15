@@ -21,12 +21,13 @@
 #include <unistd.h>
 
 static size_t _serialize_cbor_protected(cose_sign_t *sign, uint8_t *buf, size_t buflen);
-static CborError _sign_sig_cbor(cose_sign_t *sign, cose_signature_t *sig, const char *type, CborEncoder *enc);
-static ssize_t _sign_sig_encode(cose_sign_t *sign, cose_signature_t *sig, const char *type, uint8_t *buf, size_t buflen);
+static void _sign_sig_cbor(cose_sign_t *sign, cose_signature_t *sig, const char *type, CborEncoder *enc);
+static size_t _sign_sig_encode(cose_sign_t *sign, cose_signature_t *sig, const char *type, uint8_t *buf, size_t buflen);
 static CborError _cbor_unprotected(cose_sign_t *sign, CborEncoder *enc);
+static void _place_cbor_protected(cose_sign_t *sign, CborEncoder *arr);
 static size_t _sig_serialize_protected(const cose_sign_t *sign, const cose_signature_t *sig, uint8_t *buf, size_t buflen);
 
-static CborError _sign_sig_cbor(cose_sign_t *sign, cose_signature_t *sig, const char *type, CborEncoder *enc)
+static void _sign_sig_cbor(cose_sign_t *sign, cose_signature_t *sig, const char *type, CborEncoder *enc)
 {
     CborEncoder arr;
     size_t len = _is_sign1(sign) ? 4 : 5;
@@ -36,13 +37,11 @@ static CborError _sign_sig_cbor(cose_sign_t *sign, cose_signature_t *sig, const 
     cbor_encode_text_stringz(&arr, type);
 
     /* Add body protected headers */
-    size_t slen = _serialize_cbor_protected(sign, NULL, 0);
-    cbor_encode_byte_string(&arr, arr.data.ptr, slen);
-    _serialize_cbor_protected(sign, arr.data.ptr - slen, slen);
+    _place_cbor_protected(sign, &arr);
 
     /* Add signer protected headers */
     if (!_is_sign1(sign)) {
-        slen = _sig_serialize_protected(sign, sig, NULL, 0);
+        size_t slen = _sig_serialize_protected(sign, sig, NULL, 0);
         cbor_encode_byte_string(&arr, arr.data.ptr, slen);
         _sig_serialize_protected(sign, sig, arr.data.ptr - slen, slen);
     }
@@ -53,40 +52,34 @@ static CborError _sign_sig_cbor(cose_sign_t *sign, cose_signature_t *sig, const 
     /* Add payload */
     cbor_encode_byte_string(&arr, sign->payload, sign->payload_len);
     cbor_encoder_close_container(enc, &arr);
-    return CborNoError;
 }
 
-static ssize_t _sign_sig_encode(cose_sign_t *sign, cose_signature_t *sig, const char *type, uint8_t *buf, size_t buflen)
+static size_t _sign_sig_encode(cose_sign_t *sign, cose_signature_t *sig, const char *type, uint8_t *buf, size_t buflen)
 {
     CborEncoder enc;
     cbor_encoder_init(&enc, buf, buflen, 0);
     _sign_sig_cbor(sign, sig, type, &enc);
     if (!buflen) {
-        return (ssize_t)cbor_encoder_get_extra_bytes_needed(&enc);
+        return cbor_encoder_get_extra_bytes_needed(&enc);
     }
-    return (ssize_t)cbor_encoder_get_buffer_size(&enc, buf);
+    return cbor_encoder_get_buffer_size(&enc, buf);
 }
 
 static bool _sig_unprot_to_map(cose_signature_t *sig, CborEncoder *map)
 {
-    if (cose_key_unprotected_to_map(sig->signer, map) < 0) {
-        return false;
-    }
+    cose_key_unprotected_to_map(sig->signer, map);
     if (cose_hdr_add_to_map(sig->hdrs, COSE_SIG_HDR_MAX, map, false)) {
         return false;
     }
     return true;
 }
 
-static bool _sig_prot_to_map(const cose_sign_t *sign, const cose_signature_t *sig, CborEncoder *map)
+static void _sig_prot_to_map(const cose_sign_t *sign, const cose_signature_t *sig, CborEncoder *map)
 {
     if (cose_flag_isset(sign->flags, COSE_FLAGS_ENCODE)) {
-        if (cose_key_protected_to_map(sig->signer, map) < 0) {
-            return false;
-        }
+        cose_key_protected_to_map(sig->signer, map);
     }
     cose_hdr_add_to_map(sig->hdrs, COSE_SIG_HDR_MAX, map, true);
-    return true;
 }
 
 static CborError _sig_unprot_cbor(cose_signature_t *sig, CborEncoder *enc)
@@ -111,9 +104,9 @@ static size_t _sig_serialize_protected(const cose_sign_t *sign, const cose_signa
     _sig_prot_to_map(sign, sig, &map);
     cbor_encoder_close_container(&enc, &map);
     if (!buflen) {
-        return (ssize_t)cbor_encoder_get_extra_bytes_needed(&enc);
+        return cbor_encoder_get_extra_bytes_needed(&enc);
     }
-    return (ssize_t)cbor_encoder_get_buffer_size(&enc, buf);
+    return cbor_encoder_get_buffer_size(&enc, buf);
 }
 
 static CborError _cbor_unprotected(cose_sign_t *sign, CborEncoder *enc)
@@ -162,6 +155,13 @@ static size_t _serialize_cbor_protected(cose_sign_t *sign, uint8_t *buf, size_t 
         return cbor_encoder_get_extra_bytes_needed(&enc);
     }
     return cbor_encoder_get_buffer_size(&enc, buf);
+}
+
+static void _place_cbor_protected(cose_sign_t *sign, CborEncoder *arr)
+{
+    size_t slen = _serialize_cbor_protected(sign, NULL, 0);
+    cbor_encode_byte_string(arr, arr->data.ptr, slen);
+    _serialize_cbor_protected(sign, arr->data.ptr - slen, slen);
 }
 
 static int _add_signatures(cose_sign_t *sign, CborEncoder *arr)
@@ -220,12 +220,9 @@ int cose_sign_generate_signature(cose_sign_t *sign, cose_signature_t *sig, uint8
         return COSE_ERR_NOINIT;
     }
     /* Build the data at an offset of the signature size */
-    ssize_t sig_struct_len = _sign_sig_encode(sign, sig,
-                                              _is_sign1(sign) ? SIG_TYPE_SIGNATURE1 : SIG_TYPE_SIGNATURE,
-                                              buf_cbor, cbor_space);
-    if (sig_struct_len < 0) {
-        return sig_struct_len;
-    }
+    size_t sig_struct_len = _sign_sig_encode(sign, sig,
+                                             _is_sign1(sign) ? SIG_TYPE_SIGNATURE1 : SIG_TYPE_SIGNATURE,
+                                             buf_cbor, cbor_space);
     int res = cose_crypto_sign(sig->signer, buf, &(sig->signature_len), buf_cbor, sig_struct_len);
     /* Store pointer to the signature */
     sig->signature = buf;
@@ -235,7 +232,6 @@ int cose_sign_generate_signature(cose_sign_t *sign, cose_signature_t *sig, uint8
 ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, uint8_t **out)
 {
     /* The buffer here is used to contain dummy data a number of times */
-    uint8_t *bufptr = buf;
     CborEncoder enc, arr;
 
     sign->flags |= COSE_FLAGS_ENCODE;
@@ -267,9 +263,7 @@ ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, uint8_t **
     cbor_encoder_create_array(&enc, &arr, 4);
 
     /* Create protected body header bstr */
-    size_t slen = _serialize_cbor_protected(sign, NULL, 0);
-    cbor_encode_byte_string(&arr, bufptr, slen);
-    _serialize_cbor_protected(sign, arr.data.ptr - slen, slen);
+    _place_cbor_protected(sign, &arr);
 
     /* Create unprotected body header map */
     _cbor_unprotected(sign, &arr);
@@ -297,7 +291,13 @@ ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, uint8_t **
     cbor_encoder_close_container(&enc, &arr);
 
     *out = buf;
-    size_t res = cbor_encoder_get_buffer_size(&enc, buf);
+    size_t res;
+    if (cbor_encoder_get_extra_bytes_needed(&enc)) {
+        res = COSE_ERR_NOMEM;
+    }
+    else {
+        res = cbor_encoder_get_buffer_size(&enc, buf);
+    }
     return res;
 }
 
@@ -307,7 +307,7 @@ int cose_sign_decode(cose_sign_t *sign, const uint8_t *buf, size_t len)
     CborParser p;
     CborValue it, arr;
     size_t alen = 0;
-    CborError err = cbor_parser_init(buf, len, 0, &p, &it);
+    CborError err = cbor_parser_init(buf, len, COSE_CBOR_VALIDATION, &p, &it);
     if (err) {
         return err;
     }
