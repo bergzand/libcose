@@ -45,10 +45,9 @@ struct cose_recp {
 /** @} */
 
 
-cn_cbor *cose_recp_encrypt_to_map(cose_recp_t *recps, size_t num_recps,
+int cose_recp_encrypt_to_map(cose_recp_t *recps, size_t num_recps,
                                   const uint8_t *cek, size_t ceklen,
-                                  cn_cbor_context *ct,
-                                  cn_cbor_errback *errp);
+                                  CborEncoder *enc);
 #endif
 
 /** @} */
