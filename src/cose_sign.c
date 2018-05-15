@@ -72,7 +72,7 @@ static bool _sig_unprot_to_map(cose_signature_t *sig, CborEncoder *map)
     if (cose_key_unprotected_to_map(sig->signer, map) < 0) {
         return false;
     }
-    if (!cose_hdr_add_to_map(sig->hdrs, COSE_SIG_HDR_MAX, map, false)) {
+    if (cose_hdr_add_to_map(sig->hdrs, COSE_SIG_HDR_MAX, map, false)) {
         return false;
     }
     return true;
@@ -85,9 +85,7 @@ static bool _sig_prot_to_map(const cose_sign_t *sign, const cose_signature_t *si
             return false;
         }
     }
-    if (!cose_hdr_add_to_map(sig->hdrs, COSE_SIG_HDR_MAX, map, true)) {
-        return false;
-    }
+    cose_hdr_add_to_map(sig->hdrs, COSE_SIG_HDR_MAX, map, true);
     return true;
 }
 

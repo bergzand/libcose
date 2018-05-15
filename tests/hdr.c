@@ -109,7 +109,7 @@ void test_hdr5(void)
 
     cbor_encoder_init(&enc, buf, BUF_SIZE, 0);
     cbor_encoder_create_map(&enc, &map, 1);
-    CU_ASSERT(cose_hdr_to_cbor_map(&header, &map));
+    CU_ASSERT_EQUAL(cose_hdr_to_cbor_map(&header, &map), 0);
     cbor_encoder_close_container(&enc, &map);
     size_t len = cbor_encoder_get_buffer_size(&enc, buf);
 
@@ -141,7 +141,7 @@ void test_hdr6(void)
 
     cbor_encoder_init(&enc, buf, BUF_SIZE, 0);
     cbor_encoder_create_map(&enc, &map, 1);
-    CU_ASSERT(cose_hdr_to_cbor_map(&header, &map));
+    CU_ASSERT_EQUAL(cose_hdr_to_cbor_map(&header, &map), 0);
     cbor_encoder_close_container(&enc, &map);
     size_t len = cbor_encoder_get_buffer_size(&enc, buf);
 
@@ -174,7 +174,7 @@ void test_hdr7(void)
 
     cbor_encoder_init(&enc, buf, BUF_SIZE, 0);
     cbor_encoder_create_map(&enc, &map, 1);
-    CU_ASSERT(cose_hdr_to_cbor_map(&header, &map));
+    CU_ASSERT_EQUAL(cose_hdr_to_cbor_map(&header, &map), 0);
     cbor_encoder_close_container(&enc, &map);
     size_t len = cbor_encoder_get_buffer_size(&enc, buf);
 

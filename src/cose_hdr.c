@@ -13,43 +13,41 @@
 #include <cbor.h>
 
 /* Appends the header the given cbor map */
-bool cose_hdr_to_cbor_map(const cose_hdr_t *hdr, CborEncoder *map)
+CborError cose_hdr_to_cbor_map(const cose_hdr_t *hdr, CborEncoder *map)
 {
-    cbor_encode_int(map, hdr->key);
+    CborError err = cbor_encode_int(map, hdr->key);
     switch (hdr->type) {
         case COSE_HDR_TYPE_INT:
-            cbor_encode_int(map, hdr->v.value);
+            err = cbor_encode_int(map, hdr->v.value);
             break;
         case COSE_HDR_TYPE_TSTR:
-            cbor_encode_text_stringz(map, hdr->v.str);
+            err = cbor_encode_text_stringz(map, hdr->v.str);
             break;
         case COSE_HDR_TYPE_BSTR:
-            cbor_encode_byte_string(map, hdr->v.data, hdr->len);
+            err = cbor_encode_byte_string(map, hdr->v.data, hdr->len);
             break;
         case COSE_HDR_TYPE_CBOR:
             /* Not supported */
             break;
     }
-    return true;
+    return err;
 }
 
 /* Convert a map key to a cose_hdr struct */
-bool cose_hdr_from_cbor_map(cose_hdr_t *hdr, CborValue *key)
+bool cose_hdr_from_cbor_map(cose_hdr_t *hdr, const CborValue *key)
 {
-    if (cbor_value_is_integer(key)) {
-        int64_t val;
-        cbor_value_get_int64(key, &val);
-        hdr->key = (int32_t)val;
-    }
-    else {
+    CborValue val = *key;
+    if (!cbor_value_is_integer(&val)) {
         return false;
     }
-    CborValue val = *key;
+    int64_t value;
+    cbor_value_get_int64(&val, &value);
+    /* TODO: bounds check */
+    hdr->key = (int32_t)value;
     cbor_value_advance_fixed(&val);
     switch (cbor_value_get_type(&val)) {
         case CborIntegerType:
             {
-                int64_t value;
                 cbor_value_get_int64(&val, &value);
                 hdr->v.value = (int32_t)value;
                 hdr->type = COSE_HDR_TYPE_INT;
@@ -87,8 +85,8 @@ int cose_hdr_add_from_cbor(cose_hdr_t *hdr, size_t num, const CborValue *map,
                 return COSE_ERR_NOMEM;
             }
         }
-        if (!(cose_hdr_from_cbor_map(hdr, &val))) {
-            /* Error handling */
+        if (!cose_hdr_from_cbor_map(hdr, &val)) {
+            return COSE_ERR_INVALID_CBOR;
         }
         hdr->flags |= flags;
         hdr++;
@@ -97,7 +95,7 @@ int cose_hdr_add_from_cbor(cose_hdr_t *hdr, size_t num, const CborValue *map,
         cbor_value_advance(&val);
         cbor_value_advance(&val);
     }
-    return 0;
+    return COSE_OK;
 }
 
 int cose_hdr_add_hdr_value(cose_hdr_t *start, size_t num, int32_t key, uint8_t flags, int32_t value)
@@ -156,18 +154,16 @@ cose_hdr_t *cose_hdr_next_empty(cose_hdr_t *hdr, size_t num)
     return res;
 }
 
-bool cose_hdr_add_to_map(const cose_hdr_t *hdr, size_t num, CborEncoder *map, bool prot)
+CborError cose_hdr_add_to_map(const cose_hdr_t *hdr, size_t num, CborEncoder *map, bool prot)
 {
+    CborError err = 0;
     for (unsigned i = 0; i < num; i++, hdr++) {
         if (hdr->key == 0 || (cose_hdr_is_protected(hdr) != prot) ) {
             continue;
         }
-        if (!cose_hdr_to_cbor_map(hdr, map))
-        {
-            return false;
-        }
+        err = cose_hdr_to_cbor_map(hdr, map);
     }
-    return true;
+    return err;
 }
 
 size_t cose_hdr_size(const cose_hdr_t *hdr, size_t num, bool prot)

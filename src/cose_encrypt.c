@@ -43,7 +43,7 @@ static int _encrypt_build_cbor_enc(cose_encrypt_t *encrypt, CborEncoder *enc)
 
 static bool _encrypt_unprot_to_map(const cose_encrypt_t *encrypt, CborEncoder *map)
 {
-    if (!cose_hdr_add_to_map(encrypt->hdrs, COSE_SIG_HDR_MAX, map, false)) {
+    if (cose_hdr_add_to_map(encrypt->hdrs, COSE_SIG_HDR_MAX, map, false)) {
         return false;
     }
     cose_algo_t algo = cose_encrypt_get_algo(encrypt);
