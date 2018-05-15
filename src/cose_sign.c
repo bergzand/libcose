@@ -7,22 +7,22 @@
  * directory for more details.
  */
 
-#include <cbor.h>
-#include "cose/conf.h"
 #include "cose_defines.h"
 #include "cose/cbor.h"
+#include "cose/conf.h"
 #include "cose/crypto.h"
 #include "cose/hdr.h"
 #include "cose/intern.h"
 #include "cose/key.h"
 #include "cose/sign.h"
+#include <cbor.h>
 #include <stdint.h>
 #include <string.h>
 #include <unistd.h>
 
 static size_t _serialize_cbor_protected(cose_sign_t *sign, uint8_t *buf, size_t buflen);
 static CborError _sign_sig_cbor(cose_sign_t *sign, cose_signature_t *sig, const char *type, CborEncoder *enc);
-static ssize_t _sign_sig_encode(cose_sign_t *sign, cose_signature_t *sig, const char *type, uint8_t *buf, size_t buf_size);
+static ssize_t _sign_sig_encode(cose_sign_t *sign, cose_signature_t *sig, const char *type, uint8_t *buf, size_t buflen);
 static CborError _cbor_unprotected(cose_sign_t *sign, CborEncoder *enc);
 static size_t _sig_serialize_protected(const cose_sign_t *sign, const cose_signature_t *sig, uint8_t *buf, size_t buflen);
 
@@ -61,12 +61,10 @@ static ssize_t _sign_sig_encode(cose_sign_t *sign, cose_signature_t *sig, const 
     CborEncoder enc;
     cbor_encoder_init(&enc, buf, buflen, 0);
     _sign_sig_cbor(sign, sig, type, &enc);
-    if (buflen) {
-        return (ssize_t)cbor_encoder_get_buffer_size(&enc, buf);
-    }
-    else {
+    if (!buflen) {
         return (ssize_t)cbor_encoder_get_extra_bytes_needed(&enc);
     }
+    return (ssize_t)cbor_encoder_get_buffer_size(&enc, buf);
 }
 
 static bool _sig_unprot_to_map(cose_signature_t *sig, CborEncoder *map)
@@ -114,12 +112,10 @@ static size_t _sig_serialize_protected(const cose_sign_t *sign, const cose_signa
     cbor_encoder_create_map(&enc, &map, len);
     _sig_prot_to_map(sign, sig, &map);
     cbor_encoder_close_container(&enc, &map);
-    if (buflen) {
-        return (ssize_t)cbor_encoder_get_buffer_size(&enc, buf);
-    }
-    else {
+    if (!buflen) {
         return (ssize_t)cbor_encoder_get_extra_bytes_needed(&enc);
     }
+    return (ssize_t)cbor_encoder_get_buffer_size(&enc, buf);
 }
 
 static CborError _cbor_unprotected(cose_sign_t *sign, CborEncoder *enc)
@@ -164,12 +160,10 @@ static size_t _serialize_cbor_protected(cose_sign_t *sign, uint8_t *buf, size_t 
     CborEncoder enc;
     cbor_encoder_init(&enc, buf, buflen, 0);
     _cbor_protected(sign, &enc);
-    if (buflen) {
-        return (size_t)cbor_encoder_get_buffer_size(&enc, buf);
+    if (!buflen) {
+        return cbor_encoder_get_extra_bytes_needed(&enc);
     }
-    else {
-        return (size_t)cbor_encoder_get_extra_bytes_needed(&enc);
-    }
+    return cbor_encoder_get_buffer_size(&enc, buf);
 }
 
 static int _add_signatures(cose_sign_t *sign, CborEncoder *arr)

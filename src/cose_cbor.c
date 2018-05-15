@@ -7,8 +7,8 @@
  * directory for more details.
  */
 
-#include <string.h>
 #include <cbor.h>
+#include <string.h>
 
 int cose_cbor_get_string(const CborValue *it, const uint8_t **buf, size_t *len)
 {

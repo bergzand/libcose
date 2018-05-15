@@ -86,12 +86,10 @@ static size_t _encrypt_serialize_protected(const cose_encrypt_t *encrypt, uint8_
 
     _encrypt_prot_to_map(encrypt, &map);
     cbor_encoder_close_container(&enc, &map);
-    if (buflen) {
-        return cbor_encoder_get_buffer_size(&enc, buf);
-    }
-    else {
+    if (!buflen) {
         return cbor_encoder_get_extra_bytes_needed(&enc);
     }
+    return cbor_encoder_get_buffer_size(&enc, buf);
 }
 
 static size_t _encrypt_unprot_cbor(cose_encrypt_t *encrypt, CborEncoder *enc)
@@ -121,12 +119,10 @@ ssize_t cose_encrypt_build_enc(cose_encrypt_t *encrypt, uint8_t *buf, size_t len
     CborEncoder enc;
     cbor_encoder_init(&enc, buf, len, 0);
     _encrypt_build_cbor_enc(encrypt, &enc);
-    if (len) {
-        return (ssize_t)cbor_encoder_get_buffer_size(&enc, buf);
-    }
-    else {
+    if (!len) {
         return (ssize_t)cbor_encoder_get_extra_bytes_needed(&enc);
     }
+    return (ssize_t)cbor_encoder_get_buffer_size(&enc, buf);
 }
 
 cose_algo_t cose_encrypt_get_algo(const cose_encrypt_t *encrypt)
@@ -299,7 +295,7 @@ int cose_encrypt_decode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len)
     if (!cbor_value_is_byte_string(&arr)) {
         return COSE_ERR_INVALID_CBOR;
     }
-    cose_cbor_get_string(&arr, (const uint8_t **)&encrypt->payload, &encrypt->payload_len);
+    cose_cbor_get_string(&arr, &encrypt->payload, &encrypt->payload_len);
     if (!encrypt->payload_len) {
         /* Zero payload length, thus external payload */
         encrypt->flags |= COSE_FLAGS_EXTDATA;

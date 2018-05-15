@@ -8,8 +8,8 @@
  */
 
 #include "cose_defines.h"
-#include "cose/hdr.h"
 #include "cose/cbor.h"
+#include "cose/hdr.h"
 #include <cbor.h>
 
 /* Appends the header the given cbor map */
