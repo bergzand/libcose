@@ -13,7 +13,7 @@ be skipped.
 
 ### Dependencies:
 
-- [cn-cbor]
+- [tinycbor]
 - Either [TweetNaCl], [libsodium] or [mbed TLS] as crypto library
 - A memory block allocator (can be malloc/calloc based)
 
@@ -25,10 +25,8 @@ To build a shared library from libcose:
 make lib
 ```
 
-Default libcose will try to link against libsodium for the crypto. Note that
-libcose also requires cn-cbor compiled with context pointer support. When
-building cn-cbor, please use `cmake -Duse_context=ON` to enable the context
-pointer.
+Default libcose will try to link against libsodium for the crypto. Since
+versions after v0.3.x libcose depends on tinycbor instead of cn-cbor.
 
 ### Testing
 
@@ -55,7 +53,7 @@ compile time defined. This includes the number of headers and the number
 signatures that are allowed in a single signature structure.
 
 [COSE]: https://tools.ietf.org/html/rfc8152
-[cn-cbor]: https://github.com/cabo/cn-cbor
+[tinycbor]: https://github.com/intel/tinycbor
 [TweetNaCl]: https://tweetnacl.cr.yp.to/
 [libsodium]: https://github.com/jedisct1/libsodium
 [mbed TLS]: https://tls.mbed.org/
