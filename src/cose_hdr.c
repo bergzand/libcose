@@ -37,8 +37,8 @@ bool cose_hdr_to_cbor_map(const cose_hdr_t *hdr, CborEncoder *map)
 bool cose_hdr_from_cbor_map(cose_hdr_t *hdr, CborValue *key)
 {
     if (cbor_value_is_integer(key)) {
-        int val;
-        cbor_value_get_int(key, &val);
+        int64_t val;
+        cbor_value_get_int64(key, &val);
         hdr->key = (int32_t)val;
     }
     else {
@@ -49,8 +49,8 @@ bool cose_hdr_from_cbor_map(cose_hdr_t *hdr, CborValue *key)
     switch (cbor_value_get_type(&val)) {
         case CborIntegerType:
             {
-                int value;
-                cbor_value_get_int(&val, &value);
+                int64_t value;
+                cbor_value_get_int64(&val, &value);
                 hdr->v.value = (int32_t)value;
                 hdr->type = COSE_HDR_TYPE_INT;
             }
