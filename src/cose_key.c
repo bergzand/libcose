@@ -52,16 +52,14 @@ void cose_key_set_kid(cose_key_t *key, uint8_t *kid, size_t len)
     key->kid_len = len;
 }
 
-int cose_key_protected_to_map(const cose_key_t *key, CborEncoder *map)
+void cose_key_protected_to_map(const cose_key_t *key, CborEncoder *map)
 {
     cbor_encode_int(map, COSE_HDR_ALG);
     cbor_encode_int(map, key->algo);
-    return 0;
 }
 
-int cose_key_unprotected_to_map(const cose_key_t *key, CborEncoder *map)
+void cose_key_unprotected_to_map(const cose_key_t *key, CborEncoder *map)
 {
     cbor_encode_int(map, COSE_HDR_KID);
     cbor_encode_byte_string(map, key->kid, key->kid_len);
-    return 0;
 }

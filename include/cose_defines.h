@@ -27,7 +27,7 @@
  */
 typedef enum {
     COSE_OK                 =  0,   /**< Everything okay */
-    COSE_ERR_NOMEM          = -1,   /**< No memory for operation, e.g. allocator out of mem */
+    COSE_ERR_NOMEM          = -1,   /**< No memory for operation, e.g. buffer depleted */
     COSE_ERR_CRYPTO         = -2,   /**< Crypto error, e.g. invalid signature */
     COSE_ERR_NOINIT         = -3,   /**< Initialization error */
     COSE_ERR_INVALID_CBOR   = -4,   /**< CBOR related error */

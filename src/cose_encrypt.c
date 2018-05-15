@@ -244,6 +244,9 @@ ssize_t cose_encrypt_encode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len, u
     if (encrypt->algo != COSE_ALGO_DIRECT) {
     /* encode intermediate key with recipient key */
     }
+    if (cbor_encoder_get_extra_bytes_needed(&enc)) {
+        return COSE_ERR_NOMEM;
+    }
     return cbor_encoder_get_buffer_size(&enc, buf);
 }
 
@@ -253,7 +256,7 @@ int cose_encrypt_decode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len)
     CborValue it, arr;
     size_t alen = 0;
 
-    CborError err = cbor_parser_init(buf, len, 0, &p, &it);
+    CborError err = cbor_parser_init(buf, len, COSE_CBOR_VALIDATION, &p, &it);
     if (err) {
         return err;
     }
@@ -311,26 +314,39 @@ int cose_encrypt_decode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len)
         while (!cbor_value_at_end(&cp)) {
             CborValue recp;
             cose_recp_t *precp = &(encrypt->recps[i]);
-            if (!cbor_value_is_array(&cp)) {
-                cbor_value_advance(&cp);
-                continue;
-            }
             if (i >= COSE_RECIPIENTS_MAX) {
                 break;
+            }
+            if (!cbor_value_is_array(&cp)) {
+                return COSE_ERR_INVALID_CBOR;
+            }
+            size_t recp_len = 0;
+            cbor_value_get_array_length(&cp, &recp_len);
+            if (recp_len !=3 && recp_len !=4) {
+                return COSE_ERR_INVALID_CBOR;
             }
             cbor_value_enter_container(&cp, &recp);
 
             /* Protected headers */
             const uint8_t *prot_hdrs;
             size_t prot_hdr_len;
+            if (!cbor_value_is_byte_string(&recp)) {
+                return COSE_ERR_INVALID_CBOR;
+            }
             cose_cbor_get_string(&recp, &prot_hdrs, &prot_hdr_len);
             cose_hdr_add_prot_from_cbor(precp->hdrs, COSE_RECP_HDR_MAX, prot_hdrs, prot_hdr_len);
 
             /* Unprotected headers */
             cbor_value_advance(&recp);
+            if (!cbor_value_is_map(&recp)) {
+                return COSE_ERR_INVALID_CBOR;
+            }
             cose_hdr_add_from_cbor(precp->hdrs, COSE_RECP_HDR_MAX, &recp, 0);
 
             cbor_value_advance(&recp);
+            if (!cbor_value_is_byte_string(&recp)) {
+                return COSE_ERR_INVALID_CBOR;
+            }
             cose_cbor_get_string(&recp, &precp->skey, &precp->key_len);
 
             if (!precp->key_len) {
@@ -346,7 +362,7 @@ int cose_encrypt_decode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len)
         encrypt->num_recps = i;
         /* Probably a SIGN1 struct then */
     }
-    return 0;
+    return COSE_OK;
 }
 
 
