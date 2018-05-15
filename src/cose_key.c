@@ -8,7 +8,7 @@
  */
 #include "cose.h"
 #include "cose/intern.h"
-#include <cn-cbor/cn-cbor.h>
+#include <cbor.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -52,31 +52,16 @@ void cose_key_set_kid(cose_key_t *key, uint8_t *kid, size_t len)
     key->kid_len = len;
 }
 
-int cose_key_protected_to_map(const cose_key_t *key, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp)
+int cose_key_protected_to_map(const cose_key_t *key, CborEncoder *map)
 {
-    cn_cbor *cn_algo = cn_cbor_int_create(key->algo, ct, errp);
-
-    if (!cn_algo) {
-        return -1;
-    }
-    if (!(cn_cbor_mapput_int(map, COSE_HDR_ALG, cn_algo, ct, errp))) {
-        cn_cbor_free(cn_algo, ct);
-        return -1;
-    }
+    cbor_encode_int(map, COSE_HDR_ALG);
+    cbor_encode_int(map, key->algo);
     return 0;
 }
 
-int cose_key_unprotected_to_map(const cose_key_t *key, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp)
+int cose_key_unprotected_to_map(const cose_key_t *key, CborEncoder *map)
 {
-    cn_cbor *cn_kid = cn_cbor_data_create(key->kid, key->kid_len, ct, errp);
-
-    if (!cn_kid) {
-        return -1;
-    }
-
-    if (!(cn_cbor_mapput_int(map, COSE_HDR_KID, cn_kid, ct, errp))) {
-        cn_cbor_free(cn_kid, ct);
-        return -1;
-    }
+    cbor_encode_int(map, COSE_HDR_KID);
+    cbor_encode_byte_string(map, key->kid, key->kid_len);
     return 0;
 }

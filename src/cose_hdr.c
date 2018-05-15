@@ -8,79 +8,65 @@
  */
 
 #include "cose_defines.h"
+#include "cose/cbor.h"
 #include "cose/hdr.h"
-#include <cn-cbor/cn-cbor.h>
+#include <cbor.h>
 
 /* Appends the header the given cbor map */
-bool cose_hdr_to_cbor_map(const cose_hdr_t *hdr, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp)
+bool cose_hdr_to_cbor_map(const cose_hdr_t *hdr, CborEncoder *map)
 {
-    cn_cbor *value = NULL;
-
+    cbor_encode_int(map, hdr->key);
     switch (hdr->type) {
         case COSE_HDR_TYPE_INT:
-            value = cn_cbor_int_create(hdr->v.value, ct, errp);
+            cbor_encode_int(map, hdr->v.value);
             break;
         case COSE_HDR_TYPE_TSTR:
-            value = cn_cbor_string_create(hdr->v.str, ct, errp);
+            cbor_encode_text_stringz(map, hdr->v.str);
             break;
         case COSE_HDR_TYPE_BSTR:
-            value = cn_cbor_data_create(hdr->v.data, hdr->len, ct, errp);
+            cbor_encode_byte_string(map, hdr->v.data, hdr->len);
             break;
         case COSE_HDR_TYPE_CBOR:
-            value = hdr->v.cbor;
+            /* Not supported */
             break;
-    }
-    if (!value) {
-        return false;
-    }
-    if (!(cn_cbor_mapput_int(map, hdr->key, value, ct, errp))) {
-        /* Error handling */
-        if (hdr->type != COSE_HDR_TYPE_CBOR) {
-            cn_cbor_free(value, ct);
-        }
-        return false;
     }
     return true;
 }
 
 /* Convert a map key to a cose_hdr struct */
-bool cose_hdr_from_cbor_map(cose_hdr_t *hdr, cn_cbor *key, cn_cbor_context *ct, cn_cbor_errback *errp)
+bool cose_hdr_from_cbor_map(cose_hdr_t *hdr, CborValue *key)
 {
-    (void)ct;
-    (void)errp;
-    if (key->type == CN_CBOR_INT) {
-        hdr->key = (int32_t)key->v.sint;
-    }
-    else if (key->type == CN_CBOR_UINT) {
-        hdr->key = (int32_t)key->v.uint;
+    if (cbor_value_is_integer(key)) {
+        int64_t val;
+        cbor_value_get_int64(key, &val);
+        hdr->key = (int32_t)val;
     }
     else {
         return false;
     }
-    cn_cbor *val = key->next;
-    switch (val->type) {
-        case CN_CBOR_UINT:
-            hdr->v.value = (int32_t)val->v.uint;
-            hdr->type = COSE_HDR_TYPE_INT;
+    CborValue val = *key;
+    cbor_value_advance_fixed(&val);
+    switch (cbor_value_get_type(&val)) {
+        case CborIntegerType:
+            {
+                int64_t value;
+                cbor_value_get_int64(&val, &value);
+                hdr->v.value = (int32_t)value;
+                hdr->type = COSE_HDR_TYPE_INT;
+            }
             break;
-        case CN_CBOR_INT:
-            hdr->v.value = (int32_t)val->v.sint;
-            hdr->type = COSE_HDR_TYPE_INT;
-            break;
-        case CN_CBOR_TEXT:
-            hdr->v.str = val->v.str;
+        case CborTextStringType:
+            cose_cbor_get_string(&val, (const uint8_t **)&hdr->v.str, &hdr->len);
             hdr->type = COSE_HDR_TYPE_TSTR;
             break;
-        case CN_CBOR_BYTES:
-            hdr->v.data = val->v.bytes;
-            hdr->len = val->length;
+        case CborByteStringType:
+            cose_cbor_get_string(&val, &hdr->v.data, &hdr->len);
             hdr->type = COSE_HDR_TYPE_BSTR;
             break;
-        case CN_CBOR_ARRAY:
-        case CN_CBOR_MAP:
-        case CN_CBOR_TAG:
+        case CborArrayType:
+        case CborMapType:
+        case CborTagType:
             /* Todo: copy map */
-            hdr->v.cbor = val;
             hdr->type = COSE_HDR_TYPE_CBOR;
             break;
         default:
@@ -89,24 +75,27 @@ bool cose_hdr_from_cbor_map(cose_hdr_t *hdr, cn_cbor *key, cn_cbor_context *ct, 
     return true;
 }
 
-int cose_hdr_add_from_cbor(cose_hdr_t *hdr, size_t num, cn_cbor *map, uint8_t flags,
-                           cn_cbor_context *ct, cn_cbor_errback *errp)
+int cose_hdr_add_from_cbor(cose_hdr_t *hdr, size_t num, const CborValue *map,
+        uint8_t flags)
 {
-    cn_cbor *cp = NULL;
+    CborValue val;
+    cbor_value_enter_container(map, &val);
     unsigned idx = 0;
-
-    for (cp = map->first_child; cp && cp->next && idx < num; cp = cp->next->next) {
+    while (!cbor_value_at_end(&val)) {
         for (; hdr->key != 0; hdr++, idx++) {
             if (idx >= num) {
                 return COSE_ERR_NOMEM;
             }
         }
-        if (!(cose_hdr_from_cbor_map(hdr, cp, ct, errp))) {
+        if (!(cose_hdr_from_cbor_map(hdr, &val))) {
             /* Error handling */
         }
         hdr->flags |= flags;
         hdr++;
         idx++;
+        /* Advance twice */
+        cbor_value_advance(&val);
+        cbor_value_advance(&val);
     }
     return 0;
 }
@@ -154,20 +143,6 @@ int cose_hdr_add_hdr_data(cose_hdr_t *start, size_t num, int32_t key, uint8_t fl
     return COSE_OK;
 }
 
-int cose_hdr_add_hdr_cbor(cose_hdr_t *start, size_t num, int32_t key, uint8_t flags, cn_cbor *cbor)
-{
-    cose_hdr_t *hdr = cose_hdr_next_empty(start, num);
-
-    if (!hdr) {
-        return COSE_ERR_NOMEM;
-    }
-    hdr->type = COSE_HDR_TYPE_CBOR;
-    hdr->key = key;
-    hdr->v.cbor = cbor;
-    hdr->flags = flags;
-    return COSE_OK;
-}
-
 cose_hdr_t *cose_hdr_next_empty(cose_hdr_t *hdr, size_t num)
 {
     cose_hdr_t *res = NULL;
@@ -181,16 +156,27 @@ cose_hdr_t *cose_hdr_next_empty(cose_hdr_t *hdr, size_t num)
     return res;
 }
 
-bool cose_hdr_add_to_map(const cose_hdr_t *hdr, size_t num, cn_cbor *map, bool prot, cn_cbor_context *ct, cn_cbor_errback *errp)
+bool cose_hdr_add_to_map(const cose_hdr_t *hdr, size_t num, CborEncoder *map, bool prot)
 {
     for (unsigned i = 0; i < num; i++, hdr++) {
         if (hdr->key == 0 || (cose_hdr_is_protected(hdr) != prot) ) {
             continue;
         }
-        if (!cose_hdr_to_cbor_map(hdr, map, ct, errp))
+        if (!cose_hdr_to_cbor_map(hdr, map))
         {
             return false;
         }
     }
     return true;
+}
+
+size_t cose_hdr_size(const cose_hdr_t *hdr, size_t num, bool prot)
+{
+    size_t res = 0;
+    for (unsigned i = 0; i < num; i++, hdr++) {
+        if (hdr->key != 0 && (cose_hdr_is_protected(hdr) == prot)) {
+            res++;
+        }
+    }
+    return res;
 }

@@ -23,7 +23,7 @@
 #define COSE_SIGNER_H
 
 #include "cose_defines.h"
-#include "cn-cbor/cn-cbor.h"
+#include <cbor.h>
 #include <stdlib.h>
 #include <stdint.h>
 
@@ -65,7 +65,7 @@ void cose_key_init(cose_key_t *key);
  * @return              0 on successfully loaded from cbor
  * @return              Negative on error
  */
-int cose_key_from_cbor(cose_key_t *key, cn_cbor *cn);
+int cose_key_from_cbor(cose_key_t *key);
 
 /**
  * cose_key_set_key sets the key data of a key
@@ -95,26 +95,22 @@ void cose_key_set_kid(cose_key_t *key, uint8_t *kid, size_t len);
  * Add the protected headers to the provided CBOR map
  *
  * @param   key  The key object
- * @param   map     The cbor map object to add headers to
- * @param   ct      CN_CBOR context for cbor block allocation
- * @param   errp    error return struct from cn-cbor
+ * @param   map     The cbor encoder map object to add headers to
  *
  * @return          0 on success
  * @return          Negative on error
  */
-int cose_key_protected_to_map(const cose_key_t *key, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp);
+int cose_key_protected_to_map(const cose_key_t *key, CborEncoder *map);
 
 /**
  * Add the unprotected header information to the provided CBOR map
  *
  * @param   key  The key object
- * @param   map     The cbor map object to add headers to
- * @param   ct      CN_CBOR context for cbor block allocation
- * @param   errp    error return struct from cn-cbor
+ * @param   map     The cbor encoder map object to add headers to
  *
  * @return          0 on success
  * @return          Negative on error
  */
-int cose_key_unprotected_to_map(const cose_key_t *key, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp);
+int cose_key_unprotected_to_map(const cose_key_t *key, CborEncoder *map);
 #endif
 /** @} */

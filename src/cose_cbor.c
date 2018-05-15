@@ -7,71 +7,17 @@
  * directory for more details.
  */
 
-#include "cn-cbor/cn-cbor.h"
+#include <cbor.h>
 #include <string.h>
 
-static bool _append_kv(cn_cbor *cb_map, cn_cbor *key, cn_cbor *val)
+int cose_cbor_get_string(const CborValue *it, const uint8_t **buf, size_t *len)
 {
-    //Connect key and value and insert them into the map.
-    key->parent = cb_map;
-    key->next = val;
-    val->parent = cb_map;
-    val->next = NULL;
-
-    if (cb_map->last_child) {
-        cb_map->last_child->next = key;
+    if (!(cbor_value_is_text_string(it) || cbor_value_is_byte_string(it) || cbor_value_is_length_known(it))) {
+         return -1;
     }
-    else {
-        cb_map->first_child = key;
-    }
-    cb_map->last_child = val;
-    cb_map->length += 2;
-    return true;
+    CborValue next = *it;
+    cbor_value_get_string_length(it, len);
+    cbor_value_advance(&next);
+    *buf = next.ptr - *len;
+    return 0;
 }
-
-
-/* Merge the second cn_cbor map into the first cn_cbor map */
-bool cn_cbor_map_merge(cn_cbor *first, cn_cbor *second, cn_cbor_errback *perr)
-{
-    //Make sure input is a map. Otherwise
-    if (!first || !second ||
-        first->type != CN_CBOR_MAP ||
-        second->type != CN_CBOR_MAP) {
-        if (perr) {
-            perr->err = CN_CBOR_ERR_INVALID_PARAMETER;
-        }
-        return false;
-    }
-    cn_cbor *cp;
-    for (cp = second->first_child; cp && cp->next; cp = cp->next->next) {
-        _append_kv(first, cp, cp->next);
-    }
-    second->first_child = NULL;
-    second->last_child = NULL;
-    return true;
-}
-
-cn_cbor *cn_cbor_tag_create(int tag, cn_cbor *child, cn_cbor_context *ct, cn_cbor_errback *perr)
-{
-    cn_cbor *cn_tag = ct->calloc_func(1, sizeof(cn_cbor), ct->context);
-
-    if (cn_tag == NULL) {
-        if (perr != NULL) {
-            perr->err = CN_CBOR_ERR_OUT_OF_MEMORY;
-        }
-        return NULL;
-    }
-
-    cn_tag->type = CN_CBOR_TAG;
-    cn_tag->v.sint = tag;
-    cn_tag->first_child = child;
-    child->parent = cn_tag;
-
-    return cn_tag;
-}
-
-void cn_cbor_data_replace(cn_cbor *cn_data, void *data)
-{
-    memcpy((uint8_t *)cn_data->v.bytes, data, cn_data->length);
-}
-

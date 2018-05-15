@@ -20,19 +20,9 @@
 #ifndef COSE_CBOR_H
 #define COSE_CBOR_H
 
-#include "cn-cbor/cn-cbor.h"
+#include <cbor.h>
 
-/**
- * Create a CBOR tag with chil as value
- *
- * @param   tag     tag number
- * @param   child   cbor struct to use as value
- * @param   ct      CN_CBOR context for cbor block allocation
- * @param   perr    error return struct from cn-cbor
- *
- * @return          A pointer to the allocated tag cbor struct
- */
-cn_cbor *cn_cbor_tag_create(int tag, cn_cbor *child, cn_cbor_context *ct, cn_cbor_errback *perr);
+int cose_cbor_get_string(const CborValue *it, const uint8_t **buf, size_t *len);
 
 #endif
 

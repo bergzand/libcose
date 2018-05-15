@@ -7,27 +7,16 @@
  * directory for more details.
  */
 
-#include "cose.h"
+#include "cose_defines.h"
+#include <cbor.h>
 
-cose_err_t cose_intern_err_translate(cn_cbor_errback *errp)
+cose_err_t cose_intern_err_translate(CborError err)
 {
-    switch (errp->err) {
-        case CN_CBOR_NO_ERROR:
+    switch (err) {
+        case CborNoError:
             return COSE_OK;
-        case CN_CBOR_ERR_OUT_OF_DATA:
-        case CN_CBOR_ERR_NOT_ALL_DATA_CONSUMED:
-        case CN_CBOR_ERR_ODD_SIZE_INDEF_MAP:
-        case CN_CBOR_ERR_BREAK_OUTSIDE_INDEF:
-        case CN_CBOR_ERR_MT_UNDEF_FOR_INDEF:
-        case CN_CBOR_ERR_RESERVED_AI:
-        case CN_CBOR_ERR_WRONG_NESTING_IN_INDEF_STRING:
+        default:
             return COSE_ERR_INVALID_CBOR;
-        case CN_CBOR_ERR_INVALID_PARAMETER:
-            return COSE_ERR_INVALID_PARAM;
-        case CN_CBOR_ERR_OUT_OF_MEMORY:
-            return COSE_ERR_NOMEM;
-        case CN_CBOR_ERR_FLOAT_NOT_SUPPORTED:
-            return COSE_ERR_CBOR_NOTSUP;
     }
     return COSE_OK;
 }

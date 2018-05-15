@@ -23,8 +23,9 @@
 #define COSE_HDR_H
 
 #include "cose_defines.h"
-#include <cn-cbor/cn-cbor.h>
+#include <cbor.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /**
  * @name COSE header struct
@@ -43,7 +44,6 @@ typedef struct cose_hdr {
         int32_t value;          /**< Direct integer value */
         const uint8_t *data;    /**< Pointer to the content */
         const char *str;        /**< String type content */
-        cn_cbor *cbor;          /**< cbor type data */
     } v;                        /**< Union to combine different value types */
 } cose_hdr_t;
 /** @} */
@@ -58,10 +58,10 @@ typedef struct cose_hdr {
  *
  * @return          True when succeeded
  */
-bool cose_hdr_to_cbor_map(const cose_hdr_t *hdr, cn_cbor *map, cn_cbor_context *ct, cn_cbor_errback *errp);
+bool cose_hdr_to_cbor_map(const cose_hdr_t *hdr, CborEncoder *map);
 
 /**
- * Convert a cn_cbor struct to a COSE header struct.
+ * Convert a cbor stream to a COSE header struct.
  *
  * The key is expected to have a valid next pointer to the value
  *
@@ -72,7 +72,7 @@ bool cose_hdr_to_cbor_map(const cose_hdr_t *hdr, cn_cbor *map, cn_cbor_context *
  *
  * @return          True when succeeded
  */
-bool cose_hdr_from_cbor_map(cose_hdr_t *hdr, cn_cbor *key, cn_cbor_context *ct, cn_cbor_errback *errp);
+bool cose_hdr_from_cbor_map(cose_hdr_t *hdr, CborValue *key);
 
 /**
  * Add a header with an integer based value to the set of headers
@@ -124,22 +124,6 @@ int cose_hdr_add_hdr_string(cose_hdr_t *start, size_t num, int32_t key, uint8_t 
 int cose_hdr_add_hdr_data(cose_hdr_t *start, size_t num, int32_t key, uint8_t flags, const uint8_t *data, size_t len);
 
 /**
- * Add a header with a CBOR based value to the set of headers
- *
- * @note This function does not protect against setting duplicate keys
- *
- * @param   start       The first header in the array
- * @param   num         The number of headers in the array
- * @param   key         The key to add
- * @param   flags       Flags to set for this header
- * @param   cbor        The cbor struct to set
- *
- * @return              0 on success
- * @return              Negative when failed
- */
-int cose_hdr_add_hdr_cbor(cose_hdr_t *start, size_t num, int32_t key, uint8_t flags, cn_cbor *cbor);
-
-/**
  * Retrieve the next empty header in a set of headers
  *
  * @param   hdr         The first header in the array
@@ -162,22 +146,19 @@ cose_hdr_t *cose_hdr_next_empty(cose_hdr_t *hdr, size_t num);
  *
  * @return          True when succeeded
  */
-int cose_hdr_add_from_cbor(cose_hdr_t *hdr, size_t num, cn_cbor *map, uint8_t flags,
-                           cn_cbor_context *ct, cn_cbor_errback *errp);
+int cose_hdr_add_from_cbor(cose_hdr_t *hdr, size_t num, const CborValue *map, uint8_t flags);
 
 /**
  * Iterate over the headers and add them to a supplied cbor map
  *
  * @param   hdr     Header struct array to feed from
  * @param   num     Number of headers in the array
- * @param   map     Map to add headers to
+ * @param   map     CborEncoder map
  * @param   prot    True adds only protected, false only unprotected
- * @param   ct      CN_CBOR context for cbor block allocation
- * @param   errp    error return struct from cn-cbor
  *
  * @return          True when succeeded
  */
-bool cose_hdr_add_to_map(const cose_hdr_t *hdr, size_t num, cn_cbor *map, bool prot, cn_cbor_context *ct, cn_cbor_errback *errp);
+bool cose_hdr_add_to_map(const cose_hdr_t *hdr, size_t num, CborEncoder *map, bool prot);
 
 /**
  * Convert a cbor unprotected header representation to cose_hdr_t structs
@@ -191,11 +172,12 @@ bool cose_hdr_add_to_map(const cose_hdr_t *hdr, size_t num, cn_cbor *map, bool p
  * @return          0 on success
  * @return          Negative otherwise
  */
-static inline int cose_hdr_add_unprot_from_cbor(cose_hdr_t *hdr, size_t num, cn_cbor *map,
-                                                cn_cbor_context *ct, cn_cbor_errback *errp)
+static inline int cose_hdr_add_unprot_from_cbor(cose_hdr_t *hdr, size_t num, CborValue *map)
 {
-    return cose_hdr_add_from_cbor(hdr, num, map, 0, ct, errp);
+    return cose_hdr_add_from_cbor(hdr, num, map, 0);
 }
+
+size_t cose_hdr_size(const cose_hdr_t *hdr, size_t num, bool prot);
 
 /**
  * Convert a cbor protected header representation to cose_hdr_t structs
@@ -204,22 +186,19 @@ static inline int cose_hdr_add_unprot_from_cbor(cose_hdr_t *hdr, size_t num, cn_
  * @param   num     Number of headers in the array
  * @param   buf     Serialized buffer to read from
  * @param   len     Length of the buffer
- * @param   ct      CN_CBOR context for cbor block allocation
- * @param   errp    error return struct from cn-cbor
  *
  * @return          0 on success
  * @return          Negative otherwise
  */
-static inline int cose_hdr_add_prot_from_cbor(cose_hdr_t *hdr, size_t num, const uint8_t *buf, size_t len,
-                                              cn_cbor_context *ct, cn_cbor_errback *errp)
+static inline int cose_hdr_add_prot_from_cbor(cose_hdr_t *hdr, size_t num, const uint8_t *buf, size_t len)
 {
-    ssize_t res = 0;
-    cn_cbor *cn_prot = cn_cbor_decode(buf, len, ct, errp);
-
-    if (cn_prot && cn_prot->type == CN_CBOR_MAP) {
-        cose_hdr_add_from_cbor(hdr, num, cn_prot, COSE_HDR_FLAGS_PROTECTED, ct, errp);
+    int res = 0;
+    CborParser p;
+    CborValue it;
+    cbor_parser_init(buf, len, 0, &p, &it);
+    if (cbor_value_is_map(&it)) {
+        cose_hdr_add_from_cbor(hdr, num, &it, COSE_HDR_FLAGS_PROTECTED);
     }
-    cn_cbor_free(cn_prot, ct);
     return res;
 }
 
