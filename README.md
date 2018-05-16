@@ -14,8 +14,7 @@ be skipped.
 ### Dependencies:
 
 - [tinycbor]
-- Either [TweetNaCl], [libsodium] or [mbed TLS] as crypto library
-- A memory block allocator (can be malloc/calloc based)
+- Either [TweetNaCl], [HACL-C], [libsodium] or [mbed TLS] as crypto library
 
 ### Building
 
@@ -56,4 +55,5 @@ signatures that are allowed in a single signature structure.
 [tinycbor]: https://github.com/intel/tinycbor
 [TweetNaCl]: https://tweetnacl.cr.yp.to/
 [libsodium]: https://github.com/jedisct1/libsodium
+[HACL-C]: https://github.com/mitls/hacl-c
 [mbed TLS]: https://tls.mbed.org/
