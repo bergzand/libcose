@@ -15,7 +15,6 @@ be skipped.
 
 - [tinycbor]
 - Either [TweetNaCl], [libsodium] or [mbed TLS] as crypto library
-- A memory block allocator (can be malloc/calloc based)
 
 ### Building
 
