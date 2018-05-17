@@ -31,9 +31,9 @@
  * @{
  */
 typedef struct cose_signature {
-    cose_headers_t hdrs;
-    const uint8_t *signature;           /**< Pointer to the signature */
-    size_t signature_len;               /**< Length of the signature */
+    cose_headers_t hdrs;             /**< Headers */
+    const uint8_t *signature;        /**< Pointer to the signature */
+    size_t signature_len;            /**< Length of the signature */
     const cose_key_t *signer;        /**< Pointer to the signer used for this signature */
 } cose_signature_t;
 /** @} */
@@ -47,7 +47,7 @@ typedef struct cose_signature {
  * @{
  */
 typedef struct cose_sign {
-    cose_headers_t hdrs;
+    cose_headers_t hdrs;                        /**< Headers */
     const void *payload;                        /**< Pointer to the payload */
     size_t payload_len;                         /**< Size of the payload */
     uint8_t *ext_aad;                           /**< Pointer to the additional authenticated data */
@@ -137,7 +137,6 @@ int cose_sign_add_signer(cose_sign_t *sign, const cose_key_t *key);
  * @param       buf     Buffer to write in
  * @param[out]  out     Pointer to where the COSE sign struct starts
  * @param       len     Size of the buffer to write in
- * @param       ct      CN_CBOR context for cbor block allocation
  *
  * @return          The number of bytes written
  * @return          Negative on error
@@ -151,7 +150,6 @@ ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, uint8_t **
  * @param   sign    Sign struct to fill
  * @param   buf     The buffer to read
  * @param   len     Length of the buffer
- * @param   ct      CN_CBOR context for cbor block allocation
  *
  * @return          0 on success
  * @return          negative on failure
@@ -182,7 +180,6 @@ ssize_t cose_sign_get_kid(cose_sign_t *sign, uint8_t idx, const uint8_t **kid);
  * @param   idx         The signature index to verify from the sign object
  * @param   buf         Buffer to write in
  * @param   len         Size of the buffer to write in
- * @param   ct          CN_CBOR context for cbor block allocation
  *
  * @return              0 on verification success
  * @return              Negative on error
@@ -193,6 +190,7 @@ int cose_sign_verify(cose_sign_t *sign, cose_key_t *key, uint8_t idx, uint8_t *b
  * Retrieve a header from a sign object by key lookup
  *
  * @param   sign        The sign object to operate on
+ * @param   hdr     hdr struct to fill
  * @param   key         The key to look up
  *
  * @return              A header object with matching key
@@ -203,13 +201,25 @@ bool cose_sign_get_header(cose_sign_t *sign, cose_hdr_t *hdr, int32_t key);
 /**
  * Retrieve a protected header from a sign object by key lookup
  *
- * @param   sign        The sign object to operate on
- * @param   key         The key to look up
+ * @param       sign        The sign object to operate on
+ * @param[out]  hdr         Header to fill with the values
+ * @param       key         The key to look up
  *
  * @return              A protected header object with matching key
  * @return              NULL if there is no protected header with the key
  */
 bool cose_sign_get_protected(cose_sign_t *sign, cose_hdr_t *hdr, int32_t key);
+
+/**
+ * Retrieve an unprotected header from a sign object by key lookup
+ *
+ * @param       sign        The sign object to operate on
+ * @param[out]  hdr         Header to fill with the values
+ * @param       key         The key to look up
+ *
+ * @return              A protected header object with matching key
+ * @return              NULL if there is no protected header with the key
+ */
 bool cose_sign_get_unprotected(cose_sign_t *sign, cose_hdr_t *hdr, int32_t key);
 
 /**
@@ -217,6 +227,7 @@ bool cose_sign_get_unprotected(cose_sign_t *sign, cose_hdr_t *hdr, int32_t key);
  *
  * @param   sign        The sign object to operate on
  * @param   idx         The signature index
+ * @param   hdr         hdr struct to fill
  * @param   key         The key to look up
  *
  * @return              A header object with matching key
@@ -229,6 +240,7 @@ bool cose_sign_sig_get_header(cose_sign_t *sign, uint8_t idx, cose_hdr_t *hdr, i
  *
  * @param   sign        The sign object to operate on
  * @param   idx         The signature index
+ * @param   hdr         hdr struct to fill
  * @param   key         The key to look up
  *
  * @return              A protected header object with matching key
@@ -241,6 +253,7 @@ bool cose_sign_sig_get_protected(cose_sign_t *sign, uint8_t idx, cose_hdr_t *hdr
  *
  * @param   sign        The sign object to operate on
  * @param   idx         The signature index
+ * @param   hdr         hdr struct to fill
  * @param   key         The key to look up
  *
  * @return              A protected header object with matching key

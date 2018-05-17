@@ -58,7 +58,6 @@
  * ```
  *
  * @brief Struct for conversion to both the COSE encrypt and COSE encrypt0 objects.
- * @{
  */
 typedef struct cose_encrypt {
     const uint8_t *payload;                     /**< Pointer to the payload to encrypt */
@@ -73,7 +72,6 @@ typedef struct cose_encrypt {
     cose_headers_t hdrs;                        /**< Headers included in the body */
     cose_recp_t recps[COSE_RECIPIENTS_MAX];     /**< recipient data array */
 } cose_encrypt_t;
-/** @} */
 
 
 /**
@@ -128,7 +126,6 @@ void cose_encrypt_set_algo(cose_encrypt_t *encrypt, cose_algo_t algo);
  * @param       len         Size of the buffer
  * @param       nonce       Nonce to use in the encryption
  * @param[out]  out         Pointer to the final COSE encrypt object
- * @param       ct          CN_CBOR context for cbor block allocation
  *
  * @return                  Size of the COSE encrypt object
  * @return                  Negative on failure
@@ -142,7 +139,6 @@ ssize_t cose_encrypt_encode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len, u
  * @param[out]  encrypt     Encrypt struct to fill
  * @param       buf         Buffer to read from
  * @param       len         Size of the buffer
- * @param       ct          CN_CBOR context for cbor block allocation
  *
  * @return                  COSE_OK when successful
  */

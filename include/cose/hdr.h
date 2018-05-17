@@ -51,21 +51,22 @@ typedef struct cose_hdr {
 /**
  * @name COSE header pack
  *
- * Struct packing both header buckets
+ * Struct packing both header buckets. Unions are used for multiplexing the
+ * headers in struct or in cbor byte array form. the byte array form is used
+ * when the unprot_len member is nonzero.
  */
 typedef struct {
     union {
-        cose_hdr_t *c;
-        const uint8_t *b;
-    } prot;
+        cose_hdr_t *c;      /**< Ptr to the linked list struct headers */
+        const uint8_t *b;   /**< cbor stream headers */
+    } prot;                 /**< Protected headers bucket */
     union {
-        cose_hdr_t *c;
-        const uint8_t *b;
-    } unprot;
-    size_t prot_len;
-    size_t unprot_len;
+        cose_hdr_t *c;      /**< Ptr to the linked list struct headers */
+        const uint8_t *b;   /**< cbor stream headers */
+    } unprot;               /**< Unprotected headers bucket */
+    size_t prot_len;        /**< Length of protected headers cbor stream */
+    size_t unprot_len;      /**< Length of unprotected headers cbor stream */
 } cose_headers_t;
-/** @} */
 
 /**
  * Convert a COSE header struct to a CBOR representation and add it to the map
@@ -78,12 +79,10 @@ typedef struct {
 CborError cose_hdr_to_cbor_map(const cose_hdr_t *hdr, CborEncoder *map);
 
 /**
- * Convert a cbor stream to a COSE header struct.
- *
- * The key is expected to have a valid next pointer to the value
+ * Convert a cbor key value pair from a cbor map to a COSE header struct.
  *
  * @param   hdr     Header struct to convert
- * @param   key     The cn-cbor key to convert.
+ * @param   key     The cbor key to convert.
  *
  * @return          True when succeeded
  */
@@ -119,28 +118,6 @@ void cose_hdr_format_data(cose_hdr_t *hdr, int32_t key, const uint8_t *data,
         size_t len);
 
 /**
- * Retrieve the next empty header in a set of headers
- *
- * @param   hdr         The first header in the array
- * @param   num         The number of headers in the array
- *
- * @return              The header
- * @return              NULL when no headers are empty
- */
-cose_hdr_t *cose_hdr_next_empty(cose_hdr_t *hdr, size_t num);
-
-/**
- * Convert a cbor header representation to cose_hdr_t structs
- *
- * @param   hdr     Header struct array to fill
- * @param   num     Number of headers in the array
- * @param   map     Map to get the headers from
- *
- * @return          True when succeeded
- */
-int cose_hdr_add_from_cbor(cose_hdr_t *hdr, size_t num, const CborValue *map);
-
-/**
  * Iterate over the headers and add them to a supplied cbor map
  *
  * @param   hdr     Header struct array to feed from
@@ -151,63 +128,52 @@ int cose_hdr_add_from_cbor(cose_hdr_t *hdr, size_t num, const CborValue *map);
 CborError cose_hdr_add_to_map(const cose_hdr_t *hdr, CborEncoder *map);
 
 /**
- * Convert a cbor unprotected header representation to cose_hdr_t structs
+ * Retrieve the size of a list of cose_hdr_t structs
  *
- * @param   hdr     Header struct array to fill
- * @param   num     Number of headers in the array
- * @param   map     Map to get the headers from
- * @param   ct      CN_CBOR context for cbor block allocation
- * @param   errp    error return struct from cn-cbor
+ * @param   hdr     The first header in a list, can be NULL
  *
- * @return          0 on success
- * @return          Negative otherwise
+ * @return          The number of headers in the list
  */
-static inline int cose_hdr_add_unprot_from_cbor(cose_hdr_t *hdr, size_t num,
-        CborValue *map)
-{
-    return cose_hdr_add_from_cbor(hdr, num, map);
-}
-
 size_t cose_hdr_size(const cose_hdr_t *hdr);
+
+/**
+ * Insert a new header into the list
+ *
+ * @param   hdrs    The first header in a list
+ * @param   nhdr    New header to insert
+ */
 void cose_hdr_insert(cose_hdr_t **hdrs, cose_hdr_t *nhdr);
 
 /**
- * Convert a cbor protected header representation to cose_hdr_t structs
+ * Retrieve a header from the protected bucket by key
  *
- * @param   hdr     Header struct array to fill
- * @param   num     Number of headers in the array
- * @param   buf     Serialized buffer to read from
- * @param   len     Length of the buffer
+ * @param   headers Header array to search
+ * @param   hdr     hdr struct to fill
+ * @param   key     Key to look for
  *
- * @return          0 on success
- * @return          Negative otherwise
+ * @return          True when matching header is found
  */
-static inline int cose_hdr_add_prot_from_cbor(cose_hdr_t *hdr, size_t num,
-        const uint8_t *buf, size_t len)
-{
-    int res = 0;
-    CborParser p;
-    CborValue it;
-    cbor_parser_init(buf, len, 0, &p, &it);
-    if (cbor_value_is_map(&it)) {
-        res = cose_hdr_add_from_cbor(hdr, num, &it);
-    }
-    return res;
-}
-
 bool cose_hdr_get_protected(cose_headers_t *headers, cose_hdr_t *hdr, int32_t key);
+
+/**
+ * Retrieve a header from the unprotected bucket by key
+ *
+ * @param   headers Header array to search
+ * @param   hdr     hdr struct to fill
+ * @param   key     Key to look for
+ *
+ * @return          True when matching header is found
+ */
 bool cose_hdr_get_unprotected(cose_headers_t *headers, cose_hdr_t *hdr, int32_t key);
 
 /**
  * Retrieve a header from either the protected or the unprotected bucket by key
  *
- * @param   hdr     Header array to search
- * @param   num     Size of the header array
+ * @param   headers Header array to search
+ * @param   hdr     hdr struct to fill
  * @param   key     Key to look for
- * @param   protect True when to search the protected headers
  *
- * @return          Header struct with matching key
- * @return          NULL when no header has been found
+ * @return          True when matching header is found
  */
 static inline bool cose_hdr_get(cose_headers_t *headers, cose_hdr_t *hdr,
         int32_t key)
@@ -220,5 +186,4 @@ static inline bool cose_hdr_get(cose_headers_t *headers, cose_hdr_t *hdr,
 }
 
 #endif
-
 /** @} */

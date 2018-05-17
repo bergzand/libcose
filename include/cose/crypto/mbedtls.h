@@ -30,18 +30,18 @@
  *
  * @{
  */
-#define HAVE_ALGO_AES128GCM
-#define HAVE_ALGO_AES192GCM
-#define HAVE_ALGO_AES256GCM
+#define HAVE_ALGO_AES128GCM /**< AES GCM mode support with 128 bit key */
+#define HAVE_ALGO_AES192GCM /**< AES GCM mode support with 192 bit key */
+#define HAVE_ALGO_AES256GCM /**< AES GCM mode support with 256 bit key */
 #define HAVE_ALGO_ES512     /**< Sha512 support and some EC support */
 #define HAVE_ALGO_ES384     /**< Sha384 support and some EC support */
 #define HAVE_ALGO_ES256     /**< Sha256 support and some EC support */
 
 #define HAVE_ALGO_ECDSA
 
-#define HAVE_CURVE_P521
-#define HAVE_CURVE_P384
-#define HAVE_CURVE_P256
+#define HAVE_CURVE_P521     /**< EC NIST p521 curve support */
+#define HAVE_CURVE_P384     /**< EC NIST p384 curve support */
+#define HAVE_CURVE_P256     /**< EC NIST p256 curve support */
 /** @} */
 
 #define COSE_CRYPTO_SIGN_P521_PUBLICKEYBYTES MBEDTLS_ECP_MAX_BYTES

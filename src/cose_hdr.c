@@ -73,29 +73,6 @@ bool cose_hdr_from_cbor_map(cose_hdr_t *hdr, const CborValue *key)
     return true;
 }
 
-int cose_hdr_add_from_cbor(cose_hdr_t *hdr, size_t num, const CborValue *map)
-{
-    CborValue val;
-    cbor_value_enter_container(map, &val);
-    unsigned idx = 0;
-    while (!cbor_value_at_end(&val)) {
-        for (; hdr->key != 0; hdr++, idx++) {
-            if (idx >= num) {
-                return COSE_ERR_NOMEM;
-            }
-        }
-        if (!cose_hdr_from_cbor_map(hdr, &val)) {
-            return COSE_ERR_INVALID_CBOR;
-        }
-        hdr++;
-        idx++;
-        /* Advance twice */
-        cbor_value_advance(&val);
-        cbor_value_advance(&val);
-    }
-    return COSE_OK;
-}
-
 void cose_hdr_format_int(cose_hdr_t *hdr, int32_t key, int32_t value)
 {
     hdr->type = COSE_HDR_TYPE_INT;
