@@ -15,7 +15,7 @@
 #include <cbor.h>
 #include <stdint.h>
 #include <string.h>
-
+static void _place_cbor_protected(cose_encrypt_t *encrypt, CborEncoder *arr);
 static size_t _encrypt_serialize_protected(const cose_encrypt_t *encrypt, uint8_t *buf, size_t buflen);
 
 //static bool _is_encrypt0(cose_encrypt_t *encrypt) {
@@ -31,9 +31,7 @@ static int _encrypt_build_cbor_enc(cose_encrypt_t *encrypt, CborEncoder *enc)
     cbor_encode_text_stringz(&arr, "Encrypt");
 
     /* Add body protected headers */
-    size_t slen = _encrypt_serialize_protected(encrypt, NULL, 0);
-    cbor_encode_byte_string(&arr, arr.data.ptr, slen);
-    _encrypt_serialize_protected(encrypt, arr.data.ptr - slen, slen);
+    _place_cbor_protected(encrypt, &arr);
 
     /* External aad */
     cbor_encode_byte_string(&arr, encrypt->ext_aad, encrypt->ext_aad_len);
@@ -43,7 +41,7 @@ static int _encrypt_build_cbor_enc(cose_encrypt_t *encrypt, CborEncoder *enc)
 
 static bool _encrypt_unprot_to_map(const cose_encrypt_t *encrypt, CborEncoder *map)
 {
-    if (cose_hdr_add_to_map(encrypt->hdrs, COSE_SIG_HDR_MAX, map, false)) {
+    if (cose_hdr_add_to_map(encrypt->hdrs.unprot.c, map)) {
         return false;
     }
     cose_algo_t algo = cose_encrypt_get_algo(encrypt);
@@ -61,7 +59,7 @@ static bool _encrypt_unprot_to_map(const cose_encrypt_t *encrypt, CborEncoder *m
 /* Add the body protected headers to a map */
 static bool _encrypt_prot_to_map(const cose_encrypt_t *encrypt, CborEncoder *map)
 {
-    cose_hdr_add_to_map(encrypt->hdrs, COSE_ENCRYPT_HDR_MAX, map, true);
+    cose_hdr_add_to_map(encrypt->hdrs.prot.c, map);
     if (cose_flag_isset(encrypt->flags, COSE_FLAGS_ENCODE)) {
         cose_algo_t algo = cose_encrypt_get_algo(encrypt);
         if (cose_crypto_is_aead(algo)) {
@@ -75,7 +73,7 @@ static bool _encrypt_prot_to_map(const cose_encrypt_t *encrypt, CborEncoder *map
 static size_t _encrypt_serialize_protected(const cose_encrypt_t *encrypt, uint8_t *buf, size_t buflen)
 {
     CborEncoder enc, map;
-    size_t len = cose_hdr_size(encrypt->hdrs, COSE_ENCRYPT_HDR_MAX, true);
+    size_t len = cose_hdr_size(encrypt->hdrs.prot.c);
     if (cose_flag_isset(encrypt->flags, COSE_FLAGS_ENCODE)) {
         if (cose_crypto_is_aead(cose_encrypt_get_algo(encrypt))) {
             len += 1;
@@ -92,10 +90,21 @@ static size_t _encrypt_serialize_protected(const cose_encrypt_t *encrypt, uint8_
     return cbor_encoder_get_buffer_size(&enc, buf);
 }
 
+static void _place_cbor_protected(cose_encrypt_t *encrypt, CborEncoder *arr) {
+    if (cose_flag_isset(encrypt->flags, COSE_FLAGS_ENCODE)) {
+        size_t slen = _encrypt_serialize_protected(encrypt, NULL, 0);
+        cbor_encode_byte_string(arr, arr->data.ptr, slen);
+        _encrypt_serialize_protected(encrypt, arr->data.ptr - slen, slen);
+    }
+    else {
+        cbor_encode_byte_string(arr, encrypt->hdrs.prot.b, encrypt->hdrs.prot_len);
+    }
+}
+
 static size_t _encrypt_unprot_cbor(cose_encrypt_t *encrypt, CborEncoder *enc)
 {
     CborEncoder map;
-    size_t len = cose_hdr_size(encrypt->hdrs, COSE_ENCRYPT_HDR_MAX, false);
+    size_t len = cose_hdr_size(encrypt->hdrs.unprot.c);
     /* TODO: split */
     if (cose_flag_isset(encrypt->flags, COSE_FLAGS_ENCODE)) {
         if (cose_crypto_is_aead(cose_encrypt_get_algo(encrypt))) {
@@ -127,9 +136,21 @@ ssize_t cose_encrypt_build_enc(cose_encrypt_t *encrypt, uint8_t *buf, size_t len
 
 cose_algo_t cose_encrypt_get_algo(const cose_encrypt_t *encrypt)
 {
-    cose_algo_t recp_algo = encrypt->recps[0].key ? encrypt->recps[0].key->algo
-        : cose_hdr_get((cose_hdr_t*)encrypt->recps[0].hdrs, COSE_RECP_HDR_MAX, COSE_HDR_ALG)->v.value;
-    return encrypt->algo == COSE_ALGO_DIRECT ? recp_algo : encrypt->algo;
+    cose_algo_t res;
+    if (encrypt->recps[0].key) {
+        res = encrypt->recps[0].key->algo;
+    }
+    else {
+        cose_hdr_t hdr;
+        if (!cose_hdr_get((cose_headers_t*)&encrypt->recps[0].hdrs, &hdr,  COSE_HDR_ALG)) {
+            res = COSE_ALGO_NONE;
+        }
+        else {
+            res = hdr.v.value;
+        }
+    }
+
+    return encrypt->algo == COSE_ALGO_DIRECT ? res : encrypt->algo;
 }
 
 static ssize_t _encrypt_build_aad(cose_encrypt_t *encrypt, uint8_t *buf, size_t len)
@@ -281,20 +302,25 @@ int cose_encrypt_decode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len)
     if (!cbor_value_is_byte_string(&arr)) {
         return COSE_ERR_INVALID_CBOR;
     }
-    cose_cbor_get_string(&arr, &encrypt->hdr_prot_ser, &encrypt->hdr_prot_ser_len);
-    cose_hdr_add_prot_from_cbor(encrypt->hdrs, COSE_ENCRYPT_HDR_MAX, encrypt->hdr_prot_ser, encrypt->hdr_prot_ser_len);
+    cose_cbor_get_string(&arr, &encrypt->hdrs.prot.b, &encrypt->hdrs.prot_len);
+
 
     cbor_value_advance(&arr);
     if (!cbor_value_is_map(&arr)) {
         return COSE_ERR_INVALID_CBOR;
     }
-    cose_hdr_add_unprot_from_cbor(encrypt->hdrs, COSE_ENCRYPT_HDR_MAX, &arr);
 
-    cose_hdr_t *alg_hdr = cose_hdr_get(encrypt->hdrs, COSE_ENCRYPT_HDR_MAX, COSE_HDR_ALG);
-    encrypt->algo = alg_hdr->v.value;
+    encrypt->hdrs.unprot.b = arr.ptr;
+    cbor_value_advance(&arr);
+    encrypt->hdrs.unprot_len = arr.ptr - encrypt->hdrs.unprot.b;
+
+    cose_hdr_t alg_hdr;
+    if (!cose_hdr_get(&encrypt->hdrs, &alg_hdr, COSE_HDR_ALG)) {
+        return COSE_ERR_INVALID_CBOR;
+    }
+    encrypt->algo = alg_hdr.v.value;
 
     /* Payload */
-    cbor_value_advance(&arr);
     if (!cbor_value_is_byte_string(&arr)) {
         return COSE_ERR_INVALID_CBOR;
     }
@@ -328,22 +354,21 @@ int cose_encrypt_decode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len)
             cbor_value_enter_container(&cp, &recp);
 
             /* Protected headers */
-            const uint8_t *prot_hdrs;
-            size_t prot_hdr_len;
             if (!cbor_value_is_byte_string(&recp)) {
                 return COSE_ERR_INVALID_CBOR;
             }
-            cose_cbor_get_string(&recp, &prot_hdrs, &prot_hdr_len);
-            cose_hdr_add_prot_from_cbor(precp->hdrs, COSE_RECP_HDR_MAX, prot_hdrs, prot_hdr_len);
+            cose_cbor_get_string(&recp, &precp->hdrs.prot.b, &precp->hdrs.prot_len);
 
             /* Unprotected headers */
             cbor_value_advance(&recp);
             if (!cbor_value_is_map(&recp)) {
                 return COSE_ERR_INVALID_CBOR;
             }
-            cose_hdr_add_from_cbor(precp->hdrs, COSE_RECP_HDR_MAX, &recp, 0);
+            precp->hdrs.unprot.b = recp.ptr;
 
             cbor_value_advance(&recp);
+
+            precp->hdrs.unprot_len = recp.ptr - precp->hdrs.unprot.b;
             if (!cbor_value_is_byte_string(&recp)) {
                 return COSE_ERR_INVALID_CBOR;
             }
@@ -352,15 +377,15 @@ int cose_encrypt_decode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len)
             if (!precp->key_len) {
                 precp->skey = NULL;
             }
-            cose_hdr_t *recp_alg = cose_hdr_get(precp->hdrs, COSE_ENCRYPT_HDR_MAX, COSE_HDR_ALG);
-            if (recp_alg && recp_alg->v.value == COSE_ALGO_DIRECT) {
+            cose_hdr_t recp_alg;
+
+            if (cose_hdr_get(&precp->hdrs, &recp_alg, COSE_HDR_ALG) && recp_alg.v.value == COSE_ALGO_DIRECT) {
                 /* Mark cose encrypt as direct */
                 encrypt->algo = COSE_ALGO_DIRECT;
             }
             i++;
         }
         encrypt->num_recps = i;
-        /* Probably a SIGN1 struct then */
     }
     return COSE_OK;
 }
@@ -378,16 +403,17 @@ int cose_encrypt_decrypt(cose_encrypt_t *encrypt, cose_key_t *key, unsigned idx,
     if (aad_len < 0) {
        return aad_len;
     }
-    cose_hdr_t *nonce_hdr = cose_hdr_get(encrypt->hdrs, COSE_ENCRYPT_HDR_MAX, COSE_HDR_IV);
-    if (!nonce_hdr) {
+    cose_hdr_t nonce_hdr;
+    if (!cose_hdr_get(&encrypt->hdrs, &nonce_hdr, COSE_HDR_IV)) {
         return COSE_ERR_CRYPTO;
     }
-    const uint8_t *nonce = nonce_hdr->v.data;
+    const uint8_t *nonce = nonce_hdr.v.data;
     cose_algo_t algo = encrypt->algo;
     const uint8_t *cek = encrypt->cek;
     if (algo == COSE_ALGO_DIRECT) {
-        cose_hdr_t *algo_hdr = cose_hdr_get(encrypt->hdrs, COSE_ENCRYPT_HDR_MAX, COSE_HDR_ALG);
-        algo = algo_hdr->v.value;
+        cose_hdr_t algo_hdr;
+        cose_hdr_get(&encrypt->hdrs, &algo_hdr, COSE_HDR_ALG);
+        algo = algo_hdr.v.value;
         cek = key->d;
     }
     return cose_crypto_aead_decrypt(payload, payload_len, encrypt->payload, encrypt->payload_len, buf, aad_len, nonce, cek, algo);

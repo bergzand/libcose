@@ -44,7 +44,6 @@
  * ```
  */
 
-
 /**
  * @name COSE encrypt,
  * https://tools.ietf.org/html/rfc8152#section-5
@@ -62,18 +61,16 @@
  * @{
  */
 typedef struct cose_encrypt {
-    const uint8_t *payload;                        /**< Pointer to the payload to encrypt */
+    const uint8_t *payload;                     /**< Pointer to the payload to encrypt */
     size_t payload_len;                         /**< Size of the payload */
     uint8_t *ext_aad;                           /**< Pointer to the additional authenticated data */
     size_t ext_aad_len;                         /**< Size of the AAD */
-    const uint8_t *hdr_prot_ser;                /**< Serialized form of the protected header */
-    size_t hdr_prot_ser_len;                    /**< Length of the serialized protected header */
     uint16_t flags;                             /**< Flags as defined */
     uint8_t *cek;                               /**< Pointer to the content encryption key */
     cose_algo_t algo;                           /**< Algo used for the base encrypt structure */
     uint8_t *nonce;                             /**< Possible Nonce to use */
     uint8_t num_recps;                          /**< Number of recipients to encrypt for */
-    cose_hdr_t hdrs[COSE_ENCRYPT_HDR_MAX];      /**< Headers included in the body */
+    cose_headers_t hdrs;                        /**< Headers included in the body */
     cose_recp_t recps[COSE_RECIPIENTS_MAX];     /**< recipient data array */
 } cose_encrypt_t;
 /** @} */

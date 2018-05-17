@@ -31,12 +31,10 @@
  * @{
  */
 typedef struct cose_signature {
-    const uint8_t *hdr_protected;       /**< Pointer to the protected header */
-    size_t hdr_protected_len;           /**< Protected header length */
+    cose_headers_t hdrs;
     const uint8_t *signature;           /**< Pointer to the signature */
     size_t signature_len;               /**< Length of the signature */
     const cose_key_t *signer;        /**< Pointer to the signer used for this signature */
-    cose_hdr_t hdrs[COSE_SIG_HDR_MAX];  /**< Headers included in this signature */
 } cose_signature_t;
 /** @} */
 
@@ -49,15 +47,13 @@ typedef struct cose_signature {
  * @{
  */
 typedef struct cose_sign {
+    cose_headers_t hdrs;
     const void *payload;                        /**< Pointer to the payload */
     size_t payload_len;                         /**< Size of the payload */
     uint8_t *ext_aad;                           /**< Pointer to the additional authenticated data */
     size_t ext_aad_len;                         /**< Size of the AAD */
-    const uint8_t *hdr_prot_ser;                /**< Serialized form of the protected header */
-    size_t hdr_prot_ser_len;                    /**< Length of the serialized protected header */
     uint16_t flags;                             /**< Flags as defined */
     uint8_t num_sigs;                           /**< Number of signatures to sign with */
-    cose_hdr_t hdrs[COSE_SIGN_HDR_MAX];         /**< Headers included in the body */
     cose_signature_t sigs[COSE_SIGNATURES_MAX]; /**< Signer data array */
 } cose_sign_t;
 /** @} */
@@ -202,7 +198,7 @@ int cose_sign_verify(cose_sign_t *sign, cose_key_t *key, uint8_t idx, uint8_t *b
  * @return              A header object with matching key
  * @return              NULL if there is no header with the key
  */
-cose_hdr_t *cose_sign_get_header(cose_sign_t *sign, int32_t key);
+bool cose_sign_get_header(cose_sign_t *sign, cose_hdr_t *hdr, int32_t key);
 
 /**
  * Retrieve a protected header from a sign object by key lookup
@@ -213,7 +209,8 @@ cose_hdr_t *cose_sign_get_header(cose_sign_t *sign, int32_t key);
  * @return              A protected header object with matching key
  * @return              NULL if there is no protected header with the key
  */
-cose_hdr_t *cose_sign_get_protected(cose_sign_t *sign, int32_t key);
+bool cose_sign_get_protected(cose_sign_t *sign, cose_hdr_t *hdr, int32_t key);
+bool cose_sign_get_unprotected(cose_sign_t *sign, cose_hdr_t *hdr, int32_t key);
 
 /**
  * Retrieve a header from a signature object by key lookup
@@ -225,7 +222,7 @@ cose_hdr_t *cose_sign_get_protected(cose_sign_t *sign, int32_t key);
  * @return              A header object with matching key
  * @return              NULL if there is no header with the key
  */
-cose_hdr_t *cose_sign_sig_get_header(cose_sign_t *sign, uint8_t idx, int32_t key);
+bool cose_sign_sig_get_header(cose_sign_t *sign, uint8_t idx, cose_hdr_t *hdr, int32_t key);
 
 /**
  * Retrieve a protected header from a signature object by key lookup
@@ -237,7 +234,7 @@ cose_hdr_t *cose_sign_sig_get_header(cose_sign_t *sign, uint8_t idx, int32_t key
  * @return              A protected header object with matching key
  * @return              NULL if there is no header with the key
  */
-cose_hdr_t *cose_sign_sig_get_protected(cose_sign_t *sign, uint8_t idx, int32_t key);
+bool cose_sign_sig_get_protected(cose_sign_t *sign, uint8_t idx, cose_hdr_t *hdr, int32_t key);
 
 /**
  * Retrieve an unprotected header from a signature object by key lookup
@@ -249,7 +246,7 @@ cose_hdr_t *cose_sign_sig_get_protected(cose_sign_t *sign, uint8_t idx, int32_t 
  * @return              A protected header object with matching key
  * @return              NULL if there is no header with the key
  */
-cose_hdr_t *cose_sign_sig_get_unprotected(cose_sign_t *sign, uint8_t idx, int32_t key);
+bool cose_sign_sig_get_unprotected(cose_sign_t *sign, uint8_t idx, cose_hdr_t *hdr, int32_t key);
 
 /**
  * Internal function to check if the object is a sign1 structure
@@ -267,160 +264,81 @@ static inline bool _is_sign1(cose_sign_t *sign)
 /* Header setters */
 
 /**
- * Add a header with an integer based value
+ * Add a header to the protected bucket
  *
  * @note This function does not protect against setting duplicate keys
  *
  * @param   sign        The sign object to operate on
- * @param   key         The key to add
- * @param   flags       Flags to set for this header
- * @param   value       Integer value to set for the new header
+ * @param   hdr         The hdr to add
  *
  * @return              0 on success
  * @return              Negative when failed
  */
-static inline int cose_sign_add_hdr_value(cose_sign_t *sign, int32_t key, uint8_t flags, int32_t value)
+static inline void cose_sign_insert_prot(cose_sign_t *sign, cose_hdr_t *hdr)
 {
-    return cose_hdr_add_hdr_value(sign->hdrs, COSE_SIGN_HDR_MAX, key, flags, value);
+    cose_hdr_insert(&sign->hdrs.prot.c, hdr);
 }
 
 /**
- * Add a header with a string based value
+ * Add a header to the unprotected bucket
  *
  * @note This function does not protect against setting duplicate keys
  *
  * @param   sign        The sign object to operate on
- * @param   key         The key to add
- * @param   flags       Flags to set for this header
- * @param   str         zero terminated string to set
+ * @param   hdr         The hdr to add
  *
  * @return              0 on success
  * @return              Negative when failed
  */
-static inline int cose_sign_add_hdr_string(cose_sign_t *sign, int32_t key, uint8_t flags, char *str)
+static inline void cose_sign_insert_unprot(cose_sign_t *sign, cose_hdr_t *hdr)
 {
-    return cose_hdr_add_hdr_string(sign->hdrs, COSE_SIGN_HDR_MAX, key, flags, str);
+    cose_hdr_insert(&sign->hdrs.unprot.c, hdr);
 }
-
-/**
- * Add a header with a byte array based value
- *
- * @note This function does not protect against setting duplicate keys
- *
- * @param   sign        The sign object to operate on
- * @param   key         The key to add
- * @param   flags       Flags to set for this header
- * @param   data        Byte array to set
- * @param   len         Length of the byte array
- *
- * @return              0 on success
- * @return              Negative when failed
- */
-static inline int cose_sign_add_hdr_data(cose_sign_t *sign, int32_t key, uint8_t flags, uint8_t *data, size_t len)
-{
-    return cose_hdr_add_hdr_data(sign->hdrs, COSE_SIGN_HDR_MAX, key, flags, data, len);
-}
-
 
 /* Sig header setters */
 
 /**
- * Add a header with an integer based value to a signature
+ * Add a header to a signatures protected bucket
  *
  * @note This function does not protect against setting duplicate keys
  *
  * @param   sign        The sign object to operate on
  * @param   idx         Index number of the signature to operate on
- * @param   key         The key to add
- * @param   flags       Flags to set for this header
- * @param   value       Integer value to set for the new header
+ * @param   hdr         The header to add
  *
  * @return              0 on success
  * @return              Negative when failed
  */
-static inline int cose_sign_sig_add_hdr_value(cose_sign_t *sign, uint8_t idx, int32_t key, uint8_t flags, int32_t value)
+static inline int cose_sign_sig_insert_prot(cose_sign_t *sign, uint8_t idx, cose_hdr_t *hdr)
 {
     if (idx >= COSE_SIGNATURES_MAX) {
         return COSE_ERR_INVALID_PARAM;
     }
-    return cose_hdr_add_hdr_value(sign->sigs[idx].hdrs, COSE_SIGN_HDR_MAX, key, flags, value);
+    cose_hdr_insert(&sign->sigs[idx].hdrs.prot.c, hdr);
+    return COSE_OK;
 }
 
 /**
- * Add a header with a string based value to a signature
+ * Add a header to a signatures unprotected bucket
  *
  * @note This function does not protect against setting duplicate keys
  *
  * @param   sign        The sign object to operate on
  * @param   idx         Index number of the signature to operate on
- * @param   key         The key to add
- * @param   flags       Flags to set for this header
- * @param   str         zero terminated string to set
+ * @param   hdr         The header to add
  *
  * @return              0 on success
  * @return              Negative when failed
  */
-static inline int cose_sign_sig_add_hdr_string(cose_sign_t *sign, uint8_t idx, int32_t key, uint8_t flags, char *str)
+static inline int cose_sign_sig_insert_unprot(cose_sign_t *sign, uint8_t idx, cose_hdr_t *hdr)
 {
     if (idx >= COSE_SIGNATURES_MAX) {
         return COSE_ERR_INVALID_PARAM;
     }
-    return cose_hdr_add_hdr_string(sign->sigs[idx].hdrs, COSE_SIGN_HDR_MAX, key, flags, str);
+    cose_hdr_insert(&sign->sigs[idx].hdrs.unprot.c, hdr);
+    return COSE_OK;
 }
 
-/**
- * Add a header with a byte array based value
- *
- * @note This function does not protect against setting duplicate keys
- *
- * @param   sign        The sign object to operate on
- * @param   idx         Index number of the signature to operate on
- * @param   key         The key to add
- * @param   flags       Flags to set for this header
- * @param   data        Byte array to set
- * @param   len         Length of the byte array
- *
- * @return              0 on success
- * @return              Negative when failed
- */
-static inline int cose_sign_sig_add_hdr_data(cose_sign_t *sign, uint8_t idx, int32_t key, uint8_t flags, uint8_t *data, size_t len)
-{
-    if (idx >= COSE_SIGNATURES_MAX) {
-        return COSE_ERR_INVALID_PARAM;
-    }
-    return cose_hdr_add_hdr_data(sign->sigs[idx].hdrs, COSE_SIGN_HDR_MAX, key, flags, data, len);
-}
-
-/* Header setters for common headers */
-
-/**
- * Set the content type number header of the sign body. The header is placed
- * in the protected bucket.
- *
- * This function adds a content type header or sets the current content type
- * header
- *
- * @param   sign        The sign object to operate on
- * @param   value       The integer value of the content type
- *
- * @return              0 on success
- * @return              Negative on error
- */
-static inline int cose_sign_set_ct(cose_sign_t *sign, int32_t value)
-{
-    int res = COSE_OK;
-    cose_hdr_t *hdr = cose_hdr_get(sign->hdrs, COSE_SIGN_HDR_MAX, COSE_HDR_CONTENT_TYPE);
-
-    if (!hdr) {
-        res = cose_sign_add_hdr_value(sign, COSE_HDR_CONTENT_TYPE, COSE_HDR_FLAGS_PROTECTED, value);
-    }
-    else {
-        hdr->v.value = value;
-        hdr->flags |= COSE_HDR_FLAGS_PROTECTED;
-        hdr->type = COSE_HDR_TYPE_INT;
-    }
-    return res;
-}
 
 #endif
 

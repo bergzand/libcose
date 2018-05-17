@@ -212,23 +212,6 @@ void test_hdr9(void)
     CU_ASSERT_FALSE(cose_hdr_from_cbor_map(&header, &imap));
 }
 
-void test_hdr10(void)
-{
-    cose_hdr_t hdrs[HDRS_SIZE];
-    char test_input[] = "data";
-    memset(hdrs, 0, sizeof(hdrs));
-    /* Fill the array */
-    CU_ASSERT_EQUAL(cose_hdr_add_hdr_value(hdrs, HDRS_SIZE, 1, 0, 1), 0);
-    CU_ASSERT_EQUAL(cose_hdr_add_hdr_string(hdrs, HDRS_SIZE, 2, 0, test_input), 0);
-    CU_ASSERT_EQUAL(cose_hdr_add_hdr_data(hdrs, HDRS_SIZE, 3, 0, (uint8_t*)test_input, sizeof(test_input)), 0);
-    CU_ASSERT_EQUAL(cose_hdr_add_hdr_value(hdrs, HDRS_SIZE, 1, 0, 1), 0);
-
-    /* Array should be full now */
-    CU_ASSERT_NOT_EQUAL(cose_hdr_add_hdr_value(hdrs, HDRS_SIZE, 5, 0, 1), 0);
-    CU_ASSERT_NOT_EQUAL(cose_hdr_add_hdr_string(hdrs, HDRS_SIZE, 6, 0, test_input), 0);
-    CU_ASSERT_NOT_EQUAL(cose_hdr_add_hdr_data(hdrs, HDRS_SIZE, 7, 0, (uint8_t*)test_input, sizeof(test_input)), 0);
-}
-
 const test_t tests_hdr[] = {
     {
         .f = test_hdr1,
@@ -257,10 +240,6 @@ const test_t tests_hdr[] = {
     {
         .f = test_hdr9,
         .n = "Invalid header conversion to CBOR",
-    },
-    {
-        .f = test_hdr10,
-        .n = "Header additions Out of memory",
     },
     {
         .f = NULL,
