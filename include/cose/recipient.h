@@ -32,7 +32,6 @@ typedef enum {
 typedef struct cose_recp cose_recp_t;
 /**
  * @name COSE recipient struct definition
- * @{
  */
 struct cose_recp {
     struct cose_recp *parent;           /**< Parent recipient structure */
@@ -40,9 +39,8 @@ struct cose_recp {
     const uint8_t *skey;                /**< Secret key used */
     size_t key_len;                     /**< Length of the secret key */
     cose_recp_type_t type;              /**< Type of key contained in this structure */
-    cose_hdr_t hdrs[COSE_RECP_HDR_MAX]; /**< Headers included with this recipient */
+    cose_headers_t hdrs;                /**< Headers included with this recipient */
 };
-/** @} */
 
 
 int cose_recp_encrypt_to_map(cose_recp_t *recps, size_t num_recps,

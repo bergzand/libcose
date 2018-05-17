@@ -41,9 +41,14 @@ static void _sign_sig_cbor(cose_sign_t *sign, cose_signature_t *sig, const char 
 
     /* Add signer protected headers */
     if (!_is_sign1(sign)) {
-        size_t slen = _sig_serialize_protected(sign, sig, NULL, 0);
-        cbor_encode_byte_string(&arr, arr.data.ptr, slen);
-        _sig_serialize_protected(sign, sig, arr.data.ptr - slen, slen);
+        if (cose_flag_isset(sign->flags, COSE_FLAGS_ENCODE)) {
+            size_t slen = _sig_serialize_protected(sign, sig, NULL, 0);
+            cbor_encode_byte_string(&arr, arr.data.ptr, slen);
+            _sig_serialize_protected(sign, sig, arr.data.ptr - slen, slen);
+        }
+        else {
+            cbor_encode_byte_string(&arr, sig->hdrs.prot.b, sig->hdrs.prot_len);
+        }
     }
 
     /* External aad */
@@ -68,7 +73,7 @@ static size_t _sign_sig_encode(cose_sign_t *sign, cose_signature_t *sig, const c
 static bool _sig_unprot_to_map(cose_signature_t *sig, CborEncoder *map)
 {
     cose_key_unprotected_to_map(sig->signer, map);
-    if (cose_hdr_add_to_map(sig->hdrs, COSE_SIG_HDR_MAX, map, false)) {
+    if (cose_hdr_add_to_map(sig->hdrs.unprot.c, map)) {
         return false;
     }
     return true;
@@ -79,14 +84,14 @@ static void _sig_prot_to_map(const cose_sign_t *sign, const cose_signature_t *si
     if (cose_flag_isset(sign->flags, COSE_FLAGS_ENCODE)) {
         cose_key_protected_to_map(sig->signer, map);
     }
-    cose_hdr_add_to_map(sig->hdrs, COSE_SIG_HDR_MAX, map, true);
+    cose_hdr_add_to_map(sig->hdrs.prot.c, map);
 }
 
 static CborError _sig_unprot_cbor(cose_signature_t *sig, CborEncoder *enc)
 {
     CborEncoder map;
     /* Increment to also contain KID */
-    size_t len = cose_hdr_size(sig->hdrs, COSE_SIG_HDR_MAX, false) + 1;
+    size_t len = cose_hdr_size(sig->hdrs.unprot.c) + 1;
     cbor_encoder_create_map(enc, &map, len);
     CborError res = _sig_unprot_to_map(sig, &map);
     cbor_encoder_close_container(enc, &map);
@@ -96,13 +101,16 @@ static CborError _sig_unprot_cbor(cose_signature_t *sig, CborEncoder *enc)
 static size_t _sig_serialize_protected(const cose_sign_t *sign, const cose_signature_t *sig, uint8_t *buf, size_t buflen)
 {
     CborEncoder enc, map;
+
     /* Also contains algo */
-    size_t len = cose_hdr_size(sig->hdrs, COSE_SIG_HDR_MAX, true);
+    size_t len = cose_hdr_size(sig->hdrs.prot.c);
     len += cose_flag_isset(sign->flags, COSE_FLAGS_ENCODE) ? 1 : 0;
+
     cbor_encoder_init(&enc, buf, buflen, 0);
     cbor_encoder_create_map(&enc, &map, len);
     _sig_prot_to_map(sign, sig, &map);
     cbor_encoder_close_container(&enc, &map);
+
     if (!buflen) {
         return cbor_encoder_get_extra_bytes_needed(&enc);
     }
@@ -112,12 +120,12 @@ static size_t _sig_serialize_protected(const cose_sign_t *sign, const cose_signa
 static CborError _cbor_unprotected(cose_sign_t *sign, CborEncoder *enc)
 {
     CborEncoder map;
-    size_t len = cose_hdr_size(sign->hdrs, COSE_SIGN_HDR_MAX, false);
+    size_t len = cose_hdr_size(sign->hdrs.unprot.c);
     if (_is_sign1(sign)) {
-        len += cose_hdr_size(sign->sigs->hdrs, COSE_SIG_HDR_MAX, false) + 1;
+        len += cose_hdr_size(sign->sigs->hdrs.unprot.c) + 1;
     }
     cbor_encoder_create_map(enc, &map, len);
-    cose_hdr_add_to_map(sign->hdrs, COSE_SIGN_HDR_MAX, &map, false);
+    cose_hdr_add_to_map(sign->hdrs.unprot.c, &map);
     if (_is_sign1(sign)) {
         _sig_unprot_to_map(sign->sigs, &map);
     }
@@ -128,19 +136,19 @@ static CborError _cbor_unprotected(cose_sign_t *sign, CborEncoder *enc)
 static CborError _cbor_protected(cose_sign_t *sign, CborEncoder *enc)
 {
     CborEncoder map;
-    size_t len = cose_hdr_size(sign->hdrs, COSE_SIGN_HDR_MAX, true);
+    size_t len = cose_hdr_size(sign->hdrs.prot.c);
     if (_is_sign1(sign)) {
-        len += cose_hdr_size(sign->sigs->hdrs, COSE_SIG_HDR_MAX, true);
+        len += cose_hdr_size(sign->sigs->hdrs.prot.c);
         len += cose_flag_isset(sign->flags, COSE_FLAGS_ENCODE) ? 1 : 0;
     }
     cbor_encoder_create_map(enc, &map, len);
 
-    cose_hdr_add_to_map(sign->hdrs, COSE_SIGN_HDR_MAX, &map, true);
+    cose_hdr_add_to_map(sign->hdrs.prot.c, &map);
     if (_is_sign1(sign)) {
         if (cose_flag_isset(sign->flags, COSE_FLAGS_ENCODE)) {
             cose_key_protected_to_map(sign->sigs[0].signer, &map);
         }
-        cose_hdr_add_to_map(sign->sigs[0].hdrs, COSE_SIG_HDR_MAX, &map, true);
+        cose_hdr_add_to_map(sign->sigs[0].hdrs.prot.c, &map);
     }
     cbor_encoder_close_container(enc, &map);
     return CborNoError;
@@ -159,9 +167,14 @@ static size_t _serialize_cbor_protected(cose_sign_t *sign, uint8_t *buf, size_t 
 
 static void _place_cbor_protected(cose_sign_t *sign, CborEncoder *arr)
 {
-    size_t slen = _serialize_cbor_protected(sign, NULL, 0);
-    cbor_encode_byte_string(arr, arr->data.ptr, slen);
-    _serialize_cbor_protected(sign, arr->data.ptr - slen, slen);
+    if (cose_flag_isset(sign->flags, COSE_FLAGS_ENCODE)) {
+        size_t slen = _serialize_cbor_protected(sign, NULL, 0);
+        cbor_encode_byte_string(arr, arr->data.ptr, slen);
+        _serialize_cbor_protected(sign, arr->data.ptr - slen, slen);
+    }
+    else {
+        cbor_encode_byte_string(arr, sign->hdrs.prot.b, sign->hdrs.prot_len);
+    }
 }
 
 static int _add_signatures(cose_sign_t *sign, CborEncoder *arr)
@@ -331,17 +344,17 @@ int cose_sign_decode(cose_sign_t *sign, const uint8_t *buf, size_t len)
         return COSE_ERR_INVALID_CBOR;
     }
 
-    cose_cbor_get_string(&arr, &sign->hdr_prot_ser, &sign->hdr_prot_ser_len);
-    cose_hdr_add_prot_from_cbor(sign->hdrs, COSE_SIGN_HDR_MAX, sign->hdr_prot_ser, sign->hdr_prot_ser_len);
+    cose_cbor_get_string(&arr, &sign->hdrs.prot.b, &sign->hdrs.prot_len);
 
     cbor_value_advance(&arr);
     if (!cbor_value_is_map(&arr)) {
         return COSE_ERR_INVALID_CBOR;
     }
-    cose_hdr_add_unprot_from_cbor(sign->hdrs, COSE_SIGN_HDR_MAX, &arr);
+    sign->hdrs.unprot.b = arr.ptr;
 
     /* Payload */
     cbor_value_advance(&arr);
+    sign->hdrs.unprot_len = arr.ptr - sign->hdrs.unprot.b;
     if (!cbor_value_is_byte_string(&arr)) {
         return COSE_ERR_INVALID_CBOR;
     }
@@ -370,13 +383,16 @@ int cose_sign_decode(cose_sign_t *sign, const uint8_t *buf, size_t len)
             }
             cbor_value_enter_container(&cp, &sig);
             /* Protected headers */
-            cose_cbor_get_string(&sig, &psig->hdr_protected, &psig->hdr_protected_len);
-            cose_hdr_add_prot_from_cbor(psig->hdrs, COSE_SIG_HDR_MAX, psig->hdr_protected, psig->hdr_protected_len);
+            cose_cbor_get_string(&sig, &psig->hdrs.prot.b, &psig->hdrs.prot_len);
+
             /* Unprotected headers */
             cbor_value_advance(&sig);
-            cose_hdr_add_from_cbor(psig->hdrs, COSE_SIG_HDR_MAX, &sig, 0);
+            psig->hdrs.unprot.b = sig.ptr;
+
             /* Signature */
             cbor_value_advance(&sig);
+            psig->hdrs.unprot_len = sig.ptr - psig->hdrs.unprot.b;
+
             cose_cbor_get_string(&sig, &psig->signature, &psig->signature_len);
             cbor_value_advance(&sig);
             cbor_value_leave_container(&cp, &sig);
@@ -388,8 +404,10 @@ int cose_sign_decode(cose_sign_t *sign, const uint8_t *buf, size_t len)
     else if (cbor_value_is_byte_string(&arr)) {
         sign->flags |= COSE_FLAGS_SIGN1;
         cose_signature_t *psig = &(sign->sigs[0]);
-        psig->hdr_protected = NULL;
-        psig->hdr_protected_len = 0;
+        psig->hdrs.prot.b = NULL;
+        psig->hdrs.prot_len = 0;
+        psig->hdrs.unprot.b = NULL;
+        psig->hdrs.unprot_len = 0;
         cose_cbor_get_string(&arr, &psig->signature, &psig->signature_len);
         sign->num_sigs = 1;
     }
@@ -405,62 +423,61 @@ ssize_t cose_sign_get_kid(cose_sign_t *sign, uint8_t idx, const uint8_t **kid)
     if (idx >= COSE_SIGNATURES_MAX) {
         return COSE_ERR_INVALID_PARAM;
     }
-    cose_hdr_t *hdr = cose_hdr_get(sign->sigs[idx].hdrs, COSE_SIG_HDR_MAX, COSE_HDR_KID);
-    if (hdr) {
-        *kid = hdr->v.data;
-        return COSE_OK;
+    cose_hdr_t hdr;
+    if (cose_hdr_get(&sign->sigs[idx].hdrs, &hdr, COSE_HDR_KID)) {
+        *kid = hdr.v.data;
+        return hdr.len;
     }
     return COSE_ERR_NOT_FOUND;
 }
 
-cose_hdr_t *cose_sign_get_header(cose_sign_t *sign, int32_t key)
+bool cose_sign_get_header(cose_sign_t *sign, cose_hdr_t *hdr, int32_t key)
 {
-    return cose_hdr_get(sign->hdrs, COSE_SIGN_HDR_MAX, key);
+    return cose_hdr_get(&sign->hdrs, hdr, key);
 }
 
-cose_hdr_t *cose_sign_get_protected(cose_sign_t *sign, int32_t key)
+bool cose_sign_get_protected(cose_sign_t *sign, cose_hdr_t *hdr, int32_t key)
 {
-    return cose_hdr_get_bucket(sign->hdrs, COSE_SIGN_HDR_MAX,
-                               key, true);
+    return cose_hdr_get_protected(&sign->hdrs, hdr, key);
 }
 
-cose_hdr_t *cose_sign_get_unprotected(cose_sign_t *sign, int32_t key)
+bool cose_sign_get_unprotected(cose_sign_t *sign, cose_hdr_t *hdr, int32_t key)
 {
-    return cose_hdr_get_bucket(sign->hdrs, COSE_SIGN_HDR_MAX, key, false);
+    return cose_hdr_get_unprotected(&sign->hdrs, hdr, key);
 }
 
-cose_hdr_t *cose_sign_sig_get_header(cose_sign_t *sign, uint8_t idx, int32_t key)
+bool cose_sign_sig_get_header(cose_sign_t *sign, uint8_t idx, cose_hdr_t *hdr, int32_t key)
 {
     if (idx >= COSE_SIGNATURES_MAX) {
         return NULL;
     }
     if (_is_sign1(sign) && idx == 0) {
-        return cose_hdr_get(sign->hdrs, COSE_SIG_HDR_MAX, key);
+        return cose_hdr_get(&sign->hdrs, hdr, key);
     }
-    return cose_hdr_get(sign->sigs[idx].hdrs, COSE_SIG_HDR_MAX, key);
+    return cose_hdr_get(&sign->sigs[idx].hdrs, hdr, key);
 }
 
-cose_hdr_t *cose_sign_sig_get_protected(cose_sign_t *sign, uint8_t idx, int32_t key)
+bool cose_sign_sig_get_protected(cose_sign_t *sign, uint8_t idx, cose_hdr_t *hdr, int32_t key)
 {
     if (idx >= COSE_SIGNATURES_MAX) {
         return NULL;
     }
     if (_is_sign1(sign) && idx == 0) {
-        return cose_hdr_get_bucket(sign->hdrs, COSE_SIG_HDR_MAX, key, true);
+        return cose_hdr_get_protected(&sign->hdrs, hdr, key);
     }
-    return cose_hdr_get_bucket(sign->sigs[idx].hdrs, COSE_SIG_HDR_MAX,
-                               key, true);
+    return cose_hdr_get_protected(&sign->sigs[idx].hdrs, hdr,
+                               key);
 }
 
-cose_hdr_t *cose_sign_sig_get_unprotected(cose_sign_t *sign, uint8_t idx, int32_t key)
+bool cose_sign_sig_get_unprotected(cose_sign_t *sign, uint8_t idx, cose_hdr_t *hdr, int32_t key)
 {
     if (idx >= COSE_SIGNATURES_MAX) {
         return NULL;
     }
     if (_is_sign1(sign) && idx == 0) {
-        return cose_hdr_get_bucket(sign->hdrs, COSE_SIG_HDR_MAX, key, false);
+        return cose_hdr_get_unprotected(&sign->hdrs, hdr, key);
     }
-    return cose_hdr_get_bucket(sign->sigs[idx].hdrs, COSE_SIG_HDR_MAX, key, false);
+    return cose_hdr_get_unprotected(&sign->sigs[idx].hdrs, hdr, key);
 }
 
 /* Try to verify the structure with a signer and a signature idx */

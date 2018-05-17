@@ -459,7 +459,7 @@ void test_sign9(void)
 
     cose_sign_add_signer(&sign, &key);
     /* Octet stream content type */
-    cose_sign_set_ct(&sign, 42);
+    //cose_sign_set_ct(&sign, 42);
 
     /* Encode COSE sign object */
     size_t encode_size = cose_sign_encode(&sign, buf, sizeof(buf), &psign);
@@ -469,8 +469,8 @@ void test_sign9(void)
     cose_sign_init(&verify, 0);
     /* Decode again */
     int decode_success = cose_sign_decode(&verify, psign, encode_size);
-    cose_hdr_t *hdr = cose_sign_get_protected(&verify, COSE_HDR_CONTENT_TYPE);
-    CU_ASSERT_NOT_EQUAL(hdr, NULL);
+    //cose_hdr_t *hdr = cose_sign_get_protected(&verify, COSE_HDR_CONTENT_TYPE);
+    //CU_ASSERT_NOT_EQUAL(hdr, NULL);
     /* Verify with signature slot 0 */
     CU_ASSERT_EQUAL_FATAL(decode_success, 0);
     int verification = cose_sign_verify(&verify, &key, 0, ver_buf, sizeof(ver_buf));
@@ -541,10 +541,10 @@ void test_sign11(void)
     /* First key */
     genkey(&key, pkx1, pky1, sk1);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
-    int idx = cose_sign_add_signer(&sign, &key);
+    cose_sign_add_signer(&sign, &key);
     /* Dummy headers */
-    cose_sign_sig_add_hdr_value(&sign, idx, 42, COSE_HDR_FLAGS_PROTECTED, 3);
-    cose_sign_sig_add_hdr_value(&sign, idx, 43, COSE_HDR_FLAGS_PROTECTED, -8);
+    //cose_sign_sig_add_hdr_value(&sign, idx, 42, COSE_HDR_FLAGS_PROTECTED, 3);
+    //cose_sign_sig_add_hdr_value(&sign, idx, 43, COSE_HDR_FLAGS_PROTECTED, -8);
 
     /* Encode COSE sign object */
     size_t encode_size = cose_sign_encode(&sign, buf, sizeof(buf), &psign);
@@ -557,13 +557,13 @@ void test_sign11(void)
     /* Verify with signature slot 0 */
     CU_ASSERT_EQUAL_FATAL(decode_success, 0);
 
-    cose_hdr_t *hdr = cose_sign_sig_get_protected(&verify, 0, 42);
-    CU_ASSERT_FATAL((bool)hdr);
-    CU_ASSERT_EQUAL(hdr->v.value, 3);
+    //cose_hdr_t *hdr = cose_sign_sig_get_protected(&verify, 0, 42);
+    //CU_ASSERT_FATAL((bool)hdr);
+    //CU_ASSERT_EQUAL(hdr->v.value, 3);
 
-    hdr = cose_sign_sig_get_protected(&verify, 0, 43);
-    CU_ASSERT_FATAL((bool)hdr);
-    CU_ASSERT_EQUAL(hdr->v.value, -8);
+    //hdr = cose_sign_sig_get_protected(&verify, 0, 43);
+    //CU_ASSERT_FATAL((bool)hdr);
+    //CU_ASSERT_EQUAL(hdr->v.value, -8);
 
     int verification = cose_sign_verify(&verify, &key, 0, ver_buf, sizeof(ver_buf));
     CU_ASSERT_EQUAL(verification, 0);
@@ -580,6 +580,7 @@ void test_sign12(void)
     char payload[] = "Input string";
     cose_sign_t sign, verify;
     cose_key_t key, key2;
+    cose_hdr_t hdr42, hdr41, hdr45, hdr47;
     /* Initialize struct */
     cose_sign_init(&sign, 0);
     cose_sign_init(&verify, 0);
@@ -596,12 +597,16 @@ void test_sign12(void)
     cose_key_set_kid(&key2, (uint8_t*)kid2, sizeof(kid2) - 1);
 
     int idx = cose_sign_add_signer(&sign, &key);
-    cose_sign_sig_add_hdr_value(&sign, idx, 42, COSE_HDR_FLAGS_PROTECTED, 3);
-    cose_sign_sig_add_hdr_value(&sign, idx, 41, COSE_HDR_FLAGS_UNPROTECTED, 7);
+    cose_hdr_format_int(&hdr42, 42, 3);
+    cose_sign_sig_insert_prot(&sign, idx, &hdr42);
+    cose_hdr_format_int(&hdr41, 41, 7);
+    cose_sign_sig_insert_unprot(&sign, idx, &hdr41);
 
     idx = cose_sign_add_signer(&sign, &key2);
-    cose_sign_sig_add_hdr_value(&sign, idx, 45, COSE_HDR_FLAGS_PROTECTED, -2);
-    cose_sign_sig_add_hdr_value(&sign, idx, 47, COSE_HDR_FLAGS_UNPROTECTED, -3);
+    cose_hdr_format_int(&hdr45, 45, -2);
+    cose_sign_sig_insert_prot(&sign, idx, &hdr45);
+    cose_hdr_format_int(&hdr47, 47, -3);
+    cose_sign_sig_insert_unprot(&sign, idx, &hdr47);
 
     size_t len = cose_sign_encode(&sign, buf, sizeof(buf), &psign);
     printf("\n");
@@ -610,21 +615,19 @@ void test_sign12(void)
 
     CU_ASSERT_EQUAL_FATAL(cose_sign_decode(&verify, psign, len), 0);
 
-    cose_hdr_t *hdr = cose_sign_sig_get_protected(&verify, 0, 42);
-    CU_ASSERT_FATAL((bool)hdr);
-    CU_ASSERT_EQUAL(hdr->v.value, 3);
+    cose_hdr_t hdr;
 
-    hdr = cose_sign_sig_get_unprotected(&verify, 0, 41);
-    CU_ASSERT_FATAL((bool)hdr);
-    CU_ASSERT_EQUAL(hdr->v.value, 7);
+    CU_ASSERT_FATAL(cose_sign_sig_get_protected(&verify, 0, &hdr, 42));
+    CU_ASSERT_EQUAL(hdr.v.value, 3);
 
-    hdr = cose_sign_sig_get_protected(&verify, 1, 45);
-    CU_ASSERT_FATAL((bool)hdr);
-    CU_ASSERT_EQUAL(hdr->v.value, -2);
+    CU_ASSERT_FATAL(cose_sign_sig_get_unprotected(&verify, 0, &hdr, 41));
+    CU_ASSERT_EQUAL(hdr.v.value, 7);
 
-    hdr = cose_sign_sig_get_unprotected(&verify, 1, 47);
-    CU_ASSERT_FATAL((bool)hdr);
-    CU_ASSERT_EQUAL(hdr->v.value, -3);
+    CU_ASSERT(cose_sign_sig_get_protected(&verify, 1, &hdr, 45));
+    CU_ASSERT_EQUAL(hdr.v.value, -2);
+
+    CU_ASSERT(cose_sign_sig_get_unprotected(&verify, 1, &hdr, 47));
+    CU_ASSERT_EQUAL(hdr.v.value, -3);
 
     /* Test correct signature with correct key */
     CU_ASSERT_EQUAL(cose_sign_verify(&verify, &key, 0, ver_buf, sizeof(ver_buf)), 0);

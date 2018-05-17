@@ -60,7 +60,6 @@ void cose_key_init(cose_key_t *key);
  * cose_key_from_cbor initializes a key struct based on a cbor map
  *
  * @param   key      Empty key struct to fill with key information
- * @param   cn          CBOR structure to initialize from
  *
  * @return              0 on successfully loaded from cbor
  * @return              Negative on error

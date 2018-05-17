@@ -93,11 +93,11 @@ void test_suit1(void)
     int verification = cose_sign_verify(&verify, &signer, 0, buf, sizeof(buf));
     printf("Verification: %d\n", verification);
     CU_ASSERT_EQUAL(verification, 0);
-    cose_hdr_t *hdr = cose_sign_get_protected(&verify, COSE_HDR_CONTENT_TYPE);
-    CU_ASSERT_FATAL(hdr != NULL);
-    CU_ASSERT_EQUAL(hdr->v.value, 42);
+    cose_hdr_t hdr;
+    CU_ASSERT(cose_sign_get_protected(&verify, &hdr, COSE_HDR_CONTENT_TYPE));
+    CU_ASSERT_EQUAL(hdr.v.value, 42);
     ssize_t res = cose_sign_get_kid(&verify, 0, &kid);
-    CU_ASSERT_EQUAL(res, COSE_OK);
+    CU_ASSERT(res);
     CU_ASSERT_EQUAL(memcmp(kid, keyid, sizeof(keyid) - 1), 0);
 }
 #endif
