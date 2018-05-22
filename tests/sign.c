@@ -69,9 +69,11 @@ void test_sign1(void)
     char sign1_payload[] = "Input string";
     memset(buf, 0, sizeof(buf));
     cose_sign_t sign, verify;
+    cose_signature_t signature, vsignature;
     cose_key_t key;
     /* Initialize struct */
     cose_sign_init(&sign, 0);
+    cose_signature_init(&signature);
 
     /* Add payload */
     cose_sign_set_payload(&sign, sign1_payload, strlen(sign1_payload));
@@ -80,7 +82,7 @@ void test_sign1(void)
     genkey(&key, pkx1, pky1, sk1);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
 
-    cose_sign_add_signer(&sign, &key);
+    cose_sign_add_signer(&sign, &signature, &key);
 
     /* Encode COSE sign object */
     ssize_t encode_size = cose_sign_encode(&sign, buf, sizeof(buf), &psign);
@@ -92,13 +94,16 @@ void test_sign1(void)
     cose_sign_init(&verify, 0);
     /* Decode again */
     int decode_success = cose_sign_decode(&verify, psign, encode_size);
+    cose_sign_iter_t iter;
+    cose_sign_iter_init(&verify, &iter);
+    CU_ASSERT(cose_sign_iter(&iter, &vsignature));
     /* Verify with signature slot 0 */
     CU_ASSERT_EQUAL_FATAL(decode_success, 0);
-    int verification = cose_sign_verify(&verify, &key, 0, ver_buf, sizeof(ver_buf));
+    int verification = cose_sign_verify(&verify, &vsignature, &key, ver_buf, sizeof(ver_buf));
     CU_ASSERT_EQUAL(verification, 0);
     /* Modify payload */
     ((int*)(verify.payload))[0]++;
-    verification = cose_sign_verify(&verify, &key, 0, ver_buf, sizeof(ver_buf));
+    verification = cose_sign_verify(&verify, &vsignature, &key, ver_buf, sizeof(ver_buf));
     /* Should fail due to modified payload */
     CU_ASSERT_NOT_EQUAL(verification, 0);
 }
@@ -110,9 +115,11 @@ void test_sign2(void)
     char sign1_payload[] = "Input string";
     memset(buf, 0, sizeof(buf));
     cose_sign_t sign, verify;
+    cose_signature_t signature, vsignature;
     cose_key_t key;
     /* Initialize struct */
     cose_sign_init(&sign, COSE_FLAGS_UNTAGGED);
+    cose_signature_init(&signature);
 
     /* Add payload */
     cose_sign_set_payload(&sign, sign1_payload, strlen(sign1_payload));
@@ -120,7 +127,7 @@ void test_sign2(void)
     /* First signer */
     genkey(&key, pkx1, pky1, sk1);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
-    cose_sign_add_signer(&sign, &key);
+    cose_sign_add_signer(&sign, &signature, &key);
 
     /* Encode COSE sign object */
     size_t encode_size = cose_sign_encode(&sign, buf, sizeof(buf), &psign);
@@ -132,11 +139,15 @@ void test_sign2(void)
     int decode_success = cose_sign_decode(&verify, psign, encode_size);
     /* Verify with signature slot 0 */
     CU_ASSERT_EQUAL_FATAL(decode_success, 0);
-    int verification = cose_sign_verify(&verify, &key, 0, ver_buf, sizeof(ver_buf));
+
+    cose_sign_iter_t iter;
+    cose_sign_iter_init(&verify, &iter);
+    CU_ASSERT(cose_sign_iter(&iter, &vsignature));
+    int verification = cose_sign_verify(&verify, &vsignature, &key, ver_buf, sizeof(ver_buf));
     CU_ASSERT_EQUAL(verification, 0);
     /* Modify payload */
     ((int*)(verify.payload))[0]++;
-    verification = cose_sign_verify(&verify, &key, 0, ver_buf, sizeof(ver_buf));
+    verification = cose_sign_verify(&verify, &vsignature, &key, ver_buf, sizeof(ver_buf));
     /* Should fail due to modified payload */
     CU_ASSERT_NOT_EQUAL(verification, 0);
 }
@@ -146,10 +157,13 @@ void test_sign3(void)
     uint8_t *psign = NULL;
     char payload[] = "Input string";
     cose_sign_t sign, verify;
+    cose_signature_t signature1, signature2, vsignature;
     cose_key_t key, key2;
     /* Initialize struct */
     cose_sign_init(&sign, 0);
     cose_sign_init(&verify, 0);
+    cose_signature_init(&signature1);
+    cose_signature_init(&signature2);
 
     /* Add payload */
     cose_sign_set_payload(&sign, payload, strlen(payload));
@@ -161,8 +175,8 @@ void test_sign3(void)
     /* Second signer */
     genkey(&key2, pkx2, pky2, sk2);
     cose_key_set_kid(&key2, (uint8_t*)kid2, sizeof(kid2) - 1);
-    cose_sign_add_signer(&sign, &key);
-    cose_sign_add_signer(&sign, &key2);
+    cose_sign_add_signer(&sign, &signature1, &key);
+    cose_sign_add_signer(&sign, &signature2, &key2);
 
     size_t len = cose_sign_encode(&sign, buf, sizeof(buf), &psign);
 
@@ -170,17 +184,24 @@ void test_sign3(void)
     printf("\n");
 
     CU_ASSERT_EQUAL_FATAL(cose_sign_decode(&verify, psign, len), 0);
+    cose_sign_iter_t iter;
+    cose_sign_iter_init(&verify, &iter);
+    CU_ASSERT(cose_sign_iter(&iter, &vsignature));
     /* Test correct signature with correct signer */
-    CU_ASSERT_EQUAL(cose_sign_verify(&verify, &key, 0, ver_buf, sizeof(ver_buf)), 0);
-    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &key, 1, ver_buf, sizeof(ver_buf)), 0);
-    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &key2, 0, ver_buf, sizeof(ver_buf)), 0);
-    CU_ASSERT_EQUAL(cose_sign_verify(&verify, &key2, 1, ver_buf, sizeof(ver_buf)), 0);
+    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &vsignature, &key,ver_buf, sizeof(ver_buf)), 0);
+    CU_ASSERT_EQUAL(cose_sign_verify(&verify, &vsignature, &key2, ver_buf, sizeof(ver_buf)), 0);
+    CU_ASSERT(cose_sign_iter(&iter, &vsignature));
+    CU_ASSERT_EQUAL(cose_sign_verify(&verify, &vsignature, &key, ver_buf, sizeof(ver_buf)), 0);
+    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &vsignature, &key2, ver_buf, sizeof(ver_buf)), 0);
     /* Modify payload */
     ((int*)verify.payload)[0]++;
-    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &key, 0, ver_buf, sizeof(ver_buf)), 0);
-    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &key, 1, ver_buf, sizeof(ver_buf)), 0);
-    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &key2, 0, ver_buf, sizeof(ver_buf)), 0);
-    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &key2, 1, ver_buf, sizeof(ver_buf)), 0);
+    cose_sign_iter_init(&verify, &iter);
+    CU_ASSERT(cose_sign_iter(&iter, &vsignature));
+    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &vsignature, &key, ver_buf, sizeof(ver_buf)), 0);
+    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &vsignature, &key2, ver_buf, sizeof(ver_buf)), 0);
+    CU_ASSERT(cose_sign_iter(&iter, &vsignature));
+    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &vsignature, &key, ver_buf, sizeof(ver_buf)), 0);
+    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &vsignature, &key2, ver_buf, sizeof(ver_buf)), 0);
 }
 
 //void test_sign4(void)
@@ -429,16 +450,6 @@ void test_sign3(void)
 //    CU_ASSERT_EQUAL(cur, 0);
 //}
 
-void test_sign8(void)
-{
-    memset(buf, 0, sizeof(buf));
-    cose_sign_t sign;
-    cose_key_t key;
-    /* Initialize struct */
-    cose_sign_init(&sign, 0);
-    CU_ASSERT_EQUAL(cose_sign_verify(&sign, &key, COSE_SIGNATURES_MAX, ver_buf, sizeof(ver_buf)), COSE_ERR_NOMEM);
-}
-
 /* Tagged 1 signer test */
 void test_sign9(void)
 {
@@ -446,9 +457,11 @@ void test_sign9(void)
     char sign1_payload[] = "Input string";
     memset(buf, 0, sizeof(buf));
     cose_sign_t sign, verify;
+    cose_signature_t signature, vsignature;
     cose_key_t key;
     /* Initialize struct */
     cose_sign_init(&sign, 0);
+    cose_signature_init(&signature);
 
     /* Add payload */
     cose_sign_set_payload(&sign, sign1_payload, strlen(sign1_payload));
@@ -457,9 +470,8 @@ void test_sign9(void)
     genkey(&key, pkx1, pky1, sk1);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
 
-    cose_sign_add_signer(&sign, &key);
+    cose_sign_add_signer(&sign, &signature, &key);
     /* Octet stream content type */
-    //cose_sign_set_ct(&sign, 42);
 
     /* Encode COSE sign object */
     size_t encode_size = cose_sign_encode(&sign, buf, sizeof(buf), &psign);
@@ -469,15 +481,18 @@ void test_sign9(void)
     cose_sign_init(&verify, 0);
     /* Decode again */
     int decode_success = cose_sign_decode(&verify, psign, encode_size);
+    CU_ASSERT_EQUAL_FATAL(decode_success, 0);
     //cose_hdr_t *hdr = cose_sign_get_protected(&verify, COSE_HDR_CONTENT_TYPE);
     //CU_ASSERT_NOT_EQUAL(hdr, NULL);
     /* Verify with signature slot 0 */
-    CU_ASSERT_EQUAL_FATAL(decode_success, 0);
-    int verification = cose_sign_verify(&verify, &key, 0, ver_buf, sizeof(ver_buf));
+    cose_sign_iter_t iter;
+    cose_sign_iter_init(&verify, &iter);
+    CU_ASSERT(cose_sign_iter(&iter, &vsignature));
+    int verification = cose_sign_verify(&verify, &vsignature, &key, ver_buf, sizeof(ver_buf));
     CU_ASSERT_EQUAL(verification, 0);
     /* Modify payload */
     ((int*)(verify.payload))[0]++;
-    verification = cose_sign_verify(&verify, &key, 0, ver_buf, sizeof(ver_buf));
+    verification = cose_sign_verify(&verify, &vsignature, &key, ver_buf, sizeof(ver_buf));
     /* Should fail due to modified payload */
     CU_ASSERT_NOT_EQUAL(verification, 0);
 }
@@ -489,9 +504,11 @@ void test_sign10(void)
     char sign1_payload[] = "Input string";
     memset(buf, 0, sizeof(buf));
     cose_sign_t sign, verify;
+    cose_signature_t signature, vsignature;
     cose_key_t key;
     /* Initialize struct */
     cose_sign_init(&sign, COSE_FLAGS_EXTDATA);
+    cose_signature_init(&signature);
 
     /* Add payload */
     cose_sign_set_payload(&sign, sign1_payload, strlen(sign1_payload));
@@ -499,7 +516,7 @@ void test_sign10(void)
     /* First signer */
     genkey(&key, pkx1, pky1, sk1);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
-    cose_sign_add_signer(&sign, &key);
+    cose_sign_add_signer(&sign, &signature, &key);
 
     /* Encode COSE sign object */
     size_t encode_size = cose_sign_encode(&sign, buf, sizeof(buf), &psign);
@@ -513,13 +530,17 @@ void test_sign10(void)
     CU_ASSERT_EQUAL(verify.payload, NULL);
     cose_sign_set_payload(&verify, sign1_payload, strlen(sign1_payload));
 
+    cose_sign_iter_t iter;
+    cose_sign_iter_init(&verify, &iter);
+    CU_ASSERT(cose_sign_iter(&iter, &vsignature));
+
     /* Verify with signature slot 0 */
     CU_ASSERT_EQUAL_FATAL(decode_success, 0);
-    int verification = cose_sign_verify(&verify, &key, 0, ver_buf, sizeof(ver_buf));
+    int verification = cose_sign_verify(&verify, &vsignature, &key, ver_buf, sizeof(ver_buf));
     CU_ASSERT_EQUAL(verification, 0);
     /* Modify payload */
     ((int*)(verify.payload))[0]++;
-    verification = cose_sign_verify(&verify, &key, 0, ver_buf, sizeof(ver_buf));
+    verification = cose_sign_verify(&verify, &vsignature, &key, ver_buf, sizeof(ver_buf));
     /* Should fail due to modified payload */
     CU_ASSERT_NOT_EQUAL(verification, 0);
 }
@@ -531,9 +552,11 @@ void test_sign11(void)
     char sign1_payload[] = "Input string";
     memset(buf, 0, sizeof(buf));
     cose_sign_t sign, verify;
+    cose_signature_t signature, vsignature;
     cose_key_t key;
     /* Initialize struct */
     cose_sign_init(&sign, 0);
+    cose_signature_init(&signature);
 
     /* Add payload */
     cose_sign_set_payload(&sign, sign1_payload, strlen(sign1_payload));
@@ -541,10 +564,7 @@ void test_sign11(void)
     /* First key */
     genkey(&key, pkx1, pky1, sk1);
     cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
-    cose_sign_add_signer(&sign, &key);
-    /* Dummy headers */
-    //cose_sign_sig_add_hdr_value(&sign, idx, 42, COSE_HDR_FLAGS_PROTECTED, 3);
-    //cose_sign_sig_add_hdr_value(&sign, idx, 43, COSE_HDR_FLAGS_PROTECTED, -8);
+    cose_sign_add_signer(&sign, &signature, &key);
 
     /* Encode COSE sign object */
     size_t encode_size = cose_sign_encode(&sign, buf, sizeof(buf), &psign);
@@ -554,22 +574,18 @@ void test_sign11(void)
     /* Decode again */
     int decode_success = cose_sign_decode(&verify, psign, encode_size);
 
+    cose_sign_iter_t iter;
+    cose_sign_iter_init(&verify, &iter);
+    CU_ASSERT(cose_sign_iter(&iter, &vsignature));
+
     /* Verify with signature slot 0 */
     CU_ASSERT_EQUAL_FATAL(decode_success, 0);
 
-    //cose_hdr_t *hdr = cose_sign_sig_get_protected(&verify, 0, 42);
-    //CU_ASSERT_FATAL((bool)hdr);
-    //CU_ASSERT_EQUAL(hdr->v.value, 3);
-
-    //hdr = cose_sign_sig_get_protected(&verify, 0, 43);
-    //CU_ASSERT_FATAL((bool)hdr);
-    //CU_ASSERT_EQUAL(hdr->v.value, -8);
-
-    int verification = cose_sign_verify(&verify, &key, 0, ver_buf, sizeof(ver_buf));
+    int verification = cose_sign_verify(&verify, &vsignature, &key, ver_buf, sizeof(ver_buf));
     CU_ASSERT_EQUAL(verification, 0);
     /* Modify payload */
     ((int*)(verify.payload))[0]++;
-    verification = cose_sign_verify(&verify, &key, 0, ver_buf, sizeof(ver_buf));
+    verification = cose_sign_verify(&verify, &vsignature, &key, ver_buf, sizeof(ver_buf));
     /* Should fail due to modified payload */
     CU_ASSERT_NOT_EQUAL(verification, 0);
 }
@@ -579,11 +595,14 @@ void test_sign12(void)
     uint8_t *psign = NULL;
     char payload[] = "Input string";
     cose_sign_t sign, verify;
+    cose_signature_t signature1, signature2, vsignature;
     cose_key_t key, key2;
     cose_hdr_t hdr42, hdr41, hdr45, hdr47;
     /* Initialize struct */
     cose_sign_init(&sign, 0);
     cose_sign_init(&verify, 0);
+    cose_signature_init(&signature1);
+    cose_signature_init(&signature2);
 
     /* Add payload */
     cose_sign_set_payload(&sign, payload, strlen(payload));
@@ -596,17 +615,17 @@ void test_sign12(void)
     genkey(&key2, pkx2, pky2, sk2);
     cose_key_set_kid(&key2, (uint8_t*)kid2, sizeof(kid2) - 1);
 
-    int idx = cose_sign_add_signer(&sign, &key);
+    cose_sign_add_signer(&sign, &signature1, &key);
     cose_hdr_format_int(&hdr42, 42, 3);
-    cose_sign_sig_insert_prot(&sign, idx, &hdr42);
+    cose_signature_insert_prot(&signature1, &hdr42);
     cose_hdr_format_int(&hdr41, 41, 7);
-    cose_sign_sig_insert_unprot(&sign, idx, &hdr41);
+    cose_signature_insert_unprot(&signature1, &hdr41);
 
-    idx = cose_sign_add_signer(&sign, &key2);
+    cose_sign_add_signer(&sign, &signature2, &key2);
     cose_hdr_format_int(&hdr45, 45, -2);
-    cose_sign_sig_insert_prot(&sign, idx, &hdr45);
+    cose_signature_insert_prot(&signature2, &hdr45);
     cose_hdr_format_int(&hdr47, 47, -3);
-    cose_sign_sig_insert_unprot(&sign, idx, &hdr47);
+    cose_signature_insert_unprot(&signature2, &hdr47);
 
     size_t len = cose_sign_encode(&sign, buf, sizeof(buf), &psign);
     printf("\n");
@@ -615,25 +634,31 @@ void test_sign12(void)
 
     CU_ASSERT_EQUAL_FATAL(cose_sign_decode(&verify, psign, len), 0);
 
+    cose_sign_iter_t iter;
+    cose_sign_iter_init(&verify, &iter);
+    CU_ASSERT(cose_sign_iter(&iter, &vsignature));
+
     cose_hdr_t hdr;
-
-    CU_ASSERT_FATAL(cose_sign_sig_get_protected(&verify, 0, &hdr, 42));
-    CU_ASSERT_EQUAL(hdr.v.value, 3);
-
-    CU_ASSERT_FATAL(cose_sign_sig_get_unprotected(&verify, 0, &hdr, 41));
-    CU_ASSERT_EQUAL(hdr.v.value, 7);
-
-    CU_ASSERT(cose_sign_sig_get_protected(&verify, 1, &hdr, 45));
+    CU_ASSERT(cose_signature_get_protected(&vsignature, &hdr, 45));
     CU_ASSERT_EQUAL(hdr.v.value, -2);
 
-    CU_ASSERT(cose_sign_sig_get_unprotected(&verify, 1, &hdr, 47));
+    CU_ASSERT(cose_signature_get_unprotected(&vsignature, &hdr, 47));
     CU_ASSERT_EQUAL(hdr.v.value, -3);
 
+    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &vsignature, &key, ver_buf, sizeof(ver_buf)), 0);
+    CU_ASSERT_EQUAL(cose_sign_verify(&verify, &vsignature, &key2, ver_buf, sizeof(ver_buf)), 0);
+
+    CU_ASSERT(cose_sign_iter(&iter, &vsignature));
+    CU_ASSERT_FATAL(cose_signature_get_protected(&vsignature, &hdr, 42));
+    CU_ASSERT_EQUAL(hdr.v.value, 3);
+
+    CU_ASSERT_FATAL(cose_signature_get_unprotected(&vsignature, &hdr, 41));
+    CU_ASSERT_EQUAL(hdr.v.value, 7);
     /* Test correct signature with correct key */
-    CU_ASSERT_EQUAL(cose_sign_verify(&verify, &key, 0, ver_buf, sizeof(ver_buf)), 0);
-    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &key, 1, ver_buf, sizeof(ver_buf)), 0);
-    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &key2, 0, ver_buf, sizeof(ver_buf)), 0);
-    CU_ASSERT_EQUAL(cose_sign_verify(&verify, &key2, 1, ver_buf, sizeof(ver_buf)), 0);
+    CU_ASSERT_EQUAL(cose_sign_verify(&verify, &vsignature, &key, ver_buf, sizeof(ver_buf)), 0);
+    CU_ASSERT_NOT_EQUAL(cose_sign_verify(&verify, &vsignature, &key2, ver_buf, sizeof(ver_buf)), 0);
+
+    CU_ASSERT_FALSE(cose_sign_iter(&iter, &vsignature));
 }
 
 const test_t tests_sign[] = {
@@ -665,10 +690,10 @@ const test_t tests_sign[] = {
 //        .f = test_sign7,
 //        .n = "Signer memory exhaustion",
 //    },
-    {
-        .f = test_sign8,
-        .n = "Signerature index out of bounds",
-    },
+//    {
+//        .f = test_sign8,
+//        .n = "Signerature index out of bounds",
+//    },
     {
         .f = test_sign9,
         .n = "Content type header test",
