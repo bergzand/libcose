@@ -24,20 +24,7 @@
 #include "cose/conf.h"
 #include "cose/hdr.h"
 #include "cose/key.h"
-
-/**
- * @name Signature struct
- * @brief Contains signature and headers related to the signatures
- * @{
- */
-typedef struct cose_signature {
-    cose_headers_t hdrs;             /**< Headers */
-    const uint8_t *signature;        /**< Pointer to the signature */
-    size_t signature_len;            /**< Length of the signature */
-    const cose_key_t *signer;        /**< Pointer to the signer used for this signature */
-} cose_signature_t;
-/** @} */
-
+#include "cose/signature.h"
 
 /**
  * @name COSE sign,
@@ -47,16 +34,24 @@ typedef struct cose_signature {
  * @{
  */
 typedef struct cose_sign {
-    cose_headers_t hdrs;                        /**< Headers */
-    const void *payload;                        /**< Pointer to the payload */
-    size_t payload_len;                         /**< Size of the payload */
-    uint8_t *ext_aad;                           /**< Pointer to the additional authenticated data */
-    size_t ext_aad_len;                         /**< Size of the AAD */
-    uint16_t flags;                             /**< Flags as defined */
-    uint8_t num_sigs;                           /**< Number of signatures to sign with */
-    cose_signature_t sigs[COSE_SIGNATURES_MAX]; /**< Signer data array */
+    cose_headers_t hdrs;            /**< Headers */
+    cose_signature_t *signatures;   /**< Signer data array */
+    const void *payload;            /**< Pointer to the payload */
+    size_t payload_len;             /**< Size of the payload */
+    uint8_t *ext_aad;               /**< Pointer to the additional authenticated data */
+    size_t ext_aad_len;             /**< Size of the AAD */
+    const uint8_t *sig;
+    size_t sig_len;
+    uint16_t flags;                 /**< Flags as defined */
 } cose_sign_t;
 /** @} */
+
+typedef struct cose_sign_iter {
+    cose_sign_t *sign;
+    CborParser p;
+    CborValue it;
+    CborValue arr;
+} cose_sign_iter_t;
 
 /**
  * @brief String constant used for signing COSE signature objects
@@ -114,12 +109,13 @@ void cose_sign_set_external_aad(cose_sign_t *sign, void *ext, size_t len);
  * cose_sign_add_signer adds a key to the sign struct to sign with
  *
  * @param sign      Sign struct to operate on
+ * @param signer    Signature struct to add to the sign
  * @param key       The key to sign with
  *
  * @return          The index of the allocated sig on success
  * @return          negative on failure
  */
-int cose_sign_add_signer(cose_sign_t *sign, const cose_key_t *key);
+void cose_sign_add_signer(cose_sign_t *sign, cose_signature_t *signer, const cose_key_t *key);
 
 /**
  * cose_sign_sign signs the data from the sign object with the attached
@@ -156,18 +152,8 @@ ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, uint8_t **
  */
 int cose_sign_decode(cose_sign_t *sign, const uint8_t *buf, size_t len);
 
-/**
- * Get the key ID from a signature
- *
- * @param      sign     Sign struct to check
- * @param      idx      Signature slot to fetch
- * @param[out] kid      Filled with a pointer to the key ID
- *
- * @return              Size of the key ID
- * @return              0 in case of no key ID
- */
-ssize_t cose_sign_get_kid(cose_sign_t *sign, uint8_t idx, const uint8_t **kid);
-
+void cose_sign_iter_init(cose_sign_t *sign, cose_sign_iter_t *iter);
+bool cose_sign_iter(cose_sign_iter_t *iter, cose_signature_t *signature);
 /**
  * Verify the idx't signature of the signed data with the supplied signer object
  *
@@ -184,7 +170,7 @@ ssize_t cose_sign_get_kid(cose_sign_t *sign, uint8_t idx, const uint8_t **kid);
  * @return              0 on verification success
  * @return              Negative on error
  */
-int cose_sign_verify(cose_sign_t *sign, cose_key_t *key, uint8_t idx, uint8_t *buf, size_t len);
+int cose_sign_verify(cose_sign_t *sign, cose_signature_t *signature, cose_key_t *key, uint8_t *buf, size_t len);
 
 /**
  * Retrieve a header from a sign object by key lookup
@@ -223,45 +209,6 @@ bool cose_sign_get_protected(cose_sign_t *sign, cose_hdr_t *hdr, int32_t key);
 bool cose_sign_get_unprotected(cose_sign_t *sign, cose_hdr_t *hdr, int32_t key);
 
 /**
- * Retrieve a header from a signature object by key lookup
- *
- * @param   sign        The sign object to operate on
- * @param   idx         The signature index
- * @param   hdr         hdr struct to fill
- * @param   key         The key to look up
- *
- * @return              A header object with matching key
- * @return              NULL if there is no header with the key
- */
-bool cose_sign_sig_get_header(cose_sign_t *sign, uint8_t idx, cose_hdr_t *hdr, int32_t key);
-
-/**
- * Retrieve a protected header from a signature object by key lookup
- *
- * @param   sign        The sign object to operate on
- * @param   idx         The signature index
- * @param   hdr         hdr struct to fill
- * @param   key         The key to look up
- *
- * @return              A protected header object with matching key
- * @return              NULL if there is no header with the key
- */
-bool cose_sign_sig_get_protected(cose_sign_t *sign, uint8_t idx, cose_hdr_t *hdr, int32_t key);
-
-/**
- * Retrieve an unprotected header from a signature object by key lookup
- *
- * @param   sign        The sign object to operate on
- * @param   idx         The signature index
- * @param   hdr         hdr struct to fill
- * @param   key         The key to look up
- *
- * @return              A protected header object with matching key
- * @return              NULL if there is no header with the key
- */
-bool cose_sign_sig_get_unprotected(cose_sign_t *sign, uint8_t idx, cose_hdr_t *hdr, int32_t key);
-
-/**
  * Internal function to check if the object is a sign1 structure
  *
  * @param   sign        Sign object to check
@@ -272,7 +219,6 @@ static inline bool _is_sign1(cose_sign_t *sign)
 {
     return (sign->flags & COSE_FLAGS_SIGN1);
 }
-
 
 /* Header setters */
 
@@ -307,51 +253,6 @@ static inline void cose_sign_insert_unprot(cose_sign_t *sign, cose_hdr_t *hdr)
 {
     cose_hdr_insert(&sign->hdrs.unprot.c, hdr);
 }
-
-/* Sig header setters */
-
-/**
- * Add a header to a signatures protected bucket
- *
- * @note This function does not protect against setting duplicate keys
- *
- * @param   sign        The sign object to operate on
- * @param   idx         Index number of the signature to operate on
- * @param   hdr         The header to add
- *
- * @return              0 on success
- * @return              Negative when failed
- */
-static inline int cose_sign_sig_insert_prot(cose_sign_t *sign, uint8_t idx, cose_hdr_t *hdr)
-{
-    if (idx >= COSE_SIGNATURES_MAX) {
-        return COSE_ERR_INVALID_PARAM;
-    }
-    cose_hdr_insert(&sign->sigs[idx].hdrs.prot.c, hdr);
-    return COSE_OK;
-}
-
-/**
- * Add a header to a signatures unprotected bucket
- *
- * @note This function does not protect against setting duplicate keys
- *
- * @param   sign        The sign object to operate on
- * @param   idx         Index number of the signature to operate on
- * @param   hdr         The header to add
- *
- * @return              0 on success
- * @return              Negative when failed
- */
-static inline int cose_sign_sig_insert_unprot(cose_sign_t *sign, uint8_t idx, cose_hdr_t *hdr)
-{
-    if (idx >= COSE_SIGNATURES_MAX) {
-        return COSE_ERR_INVALID_PARAM;
-    }
-    cose_hdr_insert(&sign->sigs[idx].hdrs.unprot.c, hdr);
-    return COSE_OK;
-}
-
 
 #endif
 

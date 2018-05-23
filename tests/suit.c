@@ -74,6 +74,7 @@ void test_suit1(void)
 {
     cose_sign_t verify;
     cose_key_t signer;
+    cose_signature_t signature;
     const uint8_t *kid = NULL;
     /* Initialize struct */
     cose_sign_init(&verify, 0);
@@ -90,13 +91,17 @@ void test_suit1(void)
     printf("Decoding: %d\n", decode_success);
     /* Verify with signature slot 0 */
     CU_ASSERT_EQUAL_FATAL(decode_success, 0);
-    int verification = cose_sign_verify(&verify, &signer, 0, buf, sizeof(buf));
+
+    cose_sign_iter_t iter;
+    cose_sign_iter_init(&verify, &iter);
+    CU_ASSERT(cose_sign_iter(&iter, &signature));
+    int verification = cose_sign_verify(&verify, &signature, &signer, buf, sizeof(buf));
     printf("Verification: %d\n", verification);
     CU_ASSERT_EQUAL(verification, 0);
     cose_hdr_t hdr;
     CU_ASSERT(cose_sign_get_protected(&verify, &hdr, COSE_HDR_CONTENT_TYPE));
     CU_ASSERT_EQUAL(hdr.v.value, 42);
-    ssize_t res = cose_sign_get_kid(&verify, 0, &kid);
+    ssize_t res = cose_signature_get_kid(&signature, &kid);
     CU_ASSERT(res);
     CU_ASSERT_EQUAL(memcmp(kid, keyid, sizeof(keyid) - 1), 0);
 }

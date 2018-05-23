@@ -28,6 +28,7 @@
 #include "cose/key.h"
 #include "cose/recipient.h"
 #include "cose/sign.h"
+#include "cose/signature.h"
 
 #endif
 

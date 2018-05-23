@@ -15,6 +15,7 @@
 #include "cose/intern.h"
 #include "cose/key.h"
 #include "cose/sign.h"
+#include "cose/signature.h"
 #include <cbor.h>
 #include <stdint.h>
 #include <string.h>
@@ -25,7 +26,6 @@ static void _sign_sig_cbor(cose_sign_t *sign, cose_signature_t *sig, const char 
 static size_t _sign_sig_encode(cose_sign_t *sign, cose_signature_t *sig, const char *type, uint8_t *buf, size_t buflen);
 static CborError _cbor_unprotected(cose_sign_t *sign, CborEncoder *enc);
 static void _place_cbor_protected(cose_sign_t *sign, CborEncoder *arr);
-static size_t _sig_serialize_protected(const cose_sign_t *sign, const cose_signature_t *sig, uint8_t *buf, size_t buflen);
 
 static void _sign_sig_cbor(cose_sign_t *sign, cose_signature_t *sig, const char *type, CborEncoder *enc)
 {
@@ -42,9 +42,9 @@ static void _sign_sig_cbor(cose_sign_t *sign, cose_signature_t *sig, const char 
     /* Add signer protected headers */
     if (!_is_sign1(sign)) {
         if (cose_flag_isset(sign->flags, COSE_FLAGS_ENCODE)) {
-            size_t slen = _sig_serialize_protected(sign, sig, NULL, 0);
+            size_t slen = cose_signature_serialize_protected(sig, true, NULL, 0);
             cbor_encode_byte_string(&arr, arr.data.ptr, slen);
-            _sig_serialize_protected(sign, sig, arr.data.ptr - slen, slen);
+            cose_signature_serialize_protected(sig, true, arr.data.ptr - slen, slen);
         }
         else {
             cbor_encode_byte_string(&arr, sig->hdrs.prot.b, sig->hdrs.prot_len);
@@ -70,64 +70,17 @@ static size_t _sign_sig_encode(cose_sign_t *sign, cose_signature_t *sig, const c
     return cbor_encoder_get_buffer_size(&enc, buf);
 }
 
-static bool _sig_unprot_to_map(cose_signature_t *sig, CborEncoder *map)
-{
-    cose_key_unprotected_to_map(sig->signer, map);
-    if (cose_hdr_add_to_map(sig->hdrs.unprot.c, map)) {
-        return false;
-    }
-    return true;
-}
-
-static void _sig_prot_to_map(const cose_sign_t *sign, const cose_signature_t *sig, CborEncoder *map)
-{
-    if (cose_flag_isset(sign->flags, COSE_FLAGS_ENCODE)) {
-        cose_key_protected_to_map(sig->signer, map);
-    }
-    cose_hdr_add_to_map(sig->hdrs.prot.c, map);
-}
-
-static CborError _sig_unprot_cbor(cose_signature_t *sig, CborEncoder *enc)
-{
-    CborEncoder map;
-    /* Increment to also contain KID */
-    size_t len = cose_hdr_size(sig->hdrs.unprot.c) + 1;
-    cbor_encoder_create_map(enc, &map, len);
-    CborError res = _sig_unprot_to_map(sig, &map);
-    cbor_encoder_close_container(enc, &map);
-    return res;
-}
-
-static size_t _sig_serialize_protected(const cose_sign_t *sign, const cose_signature_t *sig, uint8_t *buf, size_t buflen)
-{
-    CborEncoder enc, map;
-
-    /* Also contains algo */
-    size_t len = cose_hdr_size(sig->hdrs.prot.c);
-    len += cose_flag_isset(sign->flags, COSE_FLAGS_ENCODE) ? 1 : 0;
-
-    cbor_encoder_init(&enc, buf, buflen, 0);
-    cbor_encoder_create_map(&enc, &map, len);
-    _sig_prot_to_map(sign, sig, &map);
-    cbor_encoder_close_container(&enc, &map);
-
-    if (!buflen) {
-        return cbor_encoder_get_extra_bytes_needed(&enc);
-    }
-    return cbor_encoder_get_buffer_size(&enc, buf);
-}
-
 static CborError _cbor_unprotected(cose_sign_t *sign, CborEncoder *enc)
 {
     CborEncoder map;
     size_t len = cose_hdr_size(sign->hdrs.unprot.c);
     if (_is_sign1(sign)) {
-        len += cose_hdr_size(sign->sigs->hdrs.unprot.c) + 1;
+        len += cose_hdr_size(sign->signatures->hdrs.unprot.c) + 1;
     }
     cbor_encoder_create_map(enc, &map, len);
     cose_hdr_add_to_map(sign->hdrs.unprot.c, &map);
     if (_is_sign1(sign)) {
-        _sig_unprot_to_map(sign->sigs, &map);
+        cose_signature_unprot_to_map(sign->signatures, &map);
     }
     cbor_encoder_close_container(enc, &map);
     return 0;
@@ -138,7 +91,7 @@ static CborError _cbor_protected(cose_sign_t *sign, CborEncoder *enc)
     CborEncoder map;
     size_t len = cose_hdr_size(sign->hdrs.prot.c);
     if (_is_sign1(sign)) {
-        len += cose_hdr_size(sign->sigs->hdrs.prot.c);
+        len += cose_hdr_size(sign->signatures->hdrs.prot.c);
         len += cose_flag_isset(sign->flags, COSE_FLAGS_ENCODE) ? 1 : 0;
     }
     cbor_encoder_create_map(enc, &map, len);
@@ -146,9 +99,9 @@ static CborError _cbor_protected(cose_sign_t *sign, CborEncoder *enc)
     cose_hdr_add_to_map(sign->hdrs.prot.c, &map);
     if (_is_sign1(sign)) {
         if (cose_flag_isset(sign->flags, COSE_FLAGS_ENCODE)) {
-            cose_key_protected_to_map(sign->sigs[0].signer, &map);
+            cose_key_protected_to_map(sign->signatures->signer, &map);
         }
-        cose_hdr_add_to_map(sign->sigs[0].hdrs.prot.c, &map);
+        cose_hdr_add_to_map(sign->signatures->hdrs.prot.c, &map);
     }
     cbor_encoder_close_container(enc, &map);
     return CborNoError;
@@ -179,18 +132,17 @@ static void _place_cbor_protected(cose_sign_t *sign, CborEncoder *arr)
 
 static int _add_signatures(cose_sign_t *sign, CborEncoder *arr)
 {
-    for (int i = 0; i < sign->num_sigs; i++) {
-        cose_signature_t *sig = &(sign->sigs[i]);
+    for (cose_signature_t *sig = sign->signatures; sig; sig = sig->next) {
         if (sig->signature_len) {
             CborEncoder enc_sig;
             /* Construct the array */
             cbor_encoder_create_array(arr, &enc_sig, 3);
 
-            size_t slen = _sig_serialize_protected(sign, sig, NULL, 0);
+            size_t slen = cose_signature_serialize_protected(sig, true, NULL, 0);
             cbor_encode_byte_string(&enc_sig, enc_sig.data.ptr, slen);
-            _sig_serialize_protected(sign, sig, enc_sig.data.ptr - slen, slen);
+            cose_signature_serialize_protected(sig, true, enc_sig.data.ptr - slen, slen);
             /* Add unprotected headers to the signature struct */
-            _sig_unprot_cbor(sig, &enc_sig);
+            cose_signature_unprot_cbor(sig, &enc_sig);
             /* Add signature space */
             cbor_encode_byte_string(&enc_sig, sig->signature, sig->signature_len);
             cbor_encoder_close_container(arr, &enc_sig);
@@ -211,17 +163,11 @@ void cose_sign_set_payload(cose_sign_t *sign, const void *payload, size_t len)
     sign->payload_len = len;
 }
 
-int cose_sign_add_signer(cose_sign_t *sign, const cose_key_t *key)
+void cose_sign_add_signer(cose_sign_t *sign, cose_signature_t *signer, const cose_key_t *key)
 {
-    /* TODO: define status codes */
-    if (sign->num_sigs == COSE_SIGNATURES_MAX) {
-        return COSE_ERR_NOMEM;
-    }
-    /* Convenience pointer */
-    cose_signature_t *sig = &(sign->sigs[sign->num_sigs]);
-    sig->signer = key;
-
-    return sign->num_sigs++;
+    signer->next = sign->signatures;
+    sign->signatures = signer;
+    signer->signer = key;
 }
 
 int cose_sign_generate_signature(cose_sign_t *sign, cose_signature_t *sig, uint8_t *buf, size_t len)
@@ -249,14 +195,17 @@ ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, uint8_t **
 
     sign->flags |= COSE_FLAGS_ENCODE;
 
+    if (!sign->signatures) {
+        return COSE_ERR_INVALID_PARAM;
+    }
     /* Determine if this requires sign or sign1 */
-    if (sign->num_sigs == 1) {
+    if (!sign->signatures->next) {
         sign->flags |= COSE_FLAGS_SIGN1;
     }
 
+
     /* First generate all required signatures */
-    for (int i = 0; i < sign->num_sigs; i++) {
-        cose_signature_t *sig = &(sign->sigs[i]);
+    for (cose_signature_t *sig = sign->signatures; sig; sig = sig->next) {
         /* Start generating the signature */
         int res = cose_sign_generate_signature(sign, sig, buf, len);
         if (res != COSE_OK) {
@@ -291,12 +240,12 @@ ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, uint8_t **
 
     /* Now use the signatures to add to the signature array, still nonsense in the protected headers */
     if (_is_sign1(sign)) {
-        cbor_encode_byte_string(&arr, sign->sigs[0].signature, sign->sigs[0].signature_len);
+        cbor_encode_byte_string(&arr, sign->signatures->signature, sign->signatures->signature_len);
     }
     else {
         /* Create the signature array */
         CborEncoder sigs;
-        cbor_encoder_create_array(&arr, &sigs, sign->num_sigs);
+        cbor_encoder_create_array(&arr, &sigs, cose_signature_num(sign->signatures));
         _add_signatures(sign, &sigs);
         cbor_encoder_close_container(&arr, &sigs);
     }
@@ -367,68 +316,48 @@ int cose_sign_decode(cose_sign_t *sign, const uint8_t *buf, size_t len)
     }
 
     cbor_value_advance(&arr);
-    if (cbor_value_is_array(&arr)) {
-        CborValue cp;
-        cbor_value_enter_container(&arr, &cp);
-        unsigned int i = 0;
-        while (!cbor_value_at_end(&cp)) {
-            CborValue sig;
-            cose_signature_t *psig = &(sign->sigs[i]);
-            if (!cbor_value_is_array(&cp)) {
-                cbor_value_advance(&cp);
-                continue;
-            }
-            if (i >= COSE_SIGNATURES_MAX) {
-                break;
-            }
-            cbor_value_enter_container(&cp, &sig);
-            /* Protected headers */
-            cose_cbor_get_string(&sig, &psig->hdrs.prot.b, &psig->hdrs.prot_len);
-
-            /* Unprotected headers */
-            cbor_value_advance(&sig);
-            psig->hdrs.unprot.b = sig.ptr;
-
-            /* Signature */
-            cbor_value_advance(&sig);
-            psig->hdrs.unprot_len = sig.ptr - psig->hdrs.unprot.b;
-
-            cose_cbor_get_string(&sig, &psig->signature, &psig->signature_len);
-            cbor_value_advance(&sig);
-            cbor_value_leave_container(&cp, &sig);
-            i++;
-        }
-        sign->num_sigs = i;
-    }
-    /* Probably a SIGN1 struct then */
-    else if (cbor_value_is_byte_string(&arr)) {
+    sign->sig = arr.ptr;
+    if (cbor_value_is_byte_string(&arr)) {
         sign->flags |= COSE_FLAGS_SIGN1;
-        cose_signature_t *psig = &(sign->sigs[0]);
-        psig->hdrs.prot.b = NULL;
-        psig->hdrs.prot_len = 0;
-        psig->hdrs.unprot.b = NULL;
-        psig->hdrs.unprot_len = 0;
-        cose_cbor_get_string(&arr, &psig->signature, &psig->signature_len);
-        sign->num_sigs = 1;
     }
-    else {
-        return COSE_ERR_INVALID_CBOR;
-    }
+    cbor_value_advance(&arr);
+    sign->sig_len = arr.ptr - sign->sig;
+
     return COSE_OK;
 }
 
-ssize_t cose_sign_get_kid(cose_sign_t *sign, uint8_t idx, const uint8_t **kid)
+void cose_sign_iter_init(cose_sign_t *sign, cose_sign_iter_t *iter)
 {
-    *kid = NULL;
-    if (idx >= COSE_SIGNATURES_MAX) {
-        return COSE_ERR_INVALID_PARAM;
+    iter->sign = sign;
+    cbor_parser_init(sign->sig, sign->sig_len, 0, &iter->p, &iter->it);
+    if (cbor_value_is_array(&iter->it)) {
+        cbor_value_enter_container(&iter->it, &iter->arr);
     }
-    cose_hdr_t hdr;
-    if (cose_hdr_get(&sign->sigs[idx].hdrs, &hdr, COSE_HDR_KID)) {
-        *kid = hdr.v.data;
-        return hdr.len;
+    else {
+        iter->arr = iter->it;
     }
-    return COSE_ERR_NOT_FOUND;
+}
+
+bool cose_sign_iter(cose_sign_iter_t *iter, cose_signature_t *signature)
+{
+    bool res = false;
+    if (!cbor_value_at_end(&iter->arr)) {
+        if (cbor_value_is_byte_string(&iter->it)) {
+            signature->hdrs.prot.b = iter->sign->hdrs.prot.b;
+            signature->hdrs.prot_len = iter->sign->hdrs.prot_len;
+            signature->hdrs.unprot.b = iter->sign->hdrs.unprot.b;
+            signature->hdrs.unprot_len = iter->sign->hdrs.unprot_len;
+            cose_cbor_get_string(&iter->arr, &signature->signature,
+                    &signature->signature_len);
+            res = true;
+        }
+        if (cbor_value_is_array(&iter->it)) {
+            cose_signature_decode(signature, &iter->arr);
+            cbor_value_advance(&iter->arr);
+            res = true;
+        }
+    }
+    return res;
 }
 
 bool cose_sign_get_header(cose_sign_t *sign, cose_hdr_t *hdr, int32_t key)
@@ -446,60 +375,21 @@ bool cose_sign_get_unprotected(cose_sign_t *sign, cose_hdr_t *hdr, int32_t key)
     return cose_hdr_get_unprotected(&sign->hdrs, hdr, key);
 }
 
-bool cose_sign_sig_get_header(cose_sign_t *sign, uint8_t idx, cose_hdr_t *hdr, int32_t key)
-{
-    if (idx >= COSE_SIGNATURES_MAX) {
-        return NULL;
-    }
-    if (_is_sign1(sign) && idx == 0) {
-        return cose_hdr_get(&sign->hdrs, hdr, key);
-    }
-    return cose_hdr_get(&sign->sigs[idx].hdrs, hdr, key);
-}
-
-bool cose_sign_sig_get_protected(cose_sign_t *sign, uint8_t idx, cose_hdr_t *hdr, int32_t key)
-{
-    if (idx >= COSE_SIGNATURES_MAX) {
-        return NULL;
-    }
-    if (_is_sign1(sign) && idx == 0) {
-        return cose_hdr_get_protected(&sign->hdrs, hdr, key);
-    }
-    return cose_hdr_get_protected(&sign->sigs[idx].hdrs, hdr,
-                               key);
-}
-
-bool cose_sign_sig_get_unprotected(cose_sign_t *sign, uint8_t idx, cose_hdr_t *hdr, int32_t key)
-{
-    if (idx >= COSE_SIGNATURES_MAX) {
-        return NULL;
-    }
-    if (_is_sign1(sign) && idx == 0) {
-        return cose_hdr_get_unprotected(&sign->hdrs, hdr, key);
-    }
-    return cose_hdr_get_unprotected(&sign->sigs[idx].hdrs, hdr, key);
-}
-
 /* Try to verify the structure with a signer and a signature idx */
-int cose_sign_verify(cose_sign_t *sign, cose_key_t *key, uint8_t idx, uint8_t *buf, size_t len)
+int cose_sign_verify(cose_sign_t *sign, cose_signature_t *signature, cose_key_t *key, uint8_t *buf, size_t len)
 {
     int res = COSE_OK;
-
-    if (idx >= COSE_SIGNATURES_MAX) {
-        return COSE_ERR_NOMEM;
-    }
-    cose_signature_t *sig = &sign->sigs[idx];
-    const cose_key_t *tmp = sig->signer;
-    sig->signer = key;
-    ssize_t sig_len = _sign_sig_encode(sign, sig,
+    const cose_key_t *tmp = signature->signer;
+    signature->signer = key;
+    ssize_t sig_len = _sign_sig_encode(sign, signature,
                                        _is_sign1(sign) ? SIG_TYPE_SIGNATURE1 : SIG_TYPE_SIGNATURE,
                                        buf, len);
     if (sig_len < 0) {
         return sig_len;
     }
-    if (cose_crypto_verify(key, sig->signature, sig->signature_len, buf, sig_len) < 0) {
+    if (cose_crypto_verify(key, signature->signature, signature->signature_len, buf, sig_len) < 0) {
         res = COSE_ERR_CRYPTO;
     }
-    sig->signer = tmp;
+    signature->signer = tmp;
     return res;
 }
