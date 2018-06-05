@@ -28,4 +28,4 @@ list of features that are supported at the moment by this library
 - [x] Signature per signer headers
 
 - [x] EdDSA based signing and verification
-- [x] ECDSA basedi signing and verification
+- [x] ECDSA based signing and verification

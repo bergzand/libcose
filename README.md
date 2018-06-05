@@ -8,7 +8,7 @@ libcose will never call malloc related calls by itself. However it does
 require a simple block array allocator for cbor management.
 
 Libcose implements modern ed25519 based signatures for signing. ECDSA based
-signing and verification might be implemented at some point. RSA will probably
+signing and verification is implemented using Mbed TLS. RSA will probably
 be skipped.
 
 ### Dependencies:
