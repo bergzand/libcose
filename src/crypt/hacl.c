@@ -60,7 +60,7 @@ int cose_crypto_aead_decrypt_chachapoly(uint8_t *msg,
     return res;
 }
 
-ssize_t cose_crypto_keygen_chachapoly(uint8_t *sk, size_t len)
+COSE_ssize_t cose_crypto_keygen_chachapoly(uint8_t *sk, size_t len)
 {
     if (len < COSE_CRYPTO_AEAD_CHACHA20POLY1305_KEYBYTES) {
         return COSE_ERR_NOMEM;

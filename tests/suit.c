@@ -101,7 +101,7 @@ void test_suit1(void)
     cose_hdr_t hdr;
     CU_ASSERT(cose_sign_get_protected(&verify, &hdr, COSE_HDR_CONTENT_TYPE));
     CU_ASSERT_EQUAL(hdr.v.value, 42);
-    ssize_t res = cose_signature_get_kid(&signature, &kid);
+    COSE_ssize_t res = cose_signature_get_kid(&signature, &kid);
     CU_ASSERT(res);
     CU_ASSERT_EQUAL(memcmp(kid, keyid, sizeof(keyid) - 1), 0);
 }

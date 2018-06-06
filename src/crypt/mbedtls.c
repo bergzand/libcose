@@ -135,7 +135,7 @@ size_t _hash(cose_algo_t algo, const uint8_t *msg, size_t msglen, uint8_t *hash)
     }
 }
 
-ssize_t cose_crypto_keygen_aesgcm(uint8_t *buf, size_t len, cose_algo_t algo)
+COSE_ssize_t cose_crypto_keygen_aesgcm(uint8_t *buf, size_t len, cose_algo_t algo)
 {
     (void)len;
     switch(algo) {

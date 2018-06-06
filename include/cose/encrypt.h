@@ -29,7 +29,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
 
 /**
  * @name COSE recipient struct
@@ -130,7 +129,7 @@ void cose_encrypt_set_algo(cose_encrypt_t *encrypt, cose_algo_t algo);
  * @return                  Size of the COSE encrypt object
  * @return                  Negative on failure
  */
-ssize_t cose_encrypt_encode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len, uint8_t *nonce, uint8_t **out);
+COSE_ssize_t cose_encrypt_encode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len, uint8_t *nonce, uint8_t **out);
 
 /**
  * cose_encrypt_decode decodes a buffer containing a COSE encrypt object into

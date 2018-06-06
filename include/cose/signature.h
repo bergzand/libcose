@@ -27,7 +27,6 @@
 #include <cbor.h>
 #include <stdint.h>
 #include <string.h>
-#include <unistd.h>
 
 /**
  * @name Signature struct
@@ -66,7 +65,7 @@ size_t cose_signature_num(cose_signature_t *signature);
  * @return              Size of the key ID
  * @return              0 in case of no key ID
  */
-ssize_t cose_signature_get_kid(cose_signature_t *signature, const uint8_t **kid);
+COSE_ssize_t cose_signature_get_kid(cose_signature_t *signature, const uint8_t **kid);
 
 /**
  * Retrieve a header from a signature object by key lookup
