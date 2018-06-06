@@ -81,13 +81,16 @@ static int _get_key_params(mbedtls_ecdsa_context *ctx, const cose_key_t *key)
     mbedtls_mpi_read_binary( &pt->X, key->x, MBEDTLS_ECP_MAX_BYTES);
     mbedtls_mpi_read_binary( &pt->Y, key->y, MBEDTLS_ECP_MAX_BYTES);
     mbedtls_mpi_lset( &pt->Z, 1 );
-    mbedtls_mpi_read_binary( &ctx->d, key->d, MBEDTLS_ECP_MAX_BYTES);
-
-    if (mbedtls_ecp_check_privkey( &ctx->grp, &ctx->d ) != 0 ) {
-        return COSE_ERR_INVALID_PARAM;
+    if (key->d) {
+        mbedtls_mpi_read_binary( &ctx->d, key->d, MBEDTLS_ECP_MAX_BYTES);
+        if (mbedtls_ecp_check_privkey( &ctx->grp, &ctx->d ) != 0 ) {
+            return COSE_ERR_INVALID_PARAM;
+        }
+        if (mbedtls_ecp_check_pub_priv(ctx, ctx) != 0 ) {
+            return COSE_ERR_INVALID_PARAM;
+        }
     }
-
-    if (mbedtls_ecp_check_pub_priv(ctx, ctx) != 0 ) {
+    if (mbedtls_ecp_check_pubkey(&ctx->grp, pt) != 0 ) {
         return COSE_ERR_INVALID_PARAM;
     }
     return COSE_OK;
