@@ -28,6 +28,10 @@
 #include <stdint.h>
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @name Signature struct
  * @brief Contains signature and headers related to the signatures
@@ -136,5 +140,9 @@ static inline void cose_signature_insert_unprot(cose_signature_t *signature,
 {
     cose_hdr_insert(&signature->hdrs.unprot.c, hdr);
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

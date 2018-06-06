@@ -25,6 +25,10 @@
 
 #include <haclnacl.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @name list of provided algorithms
  *
@@ -47,6 +51,10 @@
 #define COSE_CRYPTO_AEAD_CHACHA20POLY1305_NONCEBYTES 12
 #define COSE_CRYPTO_AEAD_CHACHA20POLY1305_ABYTES 16
 /** @} */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

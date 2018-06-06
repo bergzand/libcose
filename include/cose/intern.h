@@ -12,6 +12,10 @@
 #include <stdio.h>
 #include <cbor.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @defgroup    cose_internal COSE internal convenience functions
  * @ingroup     cose
@@ -58,6 +62,10 @@ static inline bool cose_flag_isset(uint16_t flags, uint16_t flag)
 {
     return flags & flag;
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

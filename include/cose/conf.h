@@ -19,6 +19,10 @@
 #ifndef COSE_CONF_H
 #define COSE_CONF_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef COSE_CBOR_VALIDATION
 #define COSE_CBOR_VALIDATION   CborValidateStrictMode /**< tinycbor validate */
 #endif
@@ -38,6 +42,10 @@
 #ifndef COSE_MSGSIZE_MAX
 #define COSE_MSGSIZE_MAX    512 /**< Maximum payload in a COSE object */
 #endif /* COSE_MSGSIZE_MAX */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 /** @} */

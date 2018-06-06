@@ -22,7 +22,15 @@
 
 #include <cbor.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int cose_cbor_get_string(const CborValue *it, const uint8_t **buf, size_t *len);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

@@ -27,6 +27,10 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @name COSE key object
  *
@@ -111,5 +115,10 @@ void cose_key_protected_to_map(const cose_key_t *key, CborEncoder *map);
  * @return          Negative on error
  */
 void cose_key_unprotected_to_map(const cose_key_t *key, CborEncoder *map);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif
 /** @} */
