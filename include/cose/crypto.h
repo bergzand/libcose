@@ -41,6 +41,10 @@
 #include "cose/crypto/hacl.h"
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef int (*cose_crypt_rng)(void *, unsigned char *, size_t);
 void cose_crypt_set_rng(cose_crypt_rng f_rng, void *p_rng);
 
@@ -192,6 +196,10 @@ void cose_crypto_keypair_ecdsa(cose_key_t *key, cose_curve_t curve);
  */
 size_t cose_crypto_sig_size_ed25519(void);
 /** @} */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* COSE_CRYPTO_H */
 

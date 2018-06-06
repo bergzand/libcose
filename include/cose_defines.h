@@ -21,6 +21,10 @@
 #ifndef COSE_DEFINES_H
 #define COSE_DEFINES_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define COSE_ssize_t    long int
 
 /**
@@ -172,6 +176,10 @@ typedef enum {
     COSE_ALGO_CHACHA20POLY1305 = 24,    /**< IETF ChaCha20/Poly1305 w/ 256-bit key, 128-bit tag */
 } cose_algo_t;
 /** @} */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

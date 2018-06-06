@@ -27,6 +27,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @name COSE header struct
  *
@@ -184,6 +188,10 @@ static inline bool cose_hdr_get(cose_headers_t *headers, cose_hdr_t *hdr,
     }
     return false;
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 /** @} */

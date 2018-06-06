@@ -25,6 +25,10 @@
 #include "cose/hdr.h"
 #include "cose/key.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum {
     TEST
 } cose_recp_type_t;
@@ -46,6 +50,11 @@ struct cose_recp {
 int cose_recp_encrypt_to_map(cose_recp_t *recps, size_t num_recps,
                                   const uint8_t *cek, size_t ceklen,
                                   CborEncoder *enc);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif
 
 /** @} */

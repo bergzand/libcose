@@ -26,6 +26,10 @@
 #include "cose/key.h"
 #include "cose/signature.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @name COSE sign,
  * https://tools.ietf.org/html/rfc8152#section-4
@@ -253,6 +257,10 @@ static inline void cose_sign_insert_unprot(cose_sign_t *sign, cose_hdr_t *hdr)
 {
     cose_hdr_insert(&sign->hdrs.unprot.c, hdr);
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

@@ -25,6 +25,10 @@
 
 #include <tweetnacl.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @name list of provided algorithms
  *
@@ -42,6 +46,10 @@
 #define COSE_CRYPTO_SIGN_ED25519_PUBLICKEYBYTES crypto_sign_PUBLICKEYBYTES
 #define COSE_CRYPTO_SIGN_ED25519_SECRETKEYBYTES crypto_sign_SECRETKEYBYTES
 #define COSE_CRYPTO_SIGN_ED25519_SIGNBYTES crypto_sign_BYTES
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

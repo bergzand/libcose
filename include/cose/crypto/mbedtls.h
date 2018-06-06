@@ -25,6 +25,10 @@
 
 #include <mbedtls/ecp.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @name list of provided algorithms
  *
@@ -61,6 +65,11 @@
 #define COSE_CRYPTO_AEAD_AES256GCM_KEYBYTES     32
 #define COSE_CRYPTO_AEAD_AES256GCM_NONCEBYTES   COSE_CRYPTO_AEAD_AESGCM_NONCEBYTES
 #define COSE_CRYPTO_AEAD_AES256GCM_ABYTES       COSE_CRYPTO_AEAD_AESGCM_ABYTES
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif
 
 /** @} */

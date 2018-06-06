@@ -30,6 +30,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @name COSE recipient struct
  *
@@ -157,6 +161,11 @@ int cose_encrypt_decode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len);
  * @return                  COSE_OK on successful verification and decryption
  */
 int cose_encrypt_decrypt(cose_encrypt_t *encrypt, cose_key_t *key, unsigned idx, uint8_t *buf, size_t len, uint8_t *payload, size_t *payload_len);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif
 
 /** @} */
