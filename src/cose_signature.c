@@ -17,7 +17,6 @@
 #include <cbor.h>
 #include <stdint.h>
 #include <string.h>
-#include <unistd.h>
 
 bool cose_signature_unprot_to_map(cose_signature_t *sig,
         CborEncoder *map)
@@ -114,7 +113,7 @@ size_t cose_signature_num(cose_signature_t *signature)
     return res;
 }
 
-ssize_t cose_signature_get_kid(cose_signature_t *signature, const uint8_t **kid)
+COSE_ssize_t cose_signature_get_kid(cose_signature_t *signature, const uint8_t **kid)
 {
     *kid = NULL;
     cose_hdr_t hdr;

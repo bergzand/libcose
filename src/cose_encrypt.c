@@ -123,15 +123,15 @@ static size_t _encrypt_unprot_cbor(cose_encrypt_t *encrypt, CborEncoder *enc)
     return 0;
 }
 
-ssize_t cose_encrypt_build_enc(cose_encrypt_t *encrypt, uint8_t *buf, size_t len)
+COSE_ssize_t cose_encrypt_build_enc(cose_encrypt_t *encrypt, uint8_t *buf, size_t len)
 {
     CborEncoder enc;
     cbor_encoder_init(&enc, buf, len, 0);
     _encrypt_build_cbor_enc(encrypt, &enc);
     if (!len) {
-        return (ssize_t)cbor_encoder_get_extra_bytes_needed(&enc);
+        return (COSE_ssize_t)cbor_encoder_get_extra_bytes_needed(&enc);
     }
-    return (ssize_t)cbor_encoder_get_buffer_size(&enc, buf);
+    return (COSE_ssize_t)cbor_encoder_get_buffer_size(&enc, buf);
 }
 
 cose_algo_t cose_encrypt_get_algo(const cose_encrypt_t *encrypt)
@@ -153,23 +153,23 @@ cose_algo_t cose_encrypt_get_algo(const cose_encrypt_t *encrypt)
     return encrypt->algo == COSE_ALGO_DIRECT ? res : encrypt->algo;
 }
 
-static ssize_t _encrypt_build_aad(cose_encrypt_t *encrypt, uint8_t *buf, size_t len)
+static COSE_ssize_t _encrypt_build_aad(cose_encrypt_t *encrypt, uint8_t *buf, size_t len)
 {
-    ssize_t enc_size = cose_encrypt_build_enc(encrypt, buf, len);
+    COSE_ssize_t enc_size = cose_encrypt_build_enc(encrypt, buf, len);
     if (enc_size < 0) {
         return enc_size;
     }
     return enc_size;
 }
 
-static ssize_t _encrypt_payload(cose_encrypt_t *encrypt, uint8_t *buf, size_t len, uint8_t *nonce, uint8_t **out)
+static COSE_ssize_t _encrypt_payload(cose_encrypt_t *encrypt, uint8_t *buf, size_t len, uint8_t *nonce, uint8_t **out)
 {
     cose_algo_t algo = cose_encrypt_get_algo(encrypt);
     encrypt->nonce = nonce;
     if (cose_crypto_is_aead(algo)) {
         /* Protected enc structure with nonsense protected headers */
         uint8_t *encp = buf;
-        ssize_t enc_size = _encrypt_build_aad(encrypt, encp, len);
+        COSE_ssize_t enc_size = _encrypt_build_aad(encrypt, encp, len);
         if (enc_size < 0) {
             return enc_size;
         }
@@ -213,7 +213,7 @@ int cose_encrypt_add_recipient(cose_encrypt_t *encrypt, const cose_key_t *key)
     return encrypt->num_recps++;
 }
 
-ssize_t cose_encrypt_encode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len, uint8_t *nonce, uint8_t **out)
+COSE_ssize_t cose_encrypt_encode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len, uint8_t *nonce, uint8_t **out)
 {
     /* The buffer here is used to contain dummy data a number of times */
     uint8_t *bufptr = buf;
@@ -232,7 +232,7 @@ ssize_t cose_encrypt_encode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len, u
 
     /* Build ciphertext */
     uint8_t *cipherpos = 0;
-    ssize_t cipherlen = _encrypt_payload(encrypt, buf, len - (bufptr - buf), nonce, &cipherpos);
+    COSE_ssize_t cipherlen = _encrypt_payload(encrypt, buf, len - (bufptr - buf), nonce, &cipherpos);
     if (cipherlen < 0) {
         return cipherlen;
     }
@@ -399,7 +399,7 @@ int cose_encrypt_decrypt(cose_encrypt_t *encrypt, cose_key_t *key, unsigned idx,
     }
     cose_recp_t *recp = &encrypt->recps[idx];
     (void)recp;
-    ssize_t aad_len = cose_encrypt_build_enc(encrypt, buf, len);
+    COSE_ssize_t aad_len = cose_encrypt_build_enc(encrypt, buf, len);
     if (aad_len < 0) {
        return aad_len;
     }

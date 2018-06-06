@@ -19,7 +19,6 @@
 #include <cbor.h>
 #include <stdint.h>
 #include <string.h>
-#include <unistd.h>
 
 static size_t _serialize_cbor_protected(cose_sign_t *sign, uint8_t *buf, size_t buflen);
 static void _sign_sig_cbor(cose_sign_t *sign, cose_signature_t *sig, const char *type, CborEncoder *enc);
@@ -188,7 +187,7 @@ int cose_sign_generate_signature(cose_sign_t *sign, cose_signature_t *sig, uint8
     return res;
 }
 
-ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, uint8_t **out)
+COSE_ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, uint8_t **out)
 {
     /* The buffer here is used to contain dummy data a number of times */
     CborEncoder enc, arr;
@@ -381,7 +380,7 @@ int cose_sign_verify(cose_sign_t *sign, cose_signature_t *signature, cose_key_t 
     int res = COSE_OK;
     const cose_key_t *tmp = signature->signer;
     signature->signer = key;
-    ssize_t sig_len = _sign_sig_encode(sign, signature,
+    COSE_ssize_t sig_len = _sign_sig_encode(sign, signature,
                                        _is_sign1(sign) ? SIG_TYPE_SIGNATURE1 : SIG_TYPE_SIGNATURE,
                                        buf, len);
     if (sig_len < 0) {

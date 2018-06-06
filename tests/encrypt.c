@@ -57,7 +57,7 @@ void test_encrypt1(void)
     cose_encrypt_add_recipient(&crypt, &key);
     cose_encrypt_set_payload(&crypt, payload, sizeof(payload)-1);
     cose_encrypt_set_algo(&crypt, COSE_ALGO_DIRECT);
-    ssize_t len = cose_encrypt_encode(&crypt, buf, sizeof(buf), nonce, &out);
+    COSE_ssize_t len = cose_encrypt_encode(&crypt, buf, sizeof(buf), nonce, &out);
     if (len > 0) {
         print_bytestr(out, len);
         printf("\n");

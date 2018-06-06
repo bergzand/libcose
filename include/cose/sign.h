@@ -137,7 +137,7 @@ void cose_sign_add_signer(cose_sign_t *sign, cose_signature_t *signer, const cos
  * @return          The number of bytes written
  * @return          Negative on error
  */
-ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, uint8_t **out);
+COSE_ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, uint8_t **out);
 
 /**
  * cose_sign_decode parses a buffer to a cose sign struct. This buffer can

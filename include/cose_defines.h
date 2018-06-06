@@ -21,6 +21,8 @@
 #ifndef COSE_DEFINES_H
 #define COSE_DEFINES_H
 
+#define COSE_ssize_t    long int
+
 /**
  * @name COSE error codes
  * @{

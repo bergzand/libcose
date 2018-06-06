@@ -56,13 +56,13 @@ int cose_crypto_aead_decrypt_chachapoly(uint8_t *msg,
     return res;
 }
 
-ssize_t cose_crypto_keygen_chachapoly(uint8_t *sk, size_t len)
+COSE_ssize_t cose_crypto_keygen_chachapoly(uint8_t *sk, size_t len)
 {
     if (len < crypto_aead_chacha20poly1305_ietf_KEYBYTES) {
         return COSE_ERR_NOMEM;
     }
     crypto_aead_chacha20poly1305_ietf_keygen((unsigned char*)sk);
-    return (ssize_t)crypto_aead_chacha20poly1305_ietf_KEYBYTES;
+    return (COSE_ssize_t)crypto_aead_chacha20poly1305_ietf_KEYBYTES;
 }
 
 size_t cose_crypto_aead_nonce_chachapoly(uint8_t *nonce, size_t len)

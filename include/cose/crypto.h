@@ -28,7 +28,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <unistd.h>
 
 #ifdef CRYPTO_SODIUM
 #include "cose/crypto/sodium.h"
@@ -55,7 +54,7 @@ void cose_crypt_set_rng(cose_crypt_rng f_rng, void *p_rng);
  * @return                  Size of the generated key
  * @return                  Negative on error
  */
-ssize_t cose_crypto_keygen(uint8_t *buf, size_t len, cose_algo_t algo);
+COSE_ssize_t cose_crypto_keygen(uint8_t *buf, size_t len, cose_algo_t algo);
 
 /**
  * @name crypto AEAD functions
@@ -125,10 +124,10 @@ int cose_crypto_aead_decrypt_aesgcm(uint8_t *msg,
 /**
  * Generate a symmetric key for AEAD operations
  */
-ssize_t cose_crypto_keygen_chachapoly(uint8_t *sk, size_t len);
-ssize_t cose_crypto_keygen_aesgcm(uint8_t *buf, size_t len, cose_algo_t algo);
+COSE_ssize_t cose_crypto_keygen_chachapoly(uint8_t *sk, size_t len);
+COSE_ssize_t cose_crypto_keygen_aesgcm(uint8_t *buf, size_t len, cose_algo_t algo);
 size_t cose_crypto_aead_nonce_chachapoly(uint8_t *nonce, size_t len);
-ssize_t cose_crypto_aead_nonce_size(cose_algo_t algo);
+COSE_ssize_t cose_crypto_aead_nonce_size(cose_algo_t algo);
 
 /** @} */
 

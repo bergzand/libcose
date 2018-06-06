@@ -85,7 +85,7 @@ void test_sign1(void)
     cose_sign_add_signer(&sign, &signature, &key);
 
     /* Encode COSE sign object */
-    ssize_t encode_size = cose_sign_encode(&sign, buf, sizeof(buf), &psign);
+    COSE_ssize_t encode_size = cose_sign_encode(&sign, buf, sizeof(buf), &psign);
 
     CU_ASSERT_NOT_EQUAL_FATAL(encode_size, 0);
     printf("Encode size: %ld\n", encode_size);
@@ -229,7 +229,7 @@ void test_sign3(void)
 //        cose_sign_add_signer(&sign, &key);
 //
 //        /* Encode COSE sign object */
-//        ssize_t res = cose_sign_encode(&sign, buf, sizeof(buf), &psign, &ct);
+//        COSE_ssize_t res = cose_sign_encode(&sign, buf, sizeof(buf), &psign, &ct);
 //        CU_ASSERT_EQUAL(cur, 0);
 //        if (cur) {
 //            printf("Mem: Cur: %d, max: %d, total: %d, limit: %d, alloc_lim: %d\n", cur, max, total, cap_limit, alloc_limit);
@@ -304,7 +304,7 @@ void test_sign3(void)
 //        cose_sign_add_signer(&sign, &key);
 //
 //        /* Encode COSE sign object */
-//        ssize_t res = cose_sign_encode(&sign, buf, sizeof(buf), &psign, &ct);
+//        COSE_ssize_t res = cose_sign_encode(&sign, buf, sizeof(buf), &psign, &ct);
 //        CU_ASSERT_EQUAL(cur, 0);
 //        if (res < 0)
 //        {
@@ -378,7 +378,7 @@ void test_sign3(void)
 //        cose_sign_add_signer(&sign, &key2);
 //
 //        /* Encode COSE sign object */
-//        ssize_t res = cose_sign_encode(&sign, buf, sizeof(buf), &psign, &ct);
+//        COSE_ssize_t res = cose_sign_encode(&sign, buf, sizeof(buf), &psign, &ct);
 //        CU_ASSERT_EQUAL(cur, 0);
 //        if (res < 0)
 //        {
