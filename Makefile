@@ -42,6 +42,9 @@ endif
 ifeq ($(CRYPTO), hacl)
 	include $(MK_DIR)/hacl.mk
 endif
+ifeq ($(CRYPTO), c25519)
+	include $(MK_DIR)/c25519.mk
+endif
 
 CFLAGS += $(CFLAGS_CRYPTO)
 LDFLAGS += $(LDFLAGS_CRYPTO)
@@ -53,6 +56,8 @@ TESTS+=$(wildcard $(TEST_DIR)/*.c)
 
 OBJS=$(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(BUILDSRCS))
 OTESTS=$(patsubst %.c,$(OBJ_DIR)/%.o,$(TESTS))
+
+OBJS += $(CRYPTOOBJS)
 
 CFLAGS_TEST += $(shell pkg-config --cflags cunit) $(CFLAGS_COVERAGE)
 LDFLAGS_TEST += -Wl,$(shell pkg-config --libs cunit || echo -lcunit)
