@@ -37,6 +37,8 @@
 #include <tweetnacl.h>
 #elif defined(CRYPTO_MBEDTLS)
 #include "cose/crypto/mbedtls.h"
+#elif defined(CRYPTO_C25519)
+#include "cose/crypto/c25519.h"
 #elif defined(CRYPTO_HACL)
 #include "cose/crypto/hacl.h"
 #endif
