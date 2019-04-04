@@ -3,7 +3,7 @@ TINYCBOR_ROOT ?= $(PWD)/../tinycbor/
 INC_GLOBAL ?= /usr/include
 CRYPTO ?= sodium
 
-CC=gcc
+CC ?= gcc
 RM=rm -rf
 TIDY=clang-tidy
 
