@@ -1,0 +1,71 @@
+container:
+  cpu: 1
+  memory: 128Mb
+
+lint_task:
+  env:
+    TINYCBOR_ROOT: ../tinycbor
+  container:
+    image: silkeh/clang:latest
+  install_script:
+    - apt update
+    - apt install -y pkg-config git libsodium-dev ca-certificates
+    - git clone https://github.com/intel/tinycbor/ ../tinycbor
+  test_script: make clang-tidy
+
+build_task:
+  env:
+    TINYCBOR_ROOT: ../tinycbor
+    MBEDTLS_LIB: /usr/lib/x86_64-linux-gnu/libmbedcrypto.so
+  install_script:
+    - apt update
+    - apt install -y libgcc-6-dev build-essential pkg-config libcunit1-dev wget libsodium-dev libmbedtls-dev ca-certificates
+    - git clone https://github.com/intel/tinycbor/ ../tinycbor
+    - bash -c "cd ../tinycbor && make -j"
+  matrix:
+    - name: clang
+      env:
+        CC: clang
+      container:
+        matrix:
+          image: silkeh/clang:6
+          image: silkeh/clang:7
+    - name: gcc
+      env:
+        CC: gcc
+      container:
+        matrix:
+          image: gcc:7
+          image: gcc:8
+  matrix:
+    - name: sodium
+      env:
+        CRYPTO: sodium
+      crypto_script:
+        - ls -al /usr/include/sodium
+    - name: tweetnacl
+      env:
+        CRYPTO: tweetnacl
+      crypto_script:
+        - git clone https://github.com/RIOT-OS/tweetnacl ../tweetnacl
+        - pwd
+    - name: mbedtls
+      env:
+        CRYPTO: mbedtls
+    - name: hacl
+      env:
+        CRYPTO: hacl
+      crypto_script:
+        - git clone https://github.com/mitls/hacl-c.git ../hacl-c
+        - bash -c "cd ../hacl-c && make -j"
+    - name: c25519
+      env:
+        CRYPTO: c25519
+      crypto_script:
+        - apt install -y unzip
+        - wget https://www.dlbeer.co.nz/downloads/c25519-2017-10-05.zip -O ../c25519.zip
+        - bash -c 'cd .. && unzip c25519.zip' 
+  test_script:
+    - ls -al
+    - pwd
+    - make clean test
