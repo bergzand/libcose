@@ -24,6 +24,7 @@ void cose_crypt_set_rng(cose_crypt_rng f_rng, void *p_rng)
 COSE_ssize_t cose_crypto_keygen(uint8_t *buf, /* NOLINT(readability-non-const-parameter) */
         size_t len, cose_algo_t algo)
 {
+    /* NOLINTNEXTLINE(hicpp-multiway-paths-covered) */
     switch(algo) {
 #ifdef HAVE_ALGO_CHACHA20POLY1305
         case COSE_ALGO_CHACHA20POLY1305:
@@ -44,6 +45,7 @@ COSE_ssize_t cose_crypto_keygen(uint8_t *buf, /* NOLINT(readability-non-const-pa
 
 bool cose_crypto_is_aead(cose_algo_t algo)
 {
+    /* NOLINTNEXTLINE(hicpp-multiway-paths-covered) */
     switch(algo) {
         case COSE_ALGO_CHACHA20POLY1305:
             return true;
@@ -63,6 +65,7 @@ int cose_crypto_aead_encrypt(uint8_t *c,  /* NOLINT(readability-non-const-parame
         const uint8_t *key,
         cose_algo_t algo)
 {
+    /* NOLINTNEXTLINE(hicpp-multiway-paths-covered) */
     switch(algo) {
 #ifdef HAVE_ALGO_CHACHA20POLY1305
         case COSE_ALGO_CHACHA20POLY1305:
@@ -104,6 +107,7 @@ int cose_crypto_aead_decrypt(uint8_t *msg, /* NOLINT(readability-non-const-param
                              const uint8_t *k,
                              cose_algo_t algo)
 {
+    /* NOLINTNEXTLINE(hicpp-multiway-paths-covered) */
     switch(algo) {
 #ifdef HAVE_ALGO_CHACHA20POLY1305
         case COSE_ALGO_CHACHA20POLY1305:
@@ -136,6 +140,7 @@ int cose_crypto_aead_decrypt(uint8_t *msg, /* NOLINT(readability-non-const-param
 
 COSE_ssize_t cose_crypto_aead_nonce_size(cose_algo_t algo)
 {
+    /* NOLINTNEXTLINE(hicpp-multiway-paths-covered) */
     switch(algo) {
 #ifdef HAVE_ALGO_CHACHA20POLY1305
         case COSE_ALGO_CHACHA20POLY1305:
@@ -148,6 +153,7 @@ COSE_ssize_t cose_crypto_aead_nonce_size(cose_algo_t algo)
 
 int cose_crypto_sign(const cose_key_t *key, uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen)
 {
+    /* NOLINTNEXTLINE(hicpp-multiway-paths-covered) */
     switch(key->algo) {
 #ifdef HAVE_ALGO_ECDSA
         case COSE_ALGO_ES256:
@@ -170,6 +176,7 @@ int cose_crypto_sign(const cose_key_t *key, uint8_t *sign, size_t *signlen, uint
 
 int cose_crypto_verify(const cose_key_t *key, const uint8_t *sign, size_t signlen, uint8_t *msg, uint64_t msglen)
 {
+    /* NOLINTNEXTLINE(hicpp-multiway-paths-covered) */
     switch(key->algo) {
 #ifdef HAVE_ALGO_ECDSA
         case COSE_ALGO_ES256:
@@ -192,6 +199,7 @@ int cose_crypto_verify(const cose_key_t *key, const uint8_t *sign, size_t signle
 
 size_t cose_crypto_sig_size(const cose_key_t *key)
 {
+    /* NOLINTNEXTLINE(hicpp-multiway-paths-covered) */
     switch(key->algo) {
 #ifdef HAVE_ALGO_ECDSA
         case COSE_ALGO_ES256:

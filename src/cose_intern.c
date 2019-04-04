@@ -12,11 +12,8 @@
 
 cose_err_t cose_intern_err_translate(CborError err)
 {
-    switch (err) {
-        case CborNoError:
-            return COSE_OK;
-        default:
-            return COSE_ERR_INVALID_CBOR;
+    if (err == CborNoError) {
+        return COSE_OK;
     }
-    return COSE_OK;
+    return COSE_ERR_INVALID_CBOR;
 }

@@ -72,7 +72,8 @@ static bool _encrypt_prot_to_map(const cose_encrypt_t *encrypt, CborEncoder *map
 
 static size_t _encrypt_serialize_protected(const cose_encrypt_t *encrypt, uint8_t *buf, size_t buflen)
 {
-    CborEncoder enc, map;
+    CborEncoder enc;
+    CborEncoder map;
     size_t len = cose_hdr_size(encrypt->hdrs.prot.c);
     if (cose_flag_isset(encrypt->flags, COSE_FLAGS_ENCODE)) {
         if (cose_crypto_is_aead(cose_encrypt_get_algo(encrypt))) {
@@ -240,7 +241,8 @@ COSE_ssize_t cose_encrypt_encode(cose_encrypt_t *encrypt, uint8_t *buf, size_t l
 
     /* Now we have the ciphertext for the structure. Key at encrypt->cek in
      * case we need to encrypt it for recps */
-    CborEncoder enc, arr;
+    CborEncoder enc;
+    CborEncoder arr;
     cbor_encoder_init(&enc, buf, len, 0);
 
     if (!(cose_flag_isset(encrypt->flags, COSE_FLAGS_UNTAGGED))) {
@@ -274,7 +276,8 @@ COSE_ssize_t cose_encrypt_encode(cose_encrypt_t *encrypt, uint8_t *buf, size_t l
 int cose_encrypt_decode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len)
 {
     CborParser p;
-    CborValue it, arr;
+    CborValue it;
+    CborValue arr;
     size_t alen = 0;
 
     CborError err = cbor_parser_init(buf, len, COSE_CBOR_VALIDATION, &p, &it);
@@ -401,7 +404,7 @@ int cose_encrypt_decrypt(cose_encrypt_t *encrypt, cose_key_t *key, unsigned idx,
     (void)recp;
     COSE_ssize_t aad_len = cose_encrypt_build_enc(encrypt, buf, len);
     if (aad_len < 0) {
-       return aad_len;
+       return (int)aad_len;
     }
     cose_hdr_t nonce_hdr;
     if (!cose_hdr_get(&encrypt->hdrs, &nonce_hdr, COSE_HDR_IV)) {
