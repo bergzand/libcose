@@ -13,8 +13,9 @@
 
 #include "cose.h"
 #include "cose/crypto.h"
-#include <sodium/crypto_aead_xchacha20poly1305.h>
+#include <sodium/crypto_aead_chacha20poly1305.h>
 #include <sodium/crypto_sign.h>
+#include <sodium/randombytes.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -61,7 +62,8 @@ COSE_ssize_t cose_crypto_keygen_chachapoly(uint8_t *sk, size_t len)
     if (len < crypto_aead_chacha20poly1305_ietf_KEYBYTES) {
         return COSE_ERR_NOMEM;
     }
-    crypto_aead_chacha20poly1305_ietf_keygen((unsigned char*)sk);
+    randombytes_buf((unsigned char*)sk,
+                    crypto_aead_chacha20poly1305_ietf_KEYBYTES);
     return (COSE_ssize_t)crypto_aead_chacha20poly1305_ietf_KEYBYTES;
 }
 
