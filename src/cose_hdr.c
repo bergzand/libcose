@@ -133,7 +133,8 @@ bool cose_hdr_get_hdr(cose_hdr_t *hdrs, cose_hdr_t *hdr, int32_t key)
 bool cose_hdr_get_cbor(const uint8_t *buf, size_t len, cose_hdr_t *hdr, int32_t key)
 {
     CborParser p;
-    CborValue it, map;
+    CborValue it;
+    CborValue map;
     cbor_parser_init(buf, len, CborValidateStrictMode, &p, &it);
     if (!cbor_value_is_map(&it)) {
         return false;

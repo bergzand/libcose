@@ -50,7 +50,7 @@ static bool _build_recp_direct(cose_recp_t *recp, CborEncoder *arr)
 size_t cose_recp_num_childs(cose_recp_t *recps, size_t num_recps, cose_recp_t *parent)
 {
     size_t num = 0;
-    for (unsigned i = 0; i < num_recps; i++) {
+    for (size_t i = 0; i < num_recps; i++) {
         cose_recp_t *cur_recp = &recps[i];
         if (cur_recp->parent == parent) {
             num++;
@@ -68,7 +68,7 @@ int cose_recp_encrypt_to_map(cose_recp_t *recps, size_t num_recps,
     cbor_encoder_create_array(enc, &arr, num);
     cose_recp_t *parent_recp = NULL;
     /* Iterate over all recipients */
-    for (unsigned i = 0; i < num_recps; i++) {
+    for (size_t i = 0; i < num_recps; i++) {
         cose_recp_t *cur_recp = &recps[i];
         if (cur_recp->parent == parent_recp) {
             /* Current target found */

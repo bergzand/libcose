@@ -20,6 +20,9 @@
 #include <stdint.h>
 #include <string.h>
 
+#define COSE_SIGN_SIG_SIGN1_LEN     4U
+#define COSE_SIGN_SIG_SIGN_LEN      5U
+
 static size_t _serialize_cbor_protected(cose_sign_t *sign, uint8_t *buf, size_t buflen);
 static void _sign_sig_cbor(cose_sign_t *sign, cose_signature_t *sig, const char *type, CborEncoder *enc);
 static size_t _sign_sig_encode(cose_sign_t *sign, cose_signature_t *sig, const char *type, uint8_t *buf, size_t buflen);
@@ -29,7 +32,8 @@ static void _place_cbor_protected(cose_sign_t *sign, CborEncoder *arr);
 static void _sign_sig_cbor(cose_sign_t *sign, cose_signature_t *sig, const char *type, CborEncoder *enc)
 {
     CborEncoder arr;
-    size_t len = _is_sign1(sign) ? 4 : 5;
+    size_t len = _is_sign1(sign) ? COSE_SIGN_SIG_SIGN1_LEN
+                                 : COSE_SIGN_SIG_SIGN_LEN;
     cbor_encoder_create_array(enc, &arr, len);
 
     /* Add type string */
@@ -190,7 +194,8 @@ int cose_sign_generate_signature(cose_sign_t *sign, cose_signature_t *sig, uint8
 COSE_ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, uint8_t **out)
 {
     /* The buffer here is used to contain dummy data a number of times */
-    CborEncoder enc, arr;
+    CborEncoder enc;
+    CborEncoder arr;
 
     sign->flags |= COSE_FLAGS_ENCODE;
 
@@ -266,7 +271,8 @@ COSE_ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, uint8
 int cose_sign_decode(cose_sign_t *sign, const uint8_t *buf, size_t len)
 {
     CborParser p;
-    CborValue it, arr;
+    CborValue it;
+    CborValue arr;
     size_t alen = 0;
     CborError err = cbor_parser_init(buf, len, COSE_CBOR_VALIDATION, &p, &it);
     if (err) {
@@ -384,7 +390,7 @@ int cose_sign_verify(cose_sign_t *sign, cose_signature_t *signature, cose_key_t 
                                        _is_sign1(sign) ? SIG_TYPE_SIGNATURE1 : SIG_TYPE_SIGNATURE,
                                        buf, len);
     if (sig_len < 0) {
-        return sig_len;
+        return (int)sig_len;
     }
     if (cose_crypto_verify(key, signature->signature, signature->signature_len, buf, sig_len) < 0) {
         res = COSE_ERR_CRYPTO;

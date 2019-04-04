@@ -49,12 +49,12 @@ typedef enum {
  * @name COSE common flags
  * @{
  */
-#define COSE_FLAGS_EXTDATA   0x8000 /**< Data is carried externally and not included in the COSE object */
-#define COSE_FLAGS_UNTAGGED  0x4000 /**< The COSE object is untagged */
-#define COSE_FLAGS_DECODE    0x0200 /**< The COSE object is used for decoding */
-#define COSE_FLAGS_ENCODE    0x0100 /**< The COSE object is used for encoding */
+#define COSE_FLAGS_EXTDATA   0x8000U /**< Data is carried externally and not included in the COSE object */
+#define COSE_FLAGS_UNTAGGED  0x4000U /**< The COSE object is untagged */
+#define COSE_FLAGS_DECODE    0x0200U /**< The COSE object is used for decoding */
+#define COSE_FLAGS_ENCODE    0x0100U /**< The COSE object is used for encoding */
 
-#define COSE_FLAGS_SIGN1     0x0001 /**< The COSE sign structure is a SIGN1 object */
+#define COSE_FLAGS_SIGN1     0x0001U /**< The COSE sign structure is a SIGN1 object */
 /** @} */
 
 /**
@@ -90,9 +90,9 @@ typedef enum {
  * @name COSE header flags
  * @{
  */
-#define COSE_HDR_FLAGS_PROTECTED    0x01 /**< Header is in the protected bucket
-                                          *   or in the unprotected if not set */
-#define COSE_HDR_FLAGS_UNPROTECTED  0x00 /**< Header is in the unprotected bucket */
+#define COSE_HDR_FLAGS_PROTECTED    0x01U /**< Header is in the protected bucket
+                                           *   or in the unprotected if not set */
+#define COSE_HDR_FLAGS_UNPROTECTED  0x00U /**< Header is in the unprotected bucket */
 /** @} */
 
 /**

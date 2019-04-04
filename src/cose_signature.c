@@ -52,7 +52,8 @@ void cose_signature_prot_to_map(const cose_signature_t *sig,
 size_t cose_signature_serialize_protected(const cose_signature_t *sig,
         bool encode, uint8_t *buf, size_t buflen)
 {
-    CborEncoder enc, map;
+    CborEncoder enc;
+    CborEncoder map;
 
     /* Also contains algo */
     size_t len = cose_hdr_size(sig->hdrs.prot.c);
