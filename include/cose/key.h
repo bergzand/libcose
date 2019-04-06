@@ -23,7 +23,7 @@
 #define COSE_SIGNER_H
 
 #include "cose_defines.h"
-#include <cbor.h>
+#include <nanocbor/nanocbor.h>
 #include <stdlib.h>
 #include <stdint.h>
 
@@ -103,7 +103,7 @@ void cose_key_set_kid(cose_key_t *key, uint8_t *kid, size_t len);
  * @return          0 on success
  * @return          Negative on error
  */
-void cose_key_protected_to_map(const cose_key_t *key, CborEncoder *map);
+void cose_key_protected_to_map(const cose_key_t *key, nanocbor_encoder_t *map);
 
 /**
  * Add the unprotected header information to the provided CBOR map
@@ -114,7 +114,7 @@ void cose_key_protected_to_map(const cose_key_t *key, CborEncoder *map);
  * @return          0 on success
  * @return          Negative on error
  */
-void cose_key_unprotected_to_map(const cose_key_t *key, CborEncoder *map);
+void cose_key_unprotected_to_map(const cose_key_t *key, nanocbor_encoder_t *map);
 
 #ifdef __cplusplus
 }

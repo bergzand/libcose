@@ -22,7 +22,6 @@
 #ifndef COSE_ENCRYPT_H
 #define COSE_ENCRYPT_H
 
-#include <cbor.h>
 #include "cose_defines.h"
 #include "cose/hdr.h"
 #include "cose/recipient.h"

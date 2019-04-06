@@ -49,7 +49,7 @@ struct cose_recp {
 
 int cose_recp_encrypt_to_map(cose_recp_t *recps, size_t num_recps,
                                   const uint8_t *cek, size_t ceklen,
-                                  CborEncoder *enc);
+                                  nanocbor_encoder_t *enc);
 
 #ifdef __cplusplus
 }

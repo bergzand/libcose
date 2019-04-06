@@ -8,7 +8,7 @@
  */
 #include "cose.h"
 #include "cose/intern.h"
-#include <cbor.h>
+#include <nanocbor/nanocbor.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -52,14 +52,14 @@ void cose_key_set_kid(cose_key_t *key, uint8_t *kid, size_t len)
     key->kid_len = len;
 }
 
-void cose_key_protected_to_map(const cose_key_t *key, CborEncoder *map)
+void cose_key_protected_to_map(const cose_key_t *key, nanocbor_encoder_t *map)
 {
-    cbor_encode_int(map, COSE_HDR_ALG);
-    cbor_encode_int(map, key->algo);
+    nanocbor_fmt_int(map, COSE_HDR_ALG);
+    nanocbor_fmt_int(map, key->algo);
 }
 
-void cose_key_unprotected_to_map(const cose_key_t *key, CborEncoder *map)
+void cose_key_unprotected_to_map(const cose_key_t *key, nanocbor_encoder_t *map)
 {
-    cbor_encode_int(map, COSE_HDR_KID);
-    cbor_encode_byte_string(map, key->kid, key->kid_len);
+    nanocbor_fmt_int(map, COSE_HDR_KID);
+    nanocbor_put_bstr(map, key->kid, key->kid_len);
 }

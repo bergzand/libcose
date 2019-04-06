@@ -10,7 +10,6 @@
 #define COSE_INTERN_H
 
 #include <stdio.h>
-#include <cbor.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,15 +26,6 @@ extern "C" {
  *
  * @author      Koen Zandberg <koen@bergzand.net>
  */
-
-/**
- * Translate a tinycbor error to a COSE error
- *
- * @param   err     tinycbor error
- *
- * @return          COSE error
- */
-cose_err_t cose_intern_err_translate(CborError err);
 
 /**
  * Debugging convenience function for printing byte strings as hex
