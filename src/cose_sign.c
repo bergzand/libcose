@@ -151,6 +151,13 @@ void cose_sign_set_payload(cose_sign_t *sign, const void *payload, size_t len)
     sign->payload_len = len;
 }
 
+void cose_sign_get_payload(cose_sign_t *sign, const uint8_t **payload,
+                           size_t *len)
+{
+    *payload = (const uint8_t*)sign->payload;
+    *len = sign->payload_len;
+}
+
 void cose_sign_add_signer(cose_sign_t *sign, cose_signature_t *signer, const cose_key_t *key)
 {
     signer->next = sign->signatures;

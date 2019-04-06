@@ -102,6 +102,17 @@ void cose_sign_init(cose_sign_t *sign, uint16_t flags);
 void cose_sign_set_payload(cose_sign_t *sign, const void *payload, size_t len);
 
 /**
+ * cose_sign_get_payload retrieves the pointer and length of the payload from
+ * the COSE sign struct
+ *
+ * @param sign      Sign struct to retrieve the payload from
+ * @param payload   The pointer to the payload
+ * @param len       The length of the payload in bytes
+ */
+void cose_sign_get_payload(cose_sign_t *sign, const uint8_t **payload,
+                           size_t *len);
+
+/**
  * cose_sign_set_external_aad adds a reference to the external data that
  * should be authenticated.
  *
