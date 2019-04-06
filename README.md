@@ -13,7 +13,7 @@ be skipped.
 
 ### Dependencies:
 
-- [tinycbor]
+- [NanoCBOR]
 - Either [TweetNaCl], [HACL-C], [libsodium] or [mbed TLS] as crypto library
 
 ### Building
@@ -30,7 +30,8 @@ versions after v0.3.x libcose depends on tinycbor instead of cn-cbor.
 ### Testing
 
 libcose is supplied with a test suite covering most cases. Testing requires
-CUnit as test framework. Running al tests is done with
+CUnit as test framework and [tinycbor] as additional CBOR library.
+Running al tests is done with:
 
 ```
 make test
@@ -52,6 +53,7 @@ compile time defined. This includes the number of headers and the number
 signatures that are allowed in a single signature structure.
 
 [COSE]: https://tools.ietf.org/html/rfc8152
+[NanoCBOR]: https://github.com/bergzand/NanoCBOR
 [tinycbor]: https://github.com/intel/tinycbor
 [TweetNaCl]: https://tweetnacl.cr.yp.to/
 [libsodium]: https://github.com/jedisct1/libsodium
