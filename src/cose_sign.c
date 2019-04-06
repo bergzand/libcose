@@ -219,7 +219,7 @@ COSE_ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, uint8
 
     /* Create payload */
     if (cose_flag_isset(sign->flags, COSE_FLAGS_EXTDATA)) {
-        nanocbor_put_bstr(&enc, NULL, 0);
+        nanocbor_fmt_null(&enc);
     }
     else {
         nanocbor_put_bstr(&enc, sign->payload, sign->payload_len);
@@ -279,12 +279,15 @@ int cose_sign_decode(cose_sign_t *sign, const uint8_t *buf, size_t len)
 
     sign->hdrs.unprot_len = arr.start - sign->hdrs.unprot.b;
 
-    nanocbor_get_bstr(&arr, (const uint8_t **)&sign->payload, &sign->payload_len);
-
-    if (!sign->payload_len) {
+    if (nanocbor_get_null(&arr) >= 0) {
         /* Zero payload length, thus external payload */
         sign->flags |= COSE_FLAGS_EXTDATA;
         sign->payload = NULL;
+        sign->payload_len = 0;
+    }
+    else if (nanocbor_get_bstr(&arr, (const uint8_t **)&sign->payload,
+                               &sign->payload_len) < 0) {
+        return COSE_ERR_INVALID_CBOR;
     }
 
     sign->sig = arr.start;
