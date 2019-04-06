@@ -12,8 +12,8 @@
 #include <string.h>
 #include "cose/hdr.h"
 #include "cose/test.h"
+#include "cose_defines.h"
 #include <cbor.h>
-#include <cose/cbor.h>
 #include <nanocbor/nanocbor.h>
 #include <CUnit/CUnit.h>
 
@@ -21,6 +21,18 @@
 
 #define BUF_SIZE    128
 static uint8_t buf[BUF_SIZE];
+
+static int cose_cbor_get_string(const CborValue *it, const uint8_t **cbuf, size_t *len)
+{
+    if (!(cbor_value_is_text_string(it) || cbor_value_is_byte_string(it) || cbor_value_is_length_known(it))) {
+         return COSE_ERR_INVALID_CBOR;
+    }
+    CborValue next = *it;
+    cbor_value_get_string_length(it, len);
+    cbor_value_advance(&next);
+    *cbuf = next.ptr - *len;
+    return COSE_OK;
+}
 
 void test_hdr1(void)
 {

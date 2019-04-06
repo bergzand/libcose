@@ -8,12 +8,12 @@
  */
 
 #include "cose.h"
-#include "cose/cbor.h"
 #include "cose/crypto.h"
 #include "cose/encrypt.h"
 #include "cose/intern.h"
 #include <stdint.h>
 #include <string.h>
+
 static void _place_cbor_protected(cose_encrypt_t *encrypt, nanocbor_encoder_t *arr);
 static size_t _encrypt_serialize_protected(const cose_encrypt_t *encrypt, uint8_t *buf, size_t buflen);
 

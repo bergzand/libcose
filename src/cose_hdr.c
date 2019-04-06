@@ -8,9 +8,9 @@
  */
 
 #include "cose_defines.h"
-#include "cose/cbor.h"
 #include "cose/hdr.h"
 #include <nanocbor/nanocbor.h>
+#include <string.h>
 
 /* Appends the header the given cbor map */
 int cose_hdr_to_cbor_map(const cose_hdr_t *hdr, nanocbor_encoder_t *map)

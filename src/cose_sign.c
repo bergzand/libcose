@@ -8,7 +8,6 @@
  */
 
 #include "cose_defines.h"
-#include "cose/cbor.h"
 #include "cose/conf.h"
 #include "cose/crypto.h"
 #include "cose/hdr.h"
