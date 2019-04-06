@@ -10,7 +10,7 @@ lint_task:
   install_script:
     - apt update
     - apt install -y pkg-config git libsodium-dev ca-certificates
-    - git clone https://github.com/intel/tinycbor/ ../tinycbor
+    - git clone https://github.com/bergzand/nanocbor/ ../nanocbor
   test_script: make clang-tidy
 
 build_task:
@@ -22,6 +22,8 @@ build_task:
     - apt install -y libgcc-6-dev build-essential pkg-config libcunit1-dev wget libsodium-dev libmbedtls-dev ca-certificates
     - git clone https://github.com/intel/tinycbor/ ../tinycbor
     - bash -c "cd ../tinycbor && make -j"
+    - git clone https://github.com/bergzand/nanocbor/ ../nanocbor
+    - bash -c "cd ../nanocbor && make -j"
   matrix:
     - name: clang
       env:
