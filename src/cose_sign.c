@@ -16,7 +16,7 @@
 #include "cose/key.h"
 #include "cose/sign.h"
 #include "cose/signature.h"
-#include <cbor.h>
+#include <nanocbor/nanocbor.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -24,131 +24,117 @@
 #define COSE_SIGN_SIG_SIGN_LEN      5U
 
 static size_t _serialize_cbor_protected(cose_sign_t *sign, uint8_t *buf, size_t buflen);
-static void _sign_sig_cbor(cose_sign_t *sign, cose_signature_t *sig, const char *type, CborEncoder *enc);
+static void _sign_sig_cbor(cose_sign_t *sign, cose_signature_t *sig, const char *type, nanocbor_encoder_t *enc);
 static size_t _sign_sig_encode(cose_sign_t *sign, cose_signature_t *sig, const char *type, uint8_t *buf, size_t buflen);
-static CborError _cbor_unprotected(cose_sign_t *sign, CborEncoder *enc);
-static void _place_cbor_protected(cose_sign_t *sign, CborEncoder *arr);
+static int _cbor_unprotected(cose_sign_t *sign, nanocbor_encoder_t *enc);
+static void _place_cbor_protected(cose_sign_t *sign, nanocbor_encoder_t *arr);
 
-static void _sign_sig_cbor(cose_sign_t *sign, cose_signature_t *sig, const char *type, CborEncoder *enc)
+static void _sign_sig_cbor(cose_sign_t *sign, cose_signature_t *sig, const char *type, nanocbor_encoder_t *enc)
 {
-    CborEncoder arr;
     size_t len = _is_sign1(sign) ? COSE_SIGN_SIG_SIGN1_LEN
                                  : COSE_SIGN_SIG_SIGN_LEN;
-    cbor_encoder_create_array(enc, &arr, len);
+    nanocbor_fmt_array(enc, len);
 
     /* Add type string */
-    cbor_encode_text_stringz(&arr, type);
+    nanocbor_put_tstr(enc, type);
 
     /* Add body protected headers */
-    _place_cbor_protected(sign, &arr);
+    _place_cbor_protected(sign, enc);
 
     /* Add signer protected headers */
     if (!_is_sign1(sign)) {
         if (cose_flag_isset(sign->flags, COSE_FLAGS_ENCODE)) {
             size_t slen = cose_signature_serialize_protected(sig, true, NULL, 0);
-            cbor_encode_byte_string(&arr, arr.data.ptr, slen);
-            cose_signature_serialize_protected(sig, true, arr.data.ptr - slen, slen);
+            nanocbor_put_bstr(enc, enc->cur, slen);
+            cose_signature_serialize_protected(sig, true, enc->cur - slen, slen);
         }
         else {
-            cbor_encode_byte_string(&arr, sig->hdrs.prot.b, sig->hdrs.prot_len);
+            nanocbor_put_bstr(enc, sig->hdrs.prot.b, sig->hdrs.prot_len);
         }
     }
 
     /* External aad */
-    cbor_encode_byte_string(&arr, sign->ext_aad, sign->ext_aad_len);
+    nanocbor_put_bstr(enc, sign->ext_aad, sign->ext_aad_len);
 
     /* Add payload */
-    cbor_encode_byte_string(&arr, sign->payload, sign->payload_len);
-    cbor_encoder_close_container(enc, &arr);
+    nanocbor_put_bstr(enc, sign->payload, sign->payload_len);
 }
 
 static size_t _sign_sig_encode(cose_sign_t *sign, cose_signature_t *sig, const char *type, uint8_t *buf, size_t buflen)
 {
-    CborEncoder enc;
-    cbor_encoder_init(&enc, buf, buflen, 0);
+    nanocbor_encoder_t enc;
+    nanocbor_encoder_init(&enc, buf, buflen);
     _sign_sig_cbor(sign, sig, type, &enc);
-    if (!buflen) {
-        return cbor_encoder_get_extra_bytes_needed(&enc);
-    }
-    return cbor_encoder_get_buffer_size(&enc, buf);
+    return nanocbor_encoded_len(&enc);
 }
 
-static CborError _cbor_unprotected(cose_sign_t *sign, CborEncoder *enc)
+static int _cbor_unprotected(cose_sign_t *sign, nanocbor_encoder_t *enc)
 {
-    CborEncoder map;
     size_t len = cose_hdr_size(sign->hdrs.unprot.c);
     if (_is_sign1(sign)) {
         len += cose_hdr_size(sign->signatures->hdrs.unprot.c) + 1;
     }
-    cbor_encoder_create_map(enc, &map, len);
-    cose_hdr_add_to_map(sign->hdrs.unprot.c, &map);
+    nanocbor_fmt_map(enc, len);
+    cose_hdr_add_to_map(sign->hdrs.unprot.c, enc);
     if (_is_sign1(sign)) {
-        cose_signature_unprot_to_map(sign->signatures, &map);
+        cose_signature_unprot_to_map(sign->signatures, enc);
     }
-    cbor_encoder_close_container(enc, &map);
     return 0;
 }
 
-static CborError _cbor_protected(cose_sign_t *sign, CborEncoder *enc)
+static int _cbor_protected(cose_sign_t *sign, nanocbor_encoder_t *enc)
 {
-    CborEncoder map;
     size_t len = cose_hdr_size(sign->hdrs.prot.c);
     if (_is_sign1(sign)) {
         len += cose_hdr_size(sign->signatures->hdrs.prot.c);
         len += cose_flag_isset(sign->flags, COSE_FLAGS_ENCODE) ? 1 : 0;
     }
-    cbor_encoder_create_map(enc, &map, len);
+    nanocbor_fmt_map(enc, len);
 
-    cose_hdr_add_to_map(sign->hdrs.prot.c, &map);
+    cose_hdr_add_to_map(sign->hdrs.prot.c, enc);
     if (_is_sign1(sign)) {
         if (cose_flag_isset(sign->flags, COSE_FLAGS_ENCODE)) {
-            cose_key_protected_to_map(sign->signatures->signer, &map);
+            cose_key_protected_to_map(sign->signatures->signer, enc);
         }
-        cose_hdr_add_to_map(sign->signatures->hdrs.prot.c, &map);
+        cose_hdr_add_to_map(sign->signatures->hdrs.prot.c, enc);
     }
-    cbor_encoder_close_container(enc, &map);
-    return CborNoError;
+    return 0;
 }
 
 static size_t _serialize_cbor_protected(cose_sign_t *sign, uint8_t *buf, size_t buflen)
 {
-    CborEncoder enc;
-    cbor_encoder_init(&enc, buf, buflen, 0);
+    nanocbor_encoder_t enc;
+    nanocbor_encoder_init(&enc, buf, buflen);
     _cbor_protected(sign, &enc);
-    if (!buflen) {
-        return cbor_encoder_get_extra_bytes_needed(&enc);
-    }
-    return cbor_encoder_get_buffer_size(&enc, buf);
+    return nanocbor_encoded_len(&enc);
 }
 
-static void _place_cbor_protected(cose_sign_t *sign, CborEncoder *arr)
+static void _place_cbor_protected(cose_sign_t *sign, nanocbor_encoder_t *arr)
 {
     if (cose_flag_isset(sign->flags, COSE_FLAGS_ENCODE)) {
         size_t slen = _serialize_cbor_protected(sign, NULL, 0);
-        cbor_encode_byte_string(arr, arr->data.ptr, slen);
-        _serialize_cbor_protected(sign, arr->data.ptr - slen, slen);
+        nanocbor_put_bstr(arr, arr->cur, slen);
+        _serialize_cbor_protected(sign, arr->cur - slen, slen);
     }
     else {
-        cbor_encode_byte_string(arr, sign->hdrs.prot.b, sign->hdrs.prot_len);
+        nanocbor_put_bstr(arr, sign->hdrs.prot.b, sign->hdrs.prot_len);
     }
 }
 
-static int _add_signatures(cose_sign_t *sign, CborEncoder *arr)
+static int _add_signatures(cose_sign_t *sign, nanocbor_encoder_t *arr)
 {
     for (cose_signature_t *sig = sign->signatures; sig; sig = sig->next) {
         if (sig->signature_len) {
-            CborEncoder enc_sig;
             /* Construct the array */
-            cbor_encoder_create_array(arr, &enc_sig, 3);
+            nanocbor_fmt_array(arr, 3);
 
             size_t slen = cose_signature_serialize_protected(sig, true, NULL, 0);
-            cbor_encode_byte_string(&enc_sig, enc_sig.data.ptr, slen);
-            cose_signature_serialize_protected(sig, true, enc_sig.data.ptr - slen, slen);
+            nanocbor_put_bstr(arr, arr->cur, slen);
+            cose_signature_serialize_protected(sig, true, arr->cur - slen, slen);
             /* Add unprotected headers to the signature struct */
-            cose_signature_unprot_cbor(sig, &enc_sig);
+            cose_signature_unprot_cbor(sig, arr);
             /* Add signature space */
-            cbor_encode_byte_string(&enc_sig, sig->signature, sig->signature_len);
-            cbor_encoder_close_container(arr, &enc_sig);
+            nanocbor_put_bstr(arr, sig->signature, sig->signature_len);
         }
     }
     return COSE_OK;
@@ -194,8 +180,7 @@ int cose_sign_generate_signature(cose_sign_t *sign, cose_signature_t *sig, uint8
 COSE_ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, uint8_t **out)
 {
     /* The buffer here is used to contain dummy data a number of times */
-    CborEncoder enc;
-    CborEncoder arr;
+    nanocbor_encoder_t enc;
 
     sign->flags |= COSE_FLAGS_ENCODE;
 
@@ -206,7 +191,6 @@ COSE_ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, uint8
     if (!sign->signatures->next) {
         sign->flags |= COSE_FLAGS_SIGN1;
     }
-
 
     /* First generate all required signatures */
     for (cose_signature_t *sig = sign->signatures; sig; sig = sig->next) {
@@ -219,50 +203,46 @@ COSE_ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, uint8
         len -= sig->signature_len;
     }
 
-    cbor_encoder_init(&enc, buf, len, 0);
+    nanocbor_encoder_init(&enc, buf, len);
     /* Build tag */
     if (!(cose_flag_isset(sign->flags, COSE_FLAGS_UNTAGGED))) {
-        cbor_encode_tag(&enc,
+        nanocbor_fmt_tag(&enc,
             _is_sign1(sign) ? COSE_SIGN1 : COSE_SIGN);
     }
     /* Create the main array */
-    cbor_encoder_create_array(&enc, &arr, 4);
+    nanocbor_fmt_array(&enc, 4);
 
     /* Create protected body header bstr */
-    _place_cbor_protected(sign, &arr);
+    _place_cbor_protected(sign, &enc);
 
     /* Create unprotected body header map */
-    _cbor_unprotected(sign, &arr);
+    _cbor_unprotected(sign, &enc);
 
     /* Create payload */
     if (cose_flag_isset(sign->flags, COSE_FLAGS_EXTDATA)) {
-        cbor_encode_byte_string(&arr, NULL, 0);
+        nanocbor_put_bstr(&enc, NULL, 0);
     }
     else {
-        cbor_encode_byte_string(&arr, sign->payload, sign->payload_len);
+        nanocbor_put_bstr(&enc, sign->payload, sign->payload_len);
     }
 
     /* Now use the signatures to add to the signature array, still nonsense in the protected headers */
     if (_is_sign1(sign)) {
-        cbor_encode_byte_string(&arr, sign->signatures->signature, sign->signatures->signature_len);
+        nanocbor_put_bstr(&enc, sign->signatures->signature, sign->signatures->signature_len);
     }
     else {
         /* Create the signature array */
-        CborEncoder sigs;
-        cbor_encoder_create_array(&arr, &sigs, cose_signature_num(sign->signatures));
-        _add_signatures(sign, &sigs);
-        cbor_encoder_close_container(&arr, &sigs);
+        nanocbor_fmt_array(&enc, cose_signature_num(sign->signatures));
+        _add_signatures(sign, &enc);
     }
-
-    cbor_encoder_close_container(&enc, &arr);
 
     *out = buf;
     size_t res;
-    if (cbor_encoder_get_extra_bytes_needed(&enc)) {
+    if (nanocbor_encoded_len(&enc) > len) {
         res = COSE_ERR_NOMEM;
     }
     else {
-        res = cbor_encoder_get_buffer_size(&enc, buf);
+        res = nanocbor_encoded_len(&enc);
     }
     return res;
 }
@@ -270,63 +250,50 @@ COSE_ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, uint8
 /* Decode a bytestring to a cose sign struct */
 int cose_sign_decode(cose_sign_t *sign, const uint8_t *buf, size_t len)
 {
-    CborParser p;
-    CborValue it;
-    CborValue arr;
-    size_t alen = 0;
-    CborError err = cbor_parser_init(buf, len, COSE_CBOR_VALIDATION, &p, &it);
-    if (err) {
-        return err;
-    }
+    nanocbor_value_t p;
+    nanocbor_value_t arr;
+
+    nanocbor_decoder_init(&p, buf, len);
     sign->flags |= COSE_FLAGS_DECODE;
 
     /* Check tag values */
-    if (cbor_value_is_tag(&it)) {
-        cbor_value_advance(&it);
+    if (nanocbor_get_type(&p) == NANOCBOR_TYPE_TAG) {
+        nanocbor_skip_simple(&p);
     }
-    if (!cbor_value_is_array(&it))
-    {
-        return COSE_ERR_INVALID_CBOR;
-    }
-    cbor_value_get_array_length(&it, &alen);
-    if (alen != 4) {
+
+    if (nanocbor_enter_array(&p, &arr) < 0 ||
+            nanocbor_container_remaining(&arr) != 4) {
         return COSE_ERR_INVALID_CBOR;
     }
 
-    cbor_value_enter_container(&it, &arr);
-    if (!cbor_value_is_byte_string(&arr)) {
+    if (nanocbor_get_bstr(&arr, &sign->hdrs.prot.b, &sign->hdrs.prot_len) < 0) {
         return COSE_ERR_INVALID_CBOR;
     }
 
-    cose_cbor_get_string(&arr, &sign->hdrs.prot.b, &sign->hdrs.prot_len);
-
-    cbor_value_advance(&arr);
-    if (!cbor_value_is_map(&arr)) {
-        return COSE_ERR_INVALID_CBOR;
-    }
-    sign->hdrs.unprot.b = arr.ptr;
-
-    /* Payload */
-    cbor_value_advance(&arr);
-    sign->hdrs.unprot_len = arr.ptr - sign->hdrs.unprot.b;
-    if (!cbor_value_is_byte_string(&arr)) {
+    if (nanocbor_get_type(&arr) !=  NANOCBOR_TYPE_MAP) {
         return COSE_ERR_INVALID_CBOR;
     }
 
-    cose_cbor_get_string(&arr, (const uint8_t **)&sign->payload, &sign->payload_len);
+    sign->hdrs.unprot.b = arr.start;
+
+    nanocbor_skip(&arr);
+
+    sign->hdrs.unprot_len = arr.start - sign->hdrs.unprot.b;
+
+    nanocbor_get_bstr(&arr, (const uint8_t **)&sign->payload, &sign->payload_len);
+
     if (!sign->payload_len) {
         /* Zero payload length, thus external payload */
         sign->flags |= COSE_FLAGS_EXTDATA;
         sign->payload = NULL;
     }
 
-    cbor_value_advance(&arr);
-    sign->sig = arr.ptr;
-    if (cbor_value_is_byte_string(&arr)) {
+    sign->sig = arr.start;
+    if (nanocbor_get_type(&arr) == NANOCBOR_TYPE_BSTR) {
         sign->flags |= COSE_FLAGS_SIGN1;
     }
-    cbor_value_advance(&arr);
-    sign->sig_len = arr.ptr - sign->sig;
+    nanocbor_skip(&arr);
+    sign->sig_len = arr.start - sign->sig;
 
     return COSE_OK;
 }
@@ -334,11 +301,8 @@ int cose_sign_decode(cose_sign_t *sign, const uint8_t *buf, size_t len)
 void cose_sign_iter_init(cose_sign_t *sign, cose_sign_iter_t *iter)
 {
     iter->sign = sign;
-    cbor_parser_init(sign->sig, sign->sig_len, 0, &iter->p, &iter->it);
-    if (cbor_value_is_array(&iter->it)) {
-        cbor_value_enter_container(&iter->it, &iter->arr);
-    }
-    else {
+    nanocbor_decoder_init(&iter->it, sign->sig, sign->sig_len);
+    if (nanocbor_enter_array(&iter->it, &iter->arr) < 0) {
         iter->arr = iter->it;
     }
 }
@@ -346,20 +310,19 @@ void cose_sign_iter_init(cose_sign_t *sign, cose_sign_iter_t *iter)
 bool cose_sign_iter(cose_sign_iter_t *iter, cose_signature_t *signature)
 {
     bool res = false;
-    if (!cbor_value_at_end(&iter->arr)) {
-        if (cbor_value_is_byte_string(&iter->it)) {
+    if (!nanocbor_at_end(&iter->arr)) {
+        if (nanocbor_get_type(&iter->it) == NANOCBOR_TYPE_BSTR) {
+            /* Sign1 */
             signature->hdrs.prot.b = iter->sign->hdrs.prot.b;
             signature->hdrs.prot_len = iter->sign->hdrs.prot_len;
             signature->hdrs.unprot.b = iter->sign->hdrs.unprot.b;
             signature->hdrs.unprot_len = iter->sign->hdrs.unprot_len;
-            cose_cbor_get_string(&iter->arr, &signature->signature,
+            nanocbor_get_bstr(&iter->arr, &signature->signature,
                     &signature->signature_len);
             res = true;
         }
-        if (cbor_value_is_array(&iter->it)) {
-            cose_signature_decode(signature, &iter->arr);
-            cbor_value_advance(&iter->arr);
-            res = true;
+        else if (nanocbor_get_type(&iter->it) == NANOCBOR_TYPE_ARR) {
+            res = cose_signature_decode(signature, &iter->arr);
         }
     }
     return res;
@@ -398,3 +361,15 @@ int cose_sign_verify(cose_sign_t *sign, cose_signature_t *signature, cose_key_t 
     signature->signer = tmp;
     return res;
 }
+
+int cose_sign_verify_first(cose_sign_t* sign, cose_key_t *key, uint8_t *buf, size_t len)
+{
+    cose_sign_iter_t iter;
+    cose_signature_t signature;
+    cose_sign_iter_init(sign, &iter);
+    if (!cose_sign_iter(&iter, &signature)) {
+        return COSE_ERR_INVALID_CBOR;
+    }
+    return cose_sign_verify(sign, &signature, key, buf, len);
+}
+

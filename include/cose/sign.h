@@ -16,6 +16,9 @@
  * @brief       API definitions for COSE signing objects
  *
  * @author      Koen Zandberg <koen@bergzand.net>
+ *
+ * The functions provided here allow for encoding and decoding COSE sign and
+ * COSE sign1 structures.
  */
 
 #ifndef COSE_SIGN_H
@@ -52,9 +55,8 @@ typedef struct cose_sign {
 
 typedef struct cose_sign_iter {
     cose_sign_t *sign;
-    CborParser p;
-    CborValue it;
-    CborValue arr;
+    nanocbor_value_t it;
+    nanocbor_value_t arr;
 } cose_sign_iter_t;
 
 /**
@@ -156,18 +158,38 @@ COSE_ssize_t cose_sign_encode(cose_sign_t *sign, uint8_t *buf, size_t len, uint8
  */
 int cose_sign_decode(cose_sign_t *sign, const uint8_t *buf, size_t len);
 
-void cose_sign_iter_init(cose_sign_t *sign, cose_sign_iter_t *iter);
-bool cose_sign_iter(cose_sign_iter_t *iter, cose_signature_t *signature);
 /**
- * Verify the idx't signature of the signed data with the supplied signer object
+ * cose_sign_iter_init initializes the iteration structure
+ *
+ * This must be called first before iterating over the signatures
+ *
+ * @param   sign        The sign object to decode from
+ * @param   iter        The iteration context
+ */
+void cose_sign_iter_init(cose_sign_t *sign, cose_sign_iter_t *iter);
+
+/**
+ * cose_sign_iter fills the provided @p signature struct with the contents of
+ * the COSE signatures from the associated sign structure.
+ *
+ * @param   iter        The iteration context
+ * @param   signature   The signature struct to fill
+ *
+ * @return              true when the signature struct is filled
+ * @return              false when there are no more signatures
+ */
+bool cose_sign_iter(cose_sign_iter_t *iter, cose_signature_t *signature);
+
+/**
+ * Verify the signature of the signed data with the supplied signature object
  *
  * The buffer is required as scratch space to build the signature structs in.
  * The buffer must be large enough to contain the headers, payload and the
  * additional authenticated data.
  *
  * @param   sign        The sign object to verify
+ * @param   signature   A signature object belonging to the sign object
  * @param   key         The key to verify with
- * @param   idx         The signature index to verify from the sign object
  * @param   buf         Buffer to write in
  * @param   len         Size of the buffer to write in
  *
@@ -175,6 +197,17 @@ bool cose_sign_iter(cose_sign_iter_t *iter, cose_signature_t *signature);
  * @return              Negative on error
  */
 int cose_sign_verify(cose_sign_t *sign, cose_signature_t *signature, cose_key_t *key, uint8_t *buf, size_t len);
+
+/**
+ * Wrapper function to attempt signature verification with the first signature
+ * in the structure
+ *
+ * @param   sign        The sign object to verify
+ * @param   key         The key to verify with
+ * @param   buf         Buffer to write in
+ * @param   len         Size of the buffer to write in
+ */
+int cose_sign_verify_first(cose_sign_t* sign, cose_key_t *key, uint8_t *buf, size_t len);
 
 /**
  * Retrieve a header from a sign object by key lookup

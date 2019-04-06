@@ -23,7 +23,7 @@
 #define COSE_HDR_H
 
 #include "cose_defines.h"
-#include <cbor.h>
+#include <nanocbor/nanocbor.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -80,7 +80,7 @@ typedef struct {
  *
  * @return          0 on success
  */
-CborError cose_hdr_to_cbor_map(const cose_hdr_t *hdr, CborEncoder *map);
+int cose_hdr_to_cbor_map(const cose_hdr_t *hdr, nanocbor_encoder_t *map);
 
 /**
  * Convert a cbor key value pair from a cbor map to a COSE header struct.
@@ -90,7 +90,7 @@ CborError cose_hdr_to_cbor_map(const cose_hdr_t *hdr, CborEncoder *map);
  *
  * @return          True when succeeded
  */
-bool cose_hdr_from_cbor_map(cose_hdr_t *hdr, const CborValue *key);
+bool cose_hdr_from_cbor_map(cose_hdr_t *hdr, int32_t key, nanocbor_value_t *val);
 
 /**
  * Format header with an integer based value
@@ -129,7 +129,7 @@ void cose_hdr_format_data(cose_hdr_t *hdr, int32_t key, const uint8_t *data,
  *
  * @return          0 on success
  */
-CborError cose_hdr_add_to_map(const cose_hdr_t *hdr, CborEncoder *map);
+int cose_hdr_add_to_map(const cose_hdr_t *hdr, nanocbor_encoder_t *map);
 
 /**
  * Retrieve the size of a list of cose_hdr_t structs

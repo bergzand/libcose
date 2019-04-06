@@ -14,6 +14,7 @@
 #include "cose/test.h"
 #include <cbor.h>
 #include <cose/cbor.h>
+#include <nanocbor/nanocbor.h>
 #include <CUnit/CUnit.h>
 
 #define HDRS_SIZE   4
@@ -26,8 +27,8 @@ void test_hdr1(void)
     int val = 3278;
     int key = 5734;
     CborEncoder enc, map;
-    CborParser p;
-    CborValue it, imap;
+    nanocbor_value_t p;
+    nanocbor_value_t imap;
     cose_hdr_t header;
 
     cbor_encoder_init(&enc, buf, BUF_SIZE, 0);
@@ -37,9 +38,11 @@ void test_hdr1(void)
     cbor_encoder_close_container(&enc, &map);
     size_t len = cbor_encoder_get_buffer_size(&enc, buf);
 
-    cbor_parser_init(buf, len, 0, &p, &it);
-    cbor_value_enter_container(&it, &imap);
-    CU_ASSERT(cose_hdr_from_cbor_map(&header, &imap));
+    nanocbor_decoder_init(&p, buf, len);
+    nanocbor_enter_map(&p, &imap);
+    nanocbor_skip_simple(&imap);
+
+    CU_ASSERT(cose_hdr_from_cbor_map(&header, key, &imap));
     CU_ASSERT_EQUAL(header.key, key);
     CU_ASSERT_EQUAL(header.type, COSE_HDR_TYPE_INT);
     CU_ASSERT_EQUAL(header.v.value, val);
@@ -50,8 +53,8 @@ void test_hdr2(void)
     char str[] = "test string";
     int key = 5734;
     CborEncoder enc, map;
-    CborParser p;
-    CborValue it, imap;
+    nanocbor_value_t p;
+    nanocbor_value_t imap;
     cose_hdr_t header;
 
     cbor_encoder_init(&enc, buf, BUF_SIZE, 0);
@@ -61,10 +64,11 @@ void test_hdr2(void)
     cbor_encoder_close_container(&enc, &map);
     size_t len = cbor_encoder_get_buffer_size(&enc, buf);
 
-    cbor_parser_init(buf, len, 0, &p, &it);
-    cbor_value_enter_container(&it, &imap);
+    nanocbor_decoder_init(&p, buf, len);
+    nanocbor_enter_map(&p, &imap);
+    nanocbor_skip_simple(&imap);
 
-    CU_ASSERT(cose_hdr_from_cbor_map(&header, &imap));
+    CU_ASSERT(cose_hdr_from_cbor_map(&header, key, &imap));
     CU_ASSERT_EQUAL(header.key, key);
     CU_ASSERT_EQUAL(header.type, COSE_HDR_TYPE_TSTR);
     CU_ASSERT_EQUAL(memcmp(str,header.v.str, sizeof(str)), 0);
@@ -75,8 +79,8 @@ void test_hdr3(void)
     uint8_t str[] = "test string";
     int key = -4;
     CborEncoder enc, map;
-    CborParser p;
-    CborValue it, imap;
+    nanocbor_value_t p;
+    nanocbor_value_t imap;
     cose_hdr_t header;
 
     cbor_encoder_init(&enc, buf, BUF_SIZE, 0);
@@ -86,10 +90,11 @@ void test_hdr3(void)
     cbor_encoder_close_container(&enc, &map);
     size_t len = cbor_encoder_get_buffer_size(&enc, buf);
 
-    cbor_parser_init(buf, len, 0, &p, &it);
-    cbor_value_enter_container(&it, &imap);
+    nanocbor_decoder_init(&p, buf, len);
+    nanocbor_enter_map(&p, &imap);
+    nanocbor_skip_simple(&imap);
 
-    CU_ASSERT(cose_hdr_from_cbor_map(&header, &imap));
+    CU_ASSERT(cose_hdr_from_cbor_map(&header, key, &imap));
     CU_ASSERT_EQUAL(header.key, key);
     CU_ASSERT_EQUAL(header.type, COSE_HDR_TYPE_BSTR);
     CU_ASSERT_EQUAL(memcmp(str,header.v.data, sizeof(str)), 0);
@@ -103,15 +108,14 @@ void test_hdr5(void)
         .v = { .value = 32 },
         .len = 0
     };
-    CborEncoder enc, map;
     CborParser p;
     CborValue it, imap;
+    nanocbor_encoder_t enc;
 
-    cbor_encoder_init(&enc, buf, BUF_SIZE, 0);
-    cbor_encoder_create_map(&enc, &map, 1);
-    CU_ASSERT_EQUAL(cose_hdr_to_cbor_map(&header, &map), 0);
-    cbor_encoder_close_container(&enc, &map);
-    size_t len = cbor_encoder_get_buffer_size(&enc, buf);
+    nanocbor_encoder_init(&enc, buf, BUF_SIZE);
+    nanocbor_fmt_map(&enc, 1);
+    CU_ASSERT_EQUAL(cose_hdr_to_cbor_map(&header, &enc), 0);
+    size_t len = nanocbor_encoded_len(&enc);
 
     cbor_parser_init(buf, len, 0, &p, &it);
     cbor_value_enter_container(&it, &imap);
@@ -135,15 +139,14 @@ void test_hdr6(void)
         .v = { .str = input },
         .len = 0
     };
-    CborEncoder enc, map;
     CborParser p;
     CborValue it, imap;
+    nanocbor_encoder_t enc;
 
-    cbor_encoder_init(&enc, buf, BUF_SIZE, 0);
-    cbor_encoder_create_map(&enc, &map, 1);
-    CU_ASSERT_EQUAL(cose_hdr_to_cbor_map(&header, &map), 0);
-    cbor_encoder_close_container(&enc, &map);
-    size_t len = cbor_encoder_get_buffer_size(&enc, buf);
+    nanocbor_encoder_init(&enc, buf, BUF_SIZE);
+    nanocbor_fmt_map(&enc, 1);
+    CU_ASSERT_EQUAL(cose_hdr_to_cbor_map(&header, &enc), 0);
+    size_t len = nanocbor_encoded_len(&enc);
 
     cbor_parser_init(buf, len, 0, &p, &it);
     cbor_value_enter_container(&it, &imap);
@@ -168,15 +171,14 @@ void test_hdr7(void)
         .v = { .data = input },
         .len = 0
     };
-    CborEncoder enc, map;
     CborParser p;
     CborValue it, imap;
+    nanocbor_encoder_t enc;
 
-    cbor_encoder_init(&enc, buf, BUF_SIZE, 0);
-    cbor_encoder_create_map(&enc, &map, 1);
-    CU_ASSERT_EQUAL(cose_hdr_to_cbor_map(&header, &map), 0);
-    cbor_encoder_close_container(&enc, &map);
-    size_t len = cbor_encoder_get_buffer_size(&enc, buf);
+    nanocbor_encoder_init(&enc, buf, BUF_SIZE);
+    nanocbor_fmt_map(&enc, 1);
+    CU_ASSERT_EQUAL(cose_hdr_to_cbor_map(&header, &enc), 0);
+    size_t len = nanocbor_encoded_len(&enc);
 
     cbor_parser_init(buf, len, 0, &p, &it);
     cbor_value_enter_container(&it, &imap);
@@ -190,26 +192,6 @@ void test_hdr7(void)
     CU_ASSERT_EQUAL(cbor_value_is_byte_string(&imap), true);
     cose_cbor_get_string(&imap, &str, &len);
     CU_ASSERT_EQUAL(memcmp(str, header.v.str, len), 0);
-}
-
-void test_hdr9(void)
-{
-    char str[] = "test string";
-    CborEncoder enc, map;
-    CborParser p;
-    CborValue it, imap;
-    cose_hdr_t header;
-
-    cbor_encoder_init(&enc, buf, BUF_SIZE, 0);
-    cbor_encoder_create_map(&enc, &map, 1);
-    cbor_encode_text_stringz(&map, str);
-    cbor_encoder_close_container(&enc, &map);
-    size_t len = cbor_encoder_get_buffer_size(&enc, buf);
-
-    cbor_parser_init(buf, len, 0, &p, &it);
-    cbor_value_enter_container(&it, &imap);
-
-    CU_ASSERT_FALSE(cose_hdr_from_cbor_map(&header, &imap));
 }
 
 const test_t tests_hdr[] = {
@@ -236,10 +218,6 @@ const test_t tests_hdr[] = {
     {
         .f = test_hdr7,
         .n = "header with bytes to CBOR conversion",
-    },
-    {
-        .f = test_hdr9,
-        .n = "Invalid header conversion to CBOR",
     },
     {
         .f = NULL,

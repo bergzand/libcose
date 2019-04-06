@@ -24,7 +24,7 @@
 #include "cose/conf.h"
 #include "cose/hdr.h"
 #include "cose/key.h"
-#include <cbor.h>
+#include <nanocbor/nanocbor.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -54,10 +54,10 @@ static inline void cose_signature_init(cose_signature_t *signature)
 size_t cose_signature_serialize_protected(const cose_signature_t *sig,
  bool encode, uint8_t *buf, size_t buflen);
 bool cose_signature_unprot_to_map(cose_signature_t *sig,
- CborEncoder *map);
-CborError cose_signature_unprot_cbor(cose_signature_t *sig,
-        CborEncoder *enc);
-bool cose_signature_decode(cose_signature_t *signature, CborValue *arr);
+ nanocbor_encoder_t *map);
+int cose_signature_unprot_cbor(cose_signature_t *sig,
+        nanocbor_encoder_t *enc);
+bool cose_signature_decode(cose_signature_t *signature, nanocbor_value_t *arr);
 size_t cose_signature_num(cose_signature_t *signature);
 /**
  * Get the key ID from a signature

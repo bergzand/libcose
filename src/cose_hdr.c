@@ -10,60 +10,52 @@
 #include "cose_defines.h"
 #include "cose/cbor.h"
 #include "cose/hdr.h"
-#include <cbor.h>
+#include <nanocbor/nanocbor.h>
 
 /* Appends the header the given cbor map */
-CborError cose_hdr_to_cbor_map(const cose_hdr_t *hdr, CborEncoder *map)
+int cose_hdr_to_cbor_map(const cose_hdr_t *hdr, nanocbor_encoder_t *map)
 {
-    CborError err = cbor_encode_int(map, hdr->key);
+    int res = 0;
+    nanocbor_fmt_int(map, hdr->key);
     switch (hdr->type) {
         case COSE_HDR_TYPE_INT:
-            err = cbor_encode_int(map, hdr->v.value);
+            nanocbor_fmt_int(map, hdr->v.value);
             break;
         case COSE_HDR_TYPE_TSTR:
-            err = cbor_encode_text_stringz(map, hdr->v.str);
+            nanocbor_put_tstr(map, hdr->v.str);
             break;
         case COSE_HDR_TYPE_BSTR:
-            err = cbor_encode_byte_string(map, hdr->v.data, hdr->len);
+            nanocbor_put_bstr(map, hdr->v.data, hdr->len);
             break;
         case COSE_HDR_TYPE_CBOR:
             /* Not supported */
+            res = -1;
             break;
     }
-    return err;
+    return res;
 }
 
 /* Convert a map key to a cose_hdr struct */
-bool cose_hdr_from_cbor_map(cose_hdr_t *hdr, const CborValue *key)
+bool cose_hdr_from_cbor_map(cose_hdr_t *hdr, int32_t key, nanocbor_value_t *val)
 {
-    CborValue val = *key;
-    if (!cbor_value_is_integer(&val)) {
-        return false;
-    }
-    int64_t value;
-    cbor_value_get_int64(&val, &value);
-    /* TODO: bounds check */
-    hdr->key = (int32_t)value;
-    cbor_value_advance_fixed(&val);
-    switch (cbor_value_get_type(&val)) {
-        case CborIntegerType:
-            {
-                cbor_value_get_int64(&val, &value);
-                hdr->v.value = (int32_t)value;
-                hdr->type = COSE_HDR_TYPE_INT;
-            }
+    hdr->key = key;
+    switch (nanocbor_get_type(val)) {
+        case NANOCBOR_TYPE_NINT:
+        case NANOCBOR_TYPE_UINT:
+            nanocbor_get_int32(val, &hdr->v.value);
+            hdr->type = COSE_HDR_TYPE_INT;
             break;
-        case CborTextStringType:
-            cose_cbor_get_string(&val, (const uint8_t **)&hdr->v.str, &hdr->len);
+        case NANOCBOR_TYPE_TSTR:
+            nanocbor_get_tstr(val, (const uint8_t **)&hdr->v.str, &hdr->len);
             hdr->type = COSE_HDR_TYPE_TSTR;
             break;
-        case CborByteStringType:
-            cose_cbor_get_string(&val, &hdr->v.data, &hdr->len);
+        case NANOCBOR_TYPE_BSTR:
+            nanocbor_get_bstr(val, &hdr->v.data, &hdr->len);
             hdr->type = COSE_HDR_TYPE_BSTR;
             break;
-        case CborArrayType:
-        case CborMapType:
-        case CborTagType:
+        case NANOCBOR_TYPE_ARR:
+        case NANOCBOR_TYPE_MAP:
+        case NANOCBOR_TYPE_TAG:
             /* Todo: copy map */
             hdr->type = COSE_HDR_TYPE_CBOR;
             break;
@@ -101,9 +93,9 @@ void cose_hdr_insert(cose_hdr_t **hdrs, cose_hdr_t *nhdr)
     *hdrs = nhdr;
 }
 
-CborError cose_hdr_add_to_map(const cose_hdr_t *hdr, CborEncoder *map)
+int cose_hdr_add_to_map(const cose_hdr_t *hdr, nanocbor_encoder_t *map)
 {
-    CborError err = 0;
+    int err = 0;
     for (; hdr; hdr = hdr->next) {
         err = cose_hdr_to_cbor_map(hdr, map);
     }
@@ -130,27 +122,26 @@ bool cose_hdr_get_hdr(cose_hdr_t *hdrs, cose_hdr_t *hdr, int32_t key)
     return false;
 }
 
-bool cose_hdr_get_cbor(const uint8_t *buf, size_t len, cose_hdr_t *hdr, int32_t key)
+static bool _hdr_get_cbor(const uint8_t *buf, size_t len, cose_hdr_t *hdr, int32_t key)
 {
-    CborParser p;
-    CborValue it;
-    CborValue map;
-    cbor_parser_init(buf, len, CborValidateStrictMode, &p, &it);
-    if (!cbor_value_is_map(&it)) {
+    nanocbor_value_t it;
+    nanocbor_value_t map;
+    nanocbor_decoder_init(&it, buf, len);
+    if (nanocbor_enter_map(&it, &map) < 0) {
         return false;
     }
-    cbor_value_enter_container(&it, &map);
-    while(!cbor_value_at_end(&map)) {
-        if (cbor_value_is_integer(&map)) {
-            int64_t ckey;
-            cbor_value_get_int64(&map, &ckey);
-            if (ckey == (int64_t)key) {
-                cose_hdr_from_cbor_map(hdr, &map);
+    while(!nanocbor_at_end(&map)) {
+        int32_t ckey;
+        if (nanocbor_get_int32(&map, &ckey) >= 0){
+            if (ckey == key) {
+                cose_hdr_from_cbor_map(hdr, ckey, &map);
                 return true;
             }
+            nanocbor_skip(&map);
         }
-        cbor_value_advance(&map);
-        cbor_value_advance(&map);
+        else {
+            return false;
+        }
     }
     return false;
 }
@@ -161,7 +152,7 @@ bool cose_hdr_get_protected(cose_headers_t *headers, cose_hdr_t *hdr, int32_t ke
     if (headers->prot.c) {
         /* Unprotected header length can't be zero for cbor byte stream */
         if (headers->unprot_len) {
-            res = cose_hdr_get_cbor(headers->prot.b, headers->prot_len, hdr, key);
+            res = _hdr_get_cbor(headers->prot.b, headers->prot_len, hdr, key);
         }
         else {
             res = cose_hdr_get_hdr(headers->prot.c, hdr, key);
@@ -175,7 +166,7 @@ bool cose_hdr_get_unprotected(cose_headers_t *headers, cose_hdr_t *hdr, int32_t 
     bool res = false;
     if (headers->unprot.c) {
         if (headers->unprot_len) {
-            res = cose_hdr_get_cbor(headers->unprot.b, headers->unprot_len, hdr, key);
+            res = _hdr_get_cbor(headers->unprot.b, headers->unprot_len, hdr, key);
         }
         else {
             res = cose_hdr_get_hdr(headers->unprot.c, hdr, key);
