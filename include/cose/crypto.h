@@ -47,6 +47,15 @@
 extern "C" {
 #endif
 
+/**
+ * @name Size definitions
+ * @{
+ */
+#define COSE_CRYPTO_SIGN_ED25519_PUBLICKEYBYTES 32U
+#define COSE_CRYPTO_SIGN_ED25519_SECRETKEYBYTES 32U
+#define COSE_CRYPTO_SIGN_ED25519_SIGNBYTES 64U
+/** @} */
+
 typedef int (*cose_crypt_rng)(void *, unsigned char *, size_t);
 void cose_crypt_set_rng(cose_crypt_rng f_rng, void *p_rng);
 
