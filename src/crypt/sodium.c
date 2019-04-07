@@ -80,8 +80,12 @@ size_t cose_crypto_aead_nonce_chachapoly(uint8_t *nonce, size_t len)
 int cose_crypto_sign_ed25519(const cose_key_t *key, uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen)
 {
     unsigned long long int signature_len = 0;
+    uint8_t skey[crypto_sign_SECRETKEYBYTES];
+    memcpy(skey, key->d, COSE_CRYPTO_SIGN_ED25519_SECRETKEYBYTES);
+    memcpy(skey + COSE_CRYPTO_SIGN_ED25519_SECRETKEYBYTES, key->x,
+            COSE_CRYPTO_SIGN_ED25519_PUBLICKEYBYTES);
 
-    crypto_sign_detached(sign, &signature_len, msg, msglen, (unsigned char *)key->d);
+    crypto_sign_detached(sign, &signature_len, msg, msglen, (unsigned char *)skey);
     *signlen = (size_t)signature_len;
     return COSE_OK;
 }
@@ -94,7 +98,9 @@ int cose_crypto_verify_ed25519(const cose_key_t *key, const uint8_t *sign, size_
 
 void cose_crypto_keypair_ed25519(cose_key_t *key)
 {
-    crypto_sign_keypair(key->x, key->d);
+    uint8_t skey[crypto_sign_SECRETKEYBYTES];
+    crypto_sign_keypair(key->x, skey);
+    memcpy(key->d, skey, COSE_CRYPTO_SIGN_ED25519_SECRETKEYBYTES);
 }
 
 size_t cose_crypto_sig_size_ed25519(void)

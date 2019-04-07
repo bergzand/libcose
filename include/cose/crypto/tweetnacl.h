@@ -38,15 +38,6 @@ extern "C" {
 #define HAVE_ALGO_EDDSA
 /** @} */
 
-/**
- * @name Size definitions
- * @{
- */
-
-#define COSE_CRYPTO_SIGN_ED25519_PUBLICKEYBYTES crypto_sign_PUBLICKEYBYTES
-#define COSE_CRYPTO_SIGN_ED25519_SECRETKEYBYTES crypto_sign_SECRETKEYBYTES
-#define COSE_CRYPTO_SIGN_ED25519_SIGNBYTES crypto_sign_BYTES
-
 #ifdef __cplusplus
 }
 #endif

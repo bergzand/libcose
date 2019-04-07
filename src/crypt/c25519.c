@@ -22,7 +22,7 @@ extern void randombytes(uint8_t *target, uint64_t n);
 int cose_crypto_sign_ed25519(const cose_key_t *key, uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen)
 {
     *signlen = EDSIGN_SIGNATURE_SIZE;
-    edsign_sign(sign, key->d + EDSIGN_SECRET_KEY_SIZE,
+    edsign_sign(sign, key->x,
 		 key->d, msg, msglen);
     return COSE_OK;
 }
@@ -37,7 +37,6 @@ int cose_crypto_verify_ed25519(const cose_key_t *key, const uint8_t *sign, size_
 void cose_crypto_keypair_ed25519(cose_key_t *key)
 {
     randombytes(key->d, EDSIGN_SECRET_KEY_SIZE);
-    edsign_sec_to_pub(key->d + EDSIGN_SECRET_KEY_SIZE, key->d);
     edsign_sec_to_pub(key->x, key->d);
 }
 
