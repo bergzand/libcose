@@ -8,6 +8,7 @@
  */
 
 #include "cose_defines.h"
+#include "cose/common.h"
 #include "cose/conf.h"
 #include "cose/hdr.h"
 #include "cose/intern.h"
@@ -17,11 +18,14 @@
 #include <stdint.h>
 #include <string.h>
 
+/**********************
+ * encoding functions *
+ **********************/
 bool cose_signature_unprot_to_map(cose_signature_t *sig,
         nanocbor_encoder_t *map)
 {
     cose_key_unprotected_to_map(sig->signer, map);
-    if (cose_hdr_add_to_map(sig->hdrs.unprot.c, map)) {
+    if (cose_hdr_encode_to_map(sig->hdrs.unprot, map)) {
         return false;
     }
     return true;
@@ -31,7 +35,7 @@ int cose_signature_unprot_cbor(cose_signature_t *sig,
         nanocbor_encoder_t *enc)
 {
     /* Increment to also contain KID */
-    size_t len = cose_hdr_size(sig->hdrs.unprot.c) + 1;
+    size_t len = cose_hdr_size(sig->hdrs.unprot) + 1;
     nanocbor_fmt_map(enc, len);
     return cose_signature_unprot_to_map(sig, enc);
 }
@@ -42,7 +46,7 @@ void cose_signature_prot_to_map(const cose_signature_t *sig,
     if (encode) {
         cose_key_protected_to_map(sig->signer, map);
     }
-    cose_hdr_add_to_map(sig->hdrs.prot.c, map);
+    cose_hdr_encode_to_map(sig->hdrs.prot, map);
 }
 
 size_t cose_signature_serialize_protected(const cose_signature_t *sig,
@@ -51,7 +55,7 @@ size_t cose_signature_serialize_protected(const cose_signature_t *sig,
     nanocbor_encoder_t enc;
 
     /* Also contains algo */
-    size_t len = cose_hdr_size(sig->hdrs.prot.c);
+    size_t len = cose_hdr_size(sig->hdrs.prot);
     len += encode ? 1 : 0;
 
     nanocbor_encoder_init(&enc, buf, buflen);
@@ -59,25 +63,6 @@ size_t cose_signature_serialize_protected(const cose_signature_t *sig,
     cose_signature_prot_to_map(sig, &enc, encode);
 
     return nanocbor_encoded_len(&enc);
-}
-
-bool cose_signature_decode(cose_signature_t *signature, nanocbor_value_t *arr)
-{
-    nanocbor_value_t sig;
-    nanocbor_enter_array(arr, &sig);
-
-    /* Protected headers */
-    nanocbor_get_bstr(&sig, &signature->hdrs.prot.b, &signature->hdrs.prot_len);
-
-    /* Unprotected headers */
-    signature->hdrs.unprot.b = sig.start;
-
-    /* Signature */
-    nanocbor_skip(&sig);
-    signature->hdrs.unprot_len = sig.start - signature->hdrs.unprot.b;
-    nanocbor_get_bstr(&sig, &signature->signature, &signature->signature_len);
-    nanocbor_leave_container(arr, &sig);
-    return true;
 }
 
 bool cose_signature_get_header(cose_signature_t *signature, cose_hdr_t *hdr, int32_t key)
@@ -105,13 +90,67 @@ size_t cose_signature_num(cose_signature_t *signature)
     return res;
 }
 
-COSE_ssize_t cose_signature_get_kid(cose_signature_t *signature, const uint8_t **kid)
+/**********************
+ * decoding functions *
+ **********************/
+
+void cose_signature_decode_init(cose_signature_dec_t *signature, const uint8_t *buf, size_t len)
+{
+    signature->buf = buf;
+    signature->remaining = len;
+}
+
+int cose_signature_decode_protected(const cose_signature_dec_t *signature,
+                                         cose_hdr_t *hdr, int32_t key)
+{
+    const uint8_t *prot;
+    size_t len = 0;
+    if (cose_cbor_decode_get_prot(signature->buf, signature->remaining, &prot, &len) < 0) {
+        return COSE_ERR_INVALID_CBOR;
+    }
+    if (cose_hdr_decode_from_cbor(prot, len, hdr, key)) {
+        return COSE_OK;
+    }
+    return COSE_ERR_NOT_FOUND;
+}
+int cose_signature_decode_unprotected(const cose_signature_dec_t *signature,
+                                           cose_hdr_t *hdr, int32_t key)
+{
+    const uint8_t *unprot;
+    size_t len = 0;
+    if (cose_cbor_decode_get_unprot(signature->buf, signature->remaining, &unprot, &len) < 0) {
+        return COSE_ERR_INVALID_CBOR;
+    }
+    if (cose_hdr_decode_from_cbor(unprot, len, hdr, key)) {
+        return COSE_OK;
+    }
+    return COSE_ERR_NOT_FOUND;
+}
+
+int cose_signature_decode_signature(const cose_signature_dec_t *signature, const uint8_t **sign, size_t *len)
+{
+    nanocbor_value_t arr;
+    cose_cbor_decode_get_pos(signature->buf, signature->remaining, &arr, 2);
+    if (nanocbor_get_bstr(&arr, sign, len) < 0) {
+        return COSE_ERR_INVALID_CBOR;
+    }
+    return COSE_OK;
+}
+
+COSE_ssize_t cose_signature_decode_kid(const cose_signature_dec_t *signature, const uint8_t **kid)
 {
     *kid = NULL;
     cose_hdr_t hdr;
-    if (cose_hdr_get(&signature->hdrs, &hdr, COSE_HDR_KID)) {
-        *kid = hdr.v.data;
-        return hdr.len;
+    int res = cose_signature_decode_protected(signature, &hdr, COSE_HDR_KID);
+    if (res < 0) {
+        res = cose_signature_decode_unprotected(signature, &hdr, COSE_HDR_KID);
     }
-    return COSE_ERR_NOT_FOUND;
+    if (res < 0) {
+        return res;
+    }
+    if (hdr.type != COSE_HDR_TYPE_BSTR) {
+        return COSE_ERR_INVALID_CBOR;
+    }
+    *kid = hdr.v.data;
+    return hdr.len;
 }

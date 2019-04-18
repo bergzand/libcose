@@ -55,6 +55,7 @@ typedef enum {
 #define COSE_FLAGS_ENCODE    0x0100U /**< The COSE object is used for encoding */
 
 #define COSE_FLAGS_SIGN1     0x0001U /**< The COSE sign structure is a SIGN1 object */
+#define COSE_FLAGS_ENCRYPT0  0x0001U /**< The COSE encrypt structure is a encrypt0 object */
 /** @} */
 
 /**

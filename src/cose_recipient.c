@@ -81,3 +81,59 @@ int cose_recp_encrypt_to_map(cose_recp_t *recps, size_t num_recps,
     return num;
 }
 
+void cose_recp_decode_init(cose_recp_dec_t *recp, const uint8_t *buf, size_t len)
+{
+    recp->buf = buf;
+    recp->len = len;
+}
+
+int cose_recp_decode_protected(const cose_recp_dec_t *recp,
+                                         cose_hdr_t *hdr, int32_t key)
+{
+    const uint8_t *prot;
+    size_t len = 0;
+    if (cose_cbor_decode_get_prot(recp->buf, recp->len, &prot, &len) < 0) {
+        return COSE_ERR_INVALID_CBOR;
+    }
+    if (cose_hdr_decode_from_cbor(prot, len, hdr, key)) {
+        return COSE_OK;
+    }
+    return COSE_ERR_NOT_FOUND;
+}
+
+int cose_recp_decode_unprotected(const cose_recp_dec_t *recp,
+                                           cose_hdr_t *hdr, int32_t key)
+{
+    const uint8_t *unprot;
+    size_t len = 0;
+    if (cose_cbor_decode_get_unprot(recp->buf, recp->len, &unprot, &len) < 0) {
+        return COSE_ERR_INVALID_CBOR;
+    }
+    if (cose_hdr_decode_from_cbor(unprot, len, hdr, key)) {
+        return COSE_OK;
+    }
+    return COSE_ERR_NOT_FOUND;
+}
+
+int cose_recp_decode_ciphertext(const cose_recp_dec_t *recp, const uint8_t **sign, size_t *len)
+{
+    nanocbor_value_t arr;
+    cose_cbor_decode_get_pos(recp->buf, recp->len, &arr, 2);
+    if (nanocbor_get_null(&arr) == NANOCBOR_OK) {
+        return COSE_ERR_NOT_FOUND;
+    }
+    if (nanocbor_get_bstr(&arr, sign, len) < 0) {
+        return COSE_ERR_INVALID_CBOR;
+    }
+    return COSE_OK;
+}
+
+int cose_recp_decode_recp(const cose_recp_dec_t *recp, const uint8_t **sign, size_t *len)
+{
+    nanocbor_value_t arr;
+    cose_cbor_decode_get_pos(recp->buf, recp->len, &arr, 2);
+    if (nanocbor_get_bstr(&arr, sign, len) < 0) {
+        return COSE_ERR_INVALID_CBOR;
+    }
+    return COSE_OK;
+}

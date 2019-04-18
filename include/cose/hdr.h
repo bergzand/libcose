@@ -33,14 +33,10 @@ extern "C" {
 
 /**
  * @name COSE header struct
- *
- * Generic COSE key value header struct. The flags select the protected or
- * unprotected bucket.
- *
  * @{
  */
 typedef struct cose_hdr {
-    struct cose_hdr *next;/**< Next header in list */
+    struct cose_hdr *next;      /**< Next header in list */
     int32_t key;                /**< Header label */
     size_t len;                 /**< Length of the data, only used for the byte type */
     union {                     /**< Depending on the type, the content is a pointer or an integer */
@@ -60,37 +56,9 @@ typedef struct cose_hdr {
  * when the unprot_len member is nonzero.
  */
 typedef struct {
-    union {
-        cose_hdr_t *c;      /**< Ptr to the linked list struct headers */
-        const uint8_t *b;   /**< cbor stream headers */
-    } prot;                 /**< Protected headers bucket */
-    union {
-        cose_hdr_t *c;      /**< Ptr to the linked list struct headers */
-        const uint8_t *b;   /**< cbor stream headers */
-    } unprot;               /**< Unprotected headers bucket */
-    size_t prot_len;        /**< Length of protected headers cbor stream */
-    size_t unprot_len;      /**< Length of unprotected headers cbor stream */
+    cose_hdr_t *prot;   /**< Ptr to the linked list struct headers */
+    cose_hdr_t *unprot; /**< Ptr to the linked list struct headers */
 } cose_headers_t;
-
-/**
- * Convert a COSE header struct to a CBOR representation and add it to the map
- *
- * @param   hdr     Header struct to convert
- * @param   map     Map encoder to add the header to
- *
- * @return          0 on success
- */
-int cose_hdr_to_cbor_map(const cose_hdr_t *hdr, nanocbor_encoder_t *map);
-
-/**
- * Convert a cbor key value pair from a cbor map to a COSE header struct.
- *
- * @param   hdr     Header struct to convert
- * @param   key     The cbor key to convert.
- *
- * @return          True when succeeded
- */
-bool cose_hdr_from_cbor_map(cose_hdr_t *hdr, int32_t key, nanocbor_value_t *val);
 
 /**
  * Format header with an integer based value
@@ -129,7 +97,7 @@ void cose_hdr_format_data(cose_hdr_t *hdr, int32_t key, const uint8_t *data,
  *
  * @return          0 on success
  */
-int cose_hdr_add_to_map(const cose_hdr_t *hdr, nanocbor_encoder_t *map);
+int cose_hdr_encode_to_map(const cose_hdr_t *hdr, nanocbor_encoder_t *map);
 
 /**
  * Retrieve the size of a list of cose_hdr_t structs
@@ -147,6 +115,8 @@ size_t cose_hdr_size(const cose_hdr_t *hdr);
  * @param   nhdr    New header to insert
  */
 void cose_hdr_insert(cose_hdr_t **hdrs, cose_hdr_t *nhdr);
+
+bool cose_hdr_get_cbor(const uint8_t *buf, size_t len, cose_hdr_t *hdr, int32_t key);
 
 /**
  * Retrieve a header from the protected bucket by key
@@ -179,16 +149,18 @@ bool cose_hdr_get_unprotected(cose_headers_t *headers, cose_hdr_t *hdr, int32_t 
  *
  * @return          True when matching header is found
  */
-static inline bool cose_hdr_get(cose_headers_t *headers, cose_hdr_t *hdr,
-        int32_t key)
-{
-    if (cose_hdr_get_protected(headers, hdr, key) ||
-            cose_hdr_get_unprotected(headers, hdr, key)) {
-        return true;
-    }
-    return false;
-}
+bool cose_hdr_get(cose_headers_t *headers, cose_hdr_t *hdr,
+        int32_t key);
 
+/**
+ * Decode a cbor header map and retrieve the header with the specified key
+ *
+ * @param   buf     Buffer containing the CBOR encoded map
+ * @param   len     length of the buffer
+ * @param   hdr     hdr struct to fill
+ * @param   key     Key to look for
+ */
+bool cose_hdr_decode_from_cbor(const uint8_t *buf, size_t len, cose_hdr_t *hdr, int32_t key);
 #ifdef __cplusplus
 }
 #endif

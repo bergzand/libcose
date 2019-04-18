@@ -23,6 +23,7 @@
 #define COSE_ENCRYPT_H
 
 #include "cose_defines.h"
+#include "cose/conf.h"
 #include "cose/hdr.h"
 #include "cose/recipient.h"
 #include <stdint.h>
@@ -62,6 +63,8 @@ extern "C" {
  * @brief Struct for conversion to both the COSE encrypt and COSE encrypt0 objects.
  */
 typedef struct cose_encrypt {
+    const uint8_t *buf;
+    size_t len;
     const uint8_t *payload;                     /**< Pointer to the payload to encrypt */
     size_t payload_len;                         /**< Size of the payload */
     uint8_t *ext_aad;                           /**< Pointer to the additional authenticated data */
@@ -75,13 +78,26 @@ typedef struct cose_encrypt {
     cose_recp_t recps[COSE_RECIPIENTS_MAX];     /**< recipient data array */
 } cose_encrypt_t;
 
+/**
+ * @name COSE encrypt decryption struct
+ */
+typedef struct cose_encrypt_dec {
+    const uint8_t *buf;
+    const void *ext_aad;
+    const void *payload;
+    size_t len;
+    size_t ext_aad_len;
+    size_t payload_len;
+    uint16_t flags;
+} cose_encrypt_dec_t;
 
 /**
  * cose_encrypt_init initializes an cose encrypt struct
  *
  * @param   encrypt     encrypt struct to initialize
+ * @param   flags       Flags to set for the encrypt object
  */
-void cose_encrypt_init(cose_encrypt_t *encrypt);
+void cose_encrypt_init(cose_encrypt_t *encrypt, uint16_t flags);
 
 /**
  * cose_encrypt_set_payload sets the payload pointer of the COSE encrypt struct
@@ -100,7 +116,6 @@ void cose_encrypt_set_payload(cose_encrypt_t *encrypt, const void *payload, size
  * @return              Algorithm used
  */
 cose_algo_t cose_encrypt_get_algo(const cose_encrypt_t *encrypt);
-
 
 /**
  * cose_encrypt_add_recipient adds an recipient as an key to an encrypt object
@@ -144,7 +159,10 @@ COSE_ssize_t cose_encrypt_encode(cose_encrypt_t *encrypt, uint8_t *buf, size_t l
  *
  * @return                  COSE_OK when successful
  */
-int cose_encrypt_decode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len);
+int cose_encrypt_decode(cose_encrypt_dec_t *encrypt, uint8_t *buf, size_t len);
+
+bool cose_encrypt_recp_iter(const cose_encrypt_dec_t *encrypt,
+                            cose_recp_dec_t *recp);
 
 /**
  * cose_encrypt_decrypt tries to verify and decrypt the payload of a
@@ -159,7 +177,10 @@ int cose_encrypt_decode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len);
  *
  * @return                  COSE_OK on successful verification and decryption
  */
-int cose_encrypt_decrypt(cose_encrypt_t *encrypt, cose_key_t *key, unsigned idx, uint8_t *buf, size_t len, uint8_t *payload, size_t *payload_len);
+int cose_encrypt_decrypt(const cose_encrypt_dec_t *encrypt,
+                         const cose_recp_dec_t *recp,
+                         const cose_key_t *key, uint8_t *buf, size_t len,
+                         uint8_t *payload, size_t *payload_len);
 
 #ifdef __cplusplus
 }
