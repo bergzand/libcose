@@ -25,11 +25,10 @@
 extern "C" {
 #endif
 
-#define COSE_ssize_t    long int
+#define COSE_ssize_t    long int    /**< Portable define for ssize_t */
 
 /**
- * @name COSE error codes
- * @{
+ * @brief COSE error codes
  */
 typedef enum {
     COSE_OK                 =  0,   /**< Everything okay */
@@ -42,7 +41,6 @@ typedef enum {
     COSE_ERR_NOT_FOUND      = -7,   /**< Header not found */
     COSE_ERR_NOTIMPLEMENTED = -8,   /**< Algorithm not implemented */
 } cose_err_t;
-/** @} */
 
 
 /**
@@ -59,8 +57,7 @@ typedef enum {
 /** @} */
 
 /**
- * @name COSE Tag numbers
- * @{
+ * @brief COSE Tag numbers
  */
 typedef enum {
     COSE_UNKNOWN    = 0,  /**< Unknown tag number */
@@ -71,13 +68,11 @@ typedef enum {
     COSE_MAC        = 97, /**< MAC */
     COSE_MAC0       = 17, /**< MAC0 */
 } cose_cbor_tag_t;
-/** @} */
 
 /**
- * @name COSE header types
+ * @brief COSE header types
  *
  * Defines an enum to contain all header types in a single struct
- * @{
  */
 typedef enum {
     COSE_HDR_TYPE_INT,  /**< Integer type header */
@@ -85,7 +80,6 @@ typedef enum {
     COSE_HDR_TYPE_BSTR, /**< Byte string type header */
     COSE_HDR_TYPE_CBOR, /**< CBOR type header */
 } cose_hdr_type_t;
-/** @} */
 
 /**
  * @name COSE header flags
@@ -97,10 +91,9 @@ typedef enum {
 /** @} */
 
 /**
- * @name COSE header parameters according to rfc 8152
+ * @brief COSE header parameters according to rfc 8152
  *
  * https://www.iana.org/assignments/cose/cose.xhtml#header-parameters
- * @{
  */
 typedef enum {
     COSE_HDR_ALG            = 1, /**< Algo header */
@@ -113,13 +106,11 @@ typedef enum {
     COSE_HDR_UNASSIGN       = 8, /**< Unassigned header number */
     COSE_HDR_COUNTERSIG0    = 9, /**< Counter signature 0 header*/
 } cose_header_param_t;
-/** @} */
 
 /**
- * @name COSE Key common parameters
+ * @brief COSE Key common parameters
  *
  * https://www.iana.org/assignments/cose/cose.xhtml#key-common-parameters
- * @{
  */
 typedef enum {
     COSE_KEY_PARAM_KTY  = 1,    /**< Key type identifier */
@@ -128,13 +119,11 @@ typedef enum {
     COSE_KEY_PARAM_OPS  = 4,    /**< Key options */
     COSE_KEY_PARAM_BIV  = 5,    /**< Base IV */
 } cose_key_param_t;
-/** @} */
 
 /**
- * @name COSE key types according to rfc 8152
+ * @brief COSE key types according to rfc 8152
  *
  * https://www.iana.org/assignments/cose/cose.xhtml#key-type
- * @{
  */
 typedef enum {
     COSE_KTY_OCTET  = 1,    /**< Octet key pair (eddsa) */
@@ -142,11 +131,9 @@ typedef enum {
     COSE_KTY_RSA    = 3,    /**< RSA */
     COSE_KTY_SYMM   = 4,    /**< Symmetric key types */
 } cose_kty_t;
-/** @} */
 
 /**
- * @name COSE curve numbers
- * @{
+ * @brief COSE curve numbers
  */
 typedef enum {
     COSE_EC_NONE            = 0,    /**< Not an EC key */
@@ -158,11 +145,9 @@ typedef enum {
     COSE_EC_CURVE_ED25519   = 6,    /**< Ed25519 for EdDSA only */
     COSE_EC_CURVE_ED448     = 7,    /**< Ed448 for EdDSA only */
 } cose_curve_t;
-/** @} */
 
 /**
- * @name COSE signature algorithm numbers
- * @{
+ * @brief COSE signature algorithm numbers
  */
 typedef enum {
     COSE_ALGO_NONE  = 0,                /**< Invalid algo */
@@ -176,7 +161,6 @@ typedef enum {
     COSE_ALGO_A256GCM = 3,              /**< AES-GCM mode w/ 256-bit key, 128-bit tag */
     COSE_ALGO_CHACHA20POLY1305 = 24,    /**< IETF ChaCha20/Poly1305 w/ 256-bit key, 128-bit tag */
 } cose_algo_t;
-/** @} */
 
 #ifdef __cplusplus
 }

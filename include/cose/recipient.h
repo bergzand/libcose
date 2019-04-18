@@ -30,10 +30,6 @@
 extern "C" {
 #endif
 
-typedef enum {
-    TEST
-} cose_recp_type_t;
-
 /**
  * @name COSE recipient struct definition
  */
@@ -42,7 +38,6 @@ typedef struct cose_recp {
     const cose_key_t *key;              /**< Pointer to the key structure used */
     const uint8_t *skey;                /**< Secret key used */
     size_t key_len;                     /**< Length of the secret key */
-    cose_recp_type_t type;              /**< Type of key contained in this structure */
     cose_headers_t hdrs;                /**< Headers included with this recipient */
 } cose_recp_t;
 
@@ -50,16 +45,22 @@ typedef struct cose_recp {
  * @name COSE recipient decoding struct
  */
 typedef struct cose_recp_dec {
-    const uint8_t *buf;
-    size_t len;
+    const uint8_t *buf;     /**< Buffer containing the full recipient data */
+    size_t len;             /**< Length of the recipient data */
 } cose_recp_dec_t;
 
 int cose_recp_encrypt_to_map(cose_recp_t *recps, size_t num_recps,
                                   const uint8_t *cek, size_t ceklen,
                                   nanocbor_encoder_t *enc);
 
+/**
+ * @brief Initialize a recipient decoding context from a buffer
+ *
+ * @param   recp    Recipient context to initialize
+ * @param   buf     Buffer to initialize from
+ * @param   len     Length of the buffer
+ */
 void cose_recp_decode_init(cose_recp_dec_t *recp, const uint8_t *buf, size_t len);
-
 
 #ifdef __cplusplus
 }

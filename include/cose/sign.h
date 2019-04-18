@@ -58,13 +58,13 @@ typedef struct cose_sign {
  * @{
  */
 typedef struct cose_sign_dec {
-    const uint8_t *buf;
-    const void *payload;
-    const void *ext_aad;
-    size_t ext_aad_len;
-    size_t len;
-    size_t payload_len;
-    uint16_t flags;
+    const uint8_t *buf;     /**< Buffer containing the full sign data */
+    const void *payload;    /**< Pointer to the payload, could be external */
+    const void *ext_aad;    /**< Pointer to the additional authenticated data */
+    size_t len;             /**< Length of the full sign data */
+    size_t payload_len;     /**< Length of the payload */
+    size_t ext_aad_len;     /**< Length of the AAD */
+    uint16_t flags;         /**< Flags as defined  */
 } cose_sign_dec_t;
 /** @} */
 
@@ -121,9 +121,22 @@ void cose_sign_set_payload(cose_sign_enc_t *sign, const void *payload, size_t le
  *
  * @param   sign    The sign object
  * @param   ext     aditional authenticated data
- * @param   len     Lenght of the aad
+ * @param   len     Length of the aad
  */
-void cose_sign_set_external_aad(cose_sign_enc_t *sign, void *ext, size_t len);
+void cose_sign_set_external_aad(cose_sign_enc_t *sign,
+                                const void *ext, size_t len);
+
+/**
+ * cose_sign_add_signer adds a key to the sign struct to sign with
+ *
+ * @param sign      Sign struct to operate on
+ * @param signer    Signature struct to add to the sign
+ * @param key       The key to sign with
+ *
+ * @return          The index of the allocated sig on success
+ * @return          negative on failure
+ */
+void cose_sign_add_signer(cose_sign_enc_t *sign, cose_signature_t *signer, const cose_key_t *key);
 
 /* Header setters */
 
@@ -158,18 +171,6 @@ static inline void cose_sign_insert_unprot(cose_sign_enc_t *sign, cose_hdr_t *hd
 {
     cose_hdr_insert(&sign->hdrs.unprot, hdr);
 }
-
-/**
- * cose_sign_add_signer adds a key to the sign struct to sign with
- *
- * @param sign      Sign struct to operate on
- * @param signer    Signature struct to add to the sign
- * @param key       The key to sign with
- *
- * @return          The index of the allocated sig on success
- * @return          negative on failure
- */
-void cose_sign_add_signer(cose_sign_enc_t *sign, cose_signature_t *signer, const cose_key_t *key);
 
 /**
  * cose_sign_sign signs the data from the sign object with the attached
@@ -217,9 +218,101 @@ int cose_sign_decode(cose_sign_dec_t *sign, const uint8_t *buf, size_t len);
  * @brief Set the payload of the decoded sign structure
  *
  * Used when the decoded sign structure indicates that the payload is external.
+ *
+ * @param   sign    Decoder sign struct
+ * @param   payload Payload to set for validation
+ * @param   len     Length of the payload
  */
 void cose_sign_decode_set_payload(cose_sign_dec_t *sign,
                                   const void *payload, size_t len);
+
+/**
+ * @brief Set the external authenticated data of the decoded sign structure
+ *
+ * @param   sign    Decoder sign struct
+ * @param   ext     aditional authenticated data
+ * @param   len     Lenght of the aad
+ */
+void cose_sign_decode_set_external_aad(cose_sign_dec_t *sign,
+                                       const void *ext, size_t len);
+
+/**
+ * @brief Retrieve a header from a sign object by key lookup.
+ *
+ * This function first attempts to retrieve the header from the protected bucket
+ * and then from the unprotected bucket.
+ *
+ * @param   sign        The sign decode object to operate on
+ * @param   hdr         hdr struct to fill
+ * @param   key         The key to look up
+ *
+ * @return                  COSE_OK if a header is found
+ * @return                  COSE_ERR_NOT_FOUND if no header with matching key
+ *                          is found
+ */
+int cose_sign_decode_header(const cose_sign_dec_t *sign, cose_hdr_t *hdr,
+                            int32_t key);
+
+/**
+ * Retrieve a protected header from a sign object by key lookup
+ *
+ * @param       sign        The sign decode object to operate on
+ * @param[out]  hdr         Header to fill with the values
+ * @param       key         The key to look up
+ *
+ * @return                  COSE_OK if a header is found
+ * @return                  COSE_ERR_NOT_FOUND if no header with matching key
+ *                          is found
+ */
+int cose_sign_decode_protected(const cose_sign_dec_t *sign, cose_hdr_t *hdr,
+                               int32_t key);
+
+/**
+ * Retrieve an unprotected header from a sign object by key lookup
+ *
+ * @param       sign        The sign decode object to operate on
+ * @param[out]  hdr         Header to fill with the values
+ * @param       key         The key to look up
+ *
+ * @return                  COSE_OK if a header is found
+ * @return                  COSE_ERR_NOT_FOUND if no header with matching key
+ *                          is found
+ */
+int cose_sign_decode_unprotected(const cose_sign_dec_t *sign, cose_hdr_t *hdr,
+                                 int32_t key);
+
+/**
+ * cose_sign_get_payload retrieves the pointer and length of the payload from
+ * the COSE sign struct
+ *
+ * @param       sign      Sign struct to retrieve the payload from
+ * @param[out]  payload   The pointer to the payload
+ * @param[out]  len       The length of the payload in bytes
+ */
+void cose_sign_decode_payload(const cose_sign_dec_t *sign, const uint8_t **payload,
+                              size_t *len);
+
+/**
+ * Wrapper function initializing a signature decoder for iteration
+ *
+ * @param signature Signature decoder struct to initialize
+ */
+static inline void cose_sign_signature_iter_init(cose_signature_dec_t *signature)
+{
+    cose_signature_decode_init(signature, NULL, 0);
+}
+
+/**
+ * cose_sign_iter fills the provided @p signature struct with the contents of
+ * the COSE signatures from the associated sign structure.
+ *
+ * @param   sign        The signature decoding context
+ * @param   signature   The signature struct to fill
+ *
+ * @return              true when the signature struct is filled
+ * @return              false when there are no more signatures
+ */
+bool cose_sign_signature_iter(const cose_sign_dec_t *sign, cose_signature_dec_t *signature);
 
 /**
  * Verify the signature of the signed data with the supplied signature object
@@ -247,77 +340,12 @@ int cose_sign_verify(const cose_sign_dec_t *sign, cose_signature_dec_t *signatur
  * @param   key         The key to verify with
  * @param   buf         Buffer to write in
  * @param   len         Size of the buffer to write in
+ *
+ * @return              0 on verification success
+ * @return              Negative on error
  */
-int cose_sign_verify_first(const cose_sign_dec_t* sign, cose_key_t *key, uint8_t *buf, size_t len);
-
-/**
- * Retrieve a header from a sign object by key lookup
- *
- * @param   sign        The sign decode object to operate on
- * @param   hdr         hdr struct to fill
- * @param   key         The key to look up
- *
- * @return              A header object with matching key
- * @return              NULL if there is no header with the key
- */
-int cose_sign_decode_header(const cose_sign_dec_t *sign, cose_hdr_t *hdr, int32_t key);
-
-/**
- * Retrieve a protected header from a sign object by key lookup
- *
- * @param       sign        The sign decode object to operate on
- * @param[out]  hdr         Header to fill with the values
- * @param       key         The key to look up
- *
- * @return              A protected header object with matching key
- * @return              NULL if there is no protected header with the key
- */
-int cose_sign_decode_protected(const cose_sign_dec_t *sign, cose_hdr_t *hdr, int32_t key);
-
-/**
- * Retrieve an unprotected header from a sign object by key lookup
- *
- * @param       sign        The sign decode object to operate on
- * @param[out]  hdr         Header to fill with the values
- * @param       key         The key to look up
- *
- * @return              A protected header object with matching key
- * @return              NULL if there is no protected header with the key
- */
-int cose_sign_decode_unprotected(const cose_sign_dec_t *sign, cose_hdr_t *hdr, int32_t key);
-
-/**
- * cose_sign_get_payload retrieves the pointer and length of the payload from
- * the COSE sign struct
- *
- * @param sign      Sign struct to retrieve the payload from
- * @param payload   The pointer to the payload
- * @param len       The length of the payload in bytes
- */
-void cose_sign_decode_payload(const cose_sign_dec_t *sign, const uint8_t **payload,
-                              size_t *len);
-
-/**
- * Wrapper function initializing a signature decoder for iteration
- *
- * @param signature Signature decoder struct to initialize
- */
-static inline void cose_sign_signature_iter_init(cose_signature_dec_t *signature)
-{
-    cose_signature_decode_init(signature, NULL, 0);
-}
-
-/**
- * cose_sign_iter fills the provided @p signature struct with the contents of
- * the COSE signatures from the associated sign structure.
- *
- * @param   sign        The signature decoding context
- * @param   signature   The signature struct to fill
- *
- * @return              true when the signature struct is filled
- * @return              false when there are no more signatures
- */
-bool cose_sign_signature_iter(const cose_sign_dec_t *sign, cose_signature_dec_t *signature);
+int cose_sign_verify_first(const cose_sign_dec_t* sign, cose_key_t *key,
+                           uint8_t *buf, size_t len);
 
 /** @} (no more decoding functions */
 

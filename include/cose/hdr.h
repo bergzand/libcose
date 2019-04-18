@@ -116,8 +116,6 @@ size_t cose_hdr_size(const cose_hdr_t *hdr);
  */
 void cose_hdr_insert(cose_hdr_t **hdrs, cose_hdr_t *nhdr);
 
-bool cose_hdr_get_cbor(const uint8_t *buf, size_t len, cose_hdr_t *hdr, int32_t key);
-
 /**
  * Retrieve a header from the protected bucket by key
  *
@@ -159,6 +157,8 @@ bool cose_hdr_get(cose_headers_t *headers, cose_hdr_t *hdr,
  * @param   len     length of the buffer
  * @param   hdr     hdr struct to fill
  * @param   key     Key to look for
+ *
+ * @return          true if decoding succeeded
  */
 bool cose_hdr_decode_from_cbor(const uint8_t *buf, size_t len, cose_hdr_t *hdr, int32_t key);
 #ifdef __cplusplus

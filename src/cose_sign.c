@@ -138,26 +138,7 @@ static int _add_signatures(cose_sign_enc_t *sign, nanocbor_encoder_t *arr)
     return COSE_OK;
 }
 
-void cose_sign_init(cose_sign_enc_t *sign, uint16_t flags)
-{
-    memset(sign, 0, sizeof(cose_sign_enc_t));
-    sign->flags = flags;
-}
-
-void cose_sign_set_payload(cose_sign_enc_t *sign, const void *payload, size_t len)
-{
-    sign->payload = payload;
-    sign->payload_len = len;
-}
-
-void cose_sign_add_signer(cose_sign_enc_t *sign, cose_signature_t *signer, const cose_key_t *key)
-{
-    signer->next = sign->signatures;
-    sign->signatures = signer;
-    signer->signer = key;
-}
-
-int cose_sign_generate_signature(cose_sign_enc_t *sign, cose_signature_t *sig, uint8_t *buf, size_t len)
+static int _sign_generate_signature(cose_sign_enc_t *sign, cose_signature_t *sig, uint8_t *buf, size_t len)
 {
     uint8_t *buf_cbor = buf + cose_crypto_sig_size(sig->signer);
     size_t cbor_space = len - cose_crypto_sig_size(sig->signer);
@@ -191,6 +172,32 @@ static int _enc_cbor_unprotected(cose_sign_enc_t *sign, nanocbor_encoder_t *enc)
     return 0;
 }
 
+void cose_sign_init(cose_sign_enc_t *sign, uint16_t flags)
+{
+    memset(sign, 0, sizeof(cose_sign_enc_t));
+    sign->flags = flags;
+}
+
+void cose_sign_set_payload(cose_sign_enc_t *sign, const void *payload, size_t len)
+{
+    sign->payload = payload;
+    sign->payload_len = len;
+}
+
+void cose_sign_set_external_aad(cose_sign_enc_t *sign,
+                                const void *ext, size_t len)
+{
+    sign->ext_aad = ext;
+    sign->ext_aad_len = len;
+}
+
+void cose_sign_add_signer(cose_sign_enc_t *sign, cose_signature_t *signer, const cose_key_t *key)
+{
+    signer->next = sign->signatures;
+    sign->signatures = signer;
+    signer->signer = key;
+}
+
 COSE_ssize_t cose_sign_encode(cose_sign_enc_t *sign, uint8_t *buf, size_t len, uint8_t **out)
 {
     /* The buffer here is used to contain dummy data a number of times */
@@ -209,7 +216,7 @@ COSE_ssize_t cose_sign_encode(cose_sign_enc_t *sign, uint8_t *buf, size_t len, u
     /* First generate all required signatures */
     for (cose_signature_t *sig = sign->signatures; sig; sig = sig->next) {
         /* Start generating the signature */
-        int res = cose_sign_generate_signature(sign, sig, buf, len);
+        int res = _sign_generate_signature(sign, sig, buf, len);
         if (res != COSE_OK) {
             return res;
         }
@@ -393,6 +400,13 @@ int cose_sign_decode(cose_sign_dec_t *sign, const uint8_t *buf, size_t len)
     return COSE_OK;
 }
 
+void cose_sign_decode_payload(const cose_sign_dec_t *sign, const uint8_t **payload,
+                              size_t *len)
+{
+    *payload = (const uint8_t*)sign->payload;
+    *len = sign->payload_len;
+}
+
 bool cose_sign_signature_iter(const cose_sign_dec_t *sign,
                               cose_signature_dec_t *signature)
 {
@@ -422,13 +436,6 @@ bool cose_sign_signature_iter(const cose_sign_dec_t *sign,
         return true;
     }
     return false;
-}
-
-void cose_sign_decode_payload(const cose_sign_dec_t *sign, const uint8_t **payload,
-                              size_t *len)
-{
-    *payload = (const uint8_t*)sign->payload;
-    *len = sign->payload_len;
 }
 
 int cose_sign_decode_header(const cose_sign_dec_t *sign, cose_hdr_t *hdr, int32_t key)
@@ -495,7 +502,8 @@ int cose_sign_verify(const cose_sign_dec_t *sign, cose_signature_dec_t *signatur
     return res;
 }
 
-int cose_sign_verify_first(const cose_sign_dec_t* sign, cose_key_t *key, uint8_t *buf, size_t len)
+int cose_sign_verify_first(const cose_sign_dec_t* sign, cose_key_t *key,
+                           uint8_t *buf, size_t len)
 {
     cose_signature_dec_t signature;
     cose_signature_decode_init(&signature, NULL, 0);

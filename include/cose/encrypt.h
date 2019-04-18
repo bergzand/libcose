@@ -63,8 +63,6 @@ extern "C" {
  * @brief Struct for conversion to both the COSE encrypt and COSE encrypt0 objects.
  */
 typedef struct cose_encrypt {
-    const uint8_t *buf;
-    size_t len;
     const uint8_t *payload;                     /**< Pointer to the payload to encrypt */
     size_t payload_len;                         /**< Size of the payload */
     uint8_t *ext_aad;                           /**< Pointer to the additional authenticated data */
@@ -82,13 +80,13 @@ typedef struct cose_encrypt {
  * @name COSE encrypt decryption struct
  */
 typedef struct cose_encrypt_dec {
-    const uint8_t *buf;
-    const void *ext_aad;
-    const void *payload;
-    size_t len;
-    size_t ext_aad_len;
-    size_t payload_len;
-    uint16_t flags;
+    const uint8_t *buf;     /**< Buffer containing the full encrypt data */
+    const void *payload;    /**< Pointer to the payload, could be external */
+    const void *ext_aad;    /**< Pointer to the additional authenticated data */
+    size_t len;             /**< Length of the full encrypt data */
+    size_t payload_len;     /**< Length of the payload */
+    size_t ext_aad_len;     /**< Length of the AAD */
+    uint16_t flags;         /**< Flags as defined  */
 } cose_encrypt_dec_t;
 
 /**
@@ -150,7 +148,7 @@ void cose_encrypt_set_algo(cose_encrypt_t *encrypt, cose_algo_t algo);
 COSE_ssize_t cose_encrypt_encode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len, uint8_t *nonce, uint8_t **out);
 
 /**
- * cose_encrypt_decode decodes a buffer containing a COSE encrypt object into
+ * @brief cose_encrypt_decode decodes a buffer containing a COSE encrypt object into
  * into a cose_encrypt_t struct
  *
  * @param[out]  encrypt     Encrypt struct to fill
@@ -161,14 +159,23 @@ COSE_ssize_t cose_encrypt_encode(cose_encrypt_t *encrypt, uint8_t *buf, size_t l
  */
 int cose_encrypt_decode(cose_encrypt_dec_t *encrypt, uint8_t *buf, size_t len);
 
+/**
+ * @brief Iterate over the recipients in an encrypt decode context
+ *
+ * @param       encrypt     Encrypt decode structure
+ * @param       recp        Recipient decode structure
+ *
+ * @return                  True if a recipient was available for decoding
+ */
 bool cose_encrypt_recp_iter(const cose_encrypt_dec_t *encrypt,
                             cose_recp_dec_t *recp);
 
 /**
- * cose_encrypt_decrypt tries to verify and decrypt the payload of a
+ * @brief cose_encrypt_decrypt tries to verify and decrypt the payload of a
  * cose_encrypt_t object
  *
  * @param       encrypt     Encrypt struct to work on
+ * @param       recp        Recipient to start decrypting from
  * @param       key         Key to use for decryption
  * @param       buf         Temporary buffer to use for serialized intermediates
  * @param       len         Size of the temporary buffer

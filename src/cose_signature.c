@@ -97,7 +97,7 @@ size_t cose_signature_num(cose_signature_t *signature)
 void cose_signature_decode_init(cose_signature_dec_t *signature, const uint8_t *buf, size_t len)
 {
     signature->buf = buf;
-    signature->remaining = len;
+    signature->len = len;
 }
 
 int cose_signature_decode_protected(const cose_signature_dec_t *signature,
@@ -105,7 +105,7 @@ int cose_signature_decode_protected(const cose_signature_dec_t *signature,
 {
     const uint8_t *prot;
     size_t len = 0;
-    if (cose_cbor_decode_get_prot(signature->buf, signature->remaining, &prot, &len) < 0) {
+    if (cose_cbor_decode_get_prot(signature->buf, signature->len, &prot, &len) < 0) {
         return COSE_ERR_INVALID_CBOR;
     }
     if (cose_hdr_decode_from_cbor(prot, len, hdr, key)) {
@@ -118,7 +118,7 @@ int cose_signature_decode_unprotected(const cose_signature_dec_t *signature,
 {
     const uint8_t *unprot;
     size_t len = 0;
-    if (cose_cbor_decode_get_unprot(signature->buf, signature->remaining, &unprot, &len) < 0) {
+    if (cose_cbor_decode_get_unprot(signature->buf, signature->len, &unprot, &len) < 0) {
         return COSE_ERR_INVALID_CBOR;
     }
     if (cose_hdr_decode_from_cbor(unprot, len, hdr, key)) {
@@ -130,7 +130,7 @@ int cose_signature_decode_unprotected(const cose_signature_dec_t *signature,
 int cose_signature_decode_signature(const cose_signature_dec_t *signature, const uint8_t **sign, size_t *len)
 {
     nanocbor_value_t arr;
-    cose_cbor_decode_get_pos(signature->buf, signature->remaining, &arr, 2);
+    cose_cbor_decode_get_pos(signature->buf, signature->len, &arr, 2);
     if (nanocbor_get_bstr(&arr, sign, len) < 0) {
         return COSE_ERR_INVALID_CBOR;
     }
