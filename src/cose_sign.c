@@ -480,6 +480,13 @@ void cose_sign_decode_set_payload(cose_sign_dec_t *sign,
     sign->payload_len = len;
 }
 
+void cose_sign_decode_set_external_aad(cose_sign_dec_t *sign,
+                                       const void *ext, size_t len)
+{
+    sign->ext_aad = ext;
+    sign->ext_aad_len = len;
+}
+
 /* Try to verify the structure with a signer and a signature */
 int cose_sign_verify(const cose_sign_dec_t *sign, cose_signature_dec_t *signature, cose_key_t *key, uint8_t *buf, size_t len)
 {
