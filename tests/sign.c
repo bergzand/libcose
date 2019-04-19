@@ -423,6 +423,70 @@ void test_sign7(void)
     CU_ASSERT_FALSE(cose_sign_signature_iter(&verify, &vsignature));
 }
 
+/* AAD test */
+void test_sign8(void)
+{
+    uint8_t *psign = NULL;
+    char sign_payload[] = "Input string";
+    char sign_aad[] = "Additional data to be authenticated";
+    memset(buf, 0, sizeof(buf));
+    cose_sign_enc_t sign;
+    cose_signature_t signature;
+    cose_key_t key;
+    /* Initialize struct */
+    cose_sign_init(&sign, 0);
+    cose_signature_init(&signature);
+
+    /* Add payload */
+    cose_sign_set_payload(&sign, sign_payload, strlen(sign_payload));
+
+    /* First signer */
+    genkey(&key, pkx1, pky1, sk1);
+    cose_key_set_kid(&key, (uint8_t*)kid, sizeof(kid) - 1);
+
+    cose_sign_add_signer(&sign, &signature, &key);
+    /* Octet stream content type */
+
+    /* Encode COSE sign object */
+    size_t size_no_aad = cose_sign_encode(&sign, buf, sizeof(buf), &psign);
+
+    CU_ASSERT_NOT_EQUAL_FATAL(size_no_aad, 0);
+
+    cose_sign_set_external_aad(&sign, sign_aad, strlen(sign_aad));
+
+    size_t size_w_aad = cose_sign_encode(&sign, buf, sizeof(buf), &psign);
+
+    CU_ASSERT_EQUAL(size_w_aad, size_no_aad);
+
+    cose_sign_dec_t verify;
+    cose_signature_dec_t vsignature;
+
+    /* Decode again */
+    int decode_success = cose_sign_decode(&verify, psign, size_w_aad);
+    CU_ASSERT_EQUAL_FATAL(decode_success, 0);
+
+
+    /* Verify with signature slot 0 */
+    cose_sign_signature_iter_init(&vsignature);
+    CU_ASSERT(cose_sign_signature_iter(&verify, &vsignature));
+
+    /* Must fail without aad */
+    int verification = cose_sign_verify(&verify, &vsignature, &key, ver_buf, sizeof(ver_buf));
+    CU_ASSERT_NOT_EQUAL(verification, COSE_OK);
+
+    cose_sign_decode_set_external_aad(&verify, sign_aad, strlen(sign_aad));
+
+    /* Must succeed with aad */
+    verification = cose_sign_verify(&verify, &vsignature, &key, ver_buf, sizeof(ver_buf));
+    CU_ASSERT_EQUAL(verification, COSE_OK);
+
+    sign_aad[0] ^= 0x01;
+
+    /* Must fail with wrong aad */
+    verification = cose_sign_verify(&verify, &vsignature, &key, ver_buf, sizeof(ver_buf));
+    CU_ASSERT_NOT_EQUAL(verification, COSE_OK);
+}
+
 const test_t tests_sign[] = {
     {
         .f = test_sign1,
@@ -451,6 +515,10 @@ const test_t tests_sign[] = {
     {
         .f = test_sign7,
         .n = "Sign Sig headers test",
+    },
+    {
+        .f = test_sign8,
+        .n = "Sign with aad test",
     },
     {
         .f = NULL,
