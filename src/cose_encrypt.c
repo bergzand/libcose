@@ -7,7 +7,7 @@
  * directory for more details.
  */
 
-#include "cose.h"
+#include "cose/common.h"
 #include "cose/crypto.h"
 #include "cose/encrypt.h"
 #include "cose/intern.h"
@@ -17,16 +17,21 @@
 static void _place_cbor_protected(cose_encrypt_t *encrypt, nanocbor_encoder_t *arr);
 static size_t _encrypt_serialize_protected(const cose_encrypt_t *encrypt, uint8_t *buf, size_t buflen);
 
-//static bool _is_encrypt0(cose_encrypt_t *encrypt) {
-//    (void)encrypt;
-//    return false;
-//}
+static bool _is_encrypt0(cose_encrypt_t *encrypt) {
+    return encrypt->flags & COSE_FLAGS_ENCRYPT0;
+}
 
+/* Used by encrypt (encode) */
 static int _encrypt_build_cbor_enc(cose_encrypt_t *encrypt, nanocbor_encoder_t *enc)
 {
     nanocbor_fmt_array(enc, 3);
     /* Add type string */
-    nanocbor_put_tstr(enc, "Encrypt");
+    if (_is_encrypt0(encrypt)) {
+        nanocbor_put_tstr(enc, "Encrypt0");
+    }
+    else {
+        nanocbor_put_tstr(enc, "Encrypt");
+    }
 
     /* Add body protected headers */
     _place_cbor_protected(encrypt, enc);
@@ -38,7 +43,7 @@ static int _encrypt_build_cbor_enc(cose_encrypt_t *encrypt, nanocbor_encoder_t *
 
 static bool _encrypt_unprot_to_map(const cose_encrypt_t *encrypt, nanocbor_encoder_t *map)
 {
-    if (cose_hdr_add_to_map(encrypt->hdrs.unprot.c, map)) {
+    if (cose_hdr_encode_to_map(encrypt->hdrs.unprot, map)) {
         return false;
     }
     cose_algo_t algo = cose_encrypt_get_algo(encrypt);
@@ -56,13 +61,11 @@ static bool _encrypt_unprot_to_map(const cose_encrypt_t *encrypt, nanocbor_encod
 /* Add the body protected headers to a map */
 static bool _encrypt_prot_to_map(const cose_encrypt_t *encrypt, nanocbor_encoder_t *map)
 {
-    cose_hdr_add_to_map(encrypt->hdrs.prot.c, map);
-    if (cose_flag_isset(encrypt->flags, COSE_FLAGS_ENCODE)) {
-        cose_algo_t algo = cose_encrypt_get_algo(encrypt);
-        if (cose_crypto_is_aead(algo)) {
-            nanocbor_fmt_int(map, COSE_HDR_ALG);
-            nanocbor_fmt_int(map, algo);
-        }
+    cose_hdr_encode_to_map(encrypt->hdrs.prot, map);
+    cose_algo_t algo = cose_encrypt_get_algo(encrypt);
+    if (cose_crypto_is_aead(algo)) {
+        nanocbor_fmt_int(map, COSE_HDR_ALG);
+        nanocbor_fmt_int(map, algo);
     }
     return true;
 }
@@ -70,12 +73,11 @@ static bool _encrypt_prot_to_map(const cose_encrypt_t *encrypt, nanocbor_encoder
 static size_t _encrypt_serialize_protected(const cose_encrypt_t *encrypt, uint8_t *buf, size_t buflen)
 {
     nanocbor_encoder_t enc;
-    size_t len = cose_hdr_size(encrypt->hdrs.prot.c);
-    if (cose_flag_isset(encrypt->flags, COSE_FLAGS_ENCODE)) {
-        if (cose_crypto_is_aead(cose_encrypt_get_algo(encrypt))) {
-            len += 1;
-        }
+    size_t len = cose_hdr_size(encrypt->hdrs.prot);
+    if (cose_crypto_is_aead(cose_encrypt_get_algo(encrypt))) {
+        len += 1;
     }
+
     nanocbor_encoder_init(&enc, buf, buflen);
     nanocbor_fmt_map(&enc, len);
 
@@ -84,29 +86,26 @@ static size_t _encrypt_serialize_protected(const cose_encrypt_t *encrypt, uint8_
 }
 
 static void _place_cbor_protected(cose_encrypt_t *encrypt, nanocbor_encoder_t *arr) {
-    if (cose_flag_isset(encrypt->flags, COSE_FLAGS_ENCODE)) {
-        size_t slen = _encrypt_serialize_protected(encrypt, NULL, 0);
-        nanocbor_put_bstr(arr, arr->cur, slen);
-        _encrypt_serialize_protected(encrypt, arr->cur - slen, slen);
-    }
-    else {
-        nanocbor_put_bstr(arr, encrypt->hdrs.prot.b, encrypt->hdrs.prot_len);
-    }
+    size_t slen = _encrypt_serialize_protected(encrypt, NULL, 0);
+    nanocbor_put_bstr(arr, arr->cur, slen);
+    _encrypt_serialize_protected(encrypt, arr->cur - slen, slen);
+
+  //  else {
+  //      nanocbor_put_bstr(arr, encrypt->hdrs.prot.b, encrypt->hdrs.prot_len);
+  //  }
 }
 
 static size_t _encrypt_unprot_cbor(cose_encrypt_t *encrypt, nanocbor_encoder_t *enc)
 {
-    size_t len = cose_hdr_size(encrypt->hdrs.unprot.c);
+    size_t len = cose_hdr_size(encrypt->hdrs.unprot);
     /* TODO: split */
-    if (cose_flag_isset(encrypt->flags, COSE_FLAGS_ENCODE)) {
-        if (cose_crypto_is_aead(cose_encrypt_get_algo(encrypt))) {
-            /* Only the nonce */
-            len += 1;
-        }
-        else {
-            /* Nonce and algo */
-            len += 2;
-        }
+    if (cose_crypto_is_aead(cose_encrypt_get_algo(encrypt))) {
+        /* Only the nonce */
+        len += 1;
+    }
+    else {
+        /* Nonce and algo */
+        len += 2;
     }
 
     nanocbor_fmt_map(enc, len);
@@ -172,9 +171,10 @@ static COSE_ssize_t _encrypt_payload(cose_encrypt_t *encrypt, uint8_t *buf, size
     return 0;
 }
 
-void cose_encrypt_init(cose_encrypt_t *encrypt)
+void cose_encrypt_init(cose_encrypt_t *encrypt, uint16_t flags)
 {
     memset(encrypt, 0, sizeof(cose_encrypt_t));
+    encrypt->flags = flags;
 }
 
 void cose_encrypt_set_payload(cose_encrypt_t *encrypt, const void *payload, size_t len)
@@ -232,10 +232,20 @@ COSE_ssize_t cose_encrypt_encode(cose_encrypt_t *encrypt, uint8_t *buf, size_t l
     nanocbor_encoder_init(&enc, buf, len);
 
     if (!(cose_flag_isset(encrypt->flags, COSE_FLAGS_UNTAGGED))) {
-        nanocbor_fmt_tag(&enc, COSE_ENCRYPT);
+        if (_is_encrypt0(encrypt)) {
+            nanocbor_fmt_tag(&enc, COSE_ENCRYPT0);
+        }
+        else {
+            nanocbor_fmt_tag(&enc, COSE_ENCRYPT);
+        }
     }
 
-    nanocbor_fmt_array(&enc, 4);
+    if (_is_encrypt0(encrypt)) {
+        nanocbor_fmt_array(&enc, 3);
+    }
+    else {
+        nanocbor_fmt_array(&enc, 4);
+    }
 
     /* Determine size of the body protected headers */
     size_t slen = _encrypt_serialize_protected(encrypt, NULL, 0);
@@ -247,7 +257,9 @@ COSE_ssize_t cose_encrypt_encode(cose_encrypt_t *encrypt, uint8_t *buf, size_t l
 
     nanocbor_put_bstr(&enc, cipherpos, cipherlen);
 
-    cose_recp_encrypt_to_map(encrypt->recps, encrypt->num_recps, encrypt->cek, 0, &enc);
+    if (!_is_encrypt0(encrypt)) {
+        cose_recp_encrypt_to_map(encrypt->recps, encrypt->num_recps, encrypt->cek, 0, &enc);
+    }
     *out = buf;
     if (encrypt->algo != COSE_ALGO_DIRECT) {
     /* encode intermediate key with recipient key */
@@ -258,130 +270,284 @@ COSE_ssize_t cose_encrypt_encode(cose_encrypt_t *encrypt, uint8_t *buf, size_t l
     return nanocbor_encoded_len(&enc);
 }
 
-int cose_encrypt_decode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len)
+///* Retrieve an header from the encrypt object */
+//int cose_encrypt_get_protected_hdr(cose_encrypt_t *encrypt, cose_hdr_t *hdr, int32_t key) {
+//    nanocbor_value_t it;
+//    nanocbor_value_t arr;
+//
+//    nanocbor_decoder_init(&it, encrypt->buf, encrypt->len);
+//
+//    if (nanocbor_enter_array(&it, &arr) < 0) {
+//        return COSE_ERR_INVALID_CBOR;
+//    }
+//
+//    const uint8_t *buf;
+//    size_t len;
+//
+//    if (nanocbor_get_bstr(&arr, &buf, &len) < 0) {
+//        return COSE_ERR_INVALID_CBOR;
+//    }
+//
+//    if (cose_hdr_get_cbor(buf, len, hdr, key)) {
+//        return COSE_OK;
+//    }
+//    else {
+//        return COSE_ERR_NOT_FOUND;
+//    }
+//}
+//
+//int cose_encrypt_get_unprotected_hdr(cose_encrypt_t *encrypt, cose_hdr_t *hdr, int32_t key) {
+//    nanocbor_value_t it;
+//    nanocbor_value_t arr;
+//
+//    nanocbor_decoder_init(&it, encrypt->buf, encrypt->len);
+//
+//    if (nanocbor_enter_array(&it, &arr) < 0) {
+//        return COSE_ERR_INVALID_CBOR;
+//    }
+//
+//    if (nanocbor_skip(&arr) < 0) {
+//        return COSE_ERR_INVALID_CBOR;
+//    }
+//
+//    const uint8_t *buf;
+//    size_t len;
+//
+//    if (nanocbor_get_subcbor(&arr, &buf, &len) < 0) {
+//        return COSE_ERR_INVALID_CBOR;
+//    }
+//
+//    if (cose_hdr_get_cbor(buf, len, hdr, key)) {
+//        return COSE_OK;
+//    }
+//    else {
+//        return COSE_ERR_NOT_FOUND;
+//    }
+//}
+
+static int _encrypt_decode_get_prot(const cose_encrypt_dec_t *encrypt, const uint8_t **buf, size_t *len)
+{
+    return cose_cbor_decode_get_prot(encrypt->buf, encrypt->len, buf, len);
+}
+
+#if 0
+static int _encrypt_decode_get_unprot(const cose_encrypt_dec_t *encrypt, const uint8_t **buf, size_t *len)
+{
+    return cose_cbor_decode_get_unprot(encrypt->buf, encrypt->len, buf, len);
+}
+#endif
+
+static bool _is_encrypt0_dec(const cose_encrypt_dec_t *encrypt) {
+    return encrypt->flags & COSE_FLAGS_ENCRYPT0;
+}
+
+static int _encrypt_decode_get_recps(const cose_encrypt_dec_t *encrypt, const uint8_t **buf, size_t *len)
+{
+    nanocbor_value_t arr;
+    if (_is_encrypt0_dec(encrypt)) {
+        return COSE_ERR_NOT_FOUND;
+    }
+
+    if (cose_cbor_decode_get_pos(encrypt->buf, encrypt->len, &arr, 3) < 0) {
+        return COSE_ERR_INVALID_CBOR;
+    }
+
+    if (nanocbor_get_subcbor(&arr, buf, len) < 0 ) {
+        return COSE_ERR_INVALID_CBOR;
+    }
+    return COSE_OK;
+}
+
+/* Used by encrypt (decode) */
+static int _encrypt_build_cbor_dec(const cose_encrypt_dec_t *encrypt, nanocbor_encoder_t *enc)
+{
+    nanocbor_fmt_array(enc, 3);
+    /* Add type string */
+    if (_is_encrypt0_dec(encrypt)) {
+        nanocbor_put_tstr(enc, "Encrypt0");
+    }
+    else {
+        nanocbor_put_tstr(enc, "Encrypt");
+    }
+
+    /* Add body protected headers */
+    const uint8_t *prot;
+    size_t prot_len;
+    _encrypt_decode_get_prot(encrypt, &prot, &prot_len);
+    nanocbor_put_bstr(enc, prot, prot_len);
+
+    /* External aad */
+    nanocbor_put_bstr(enc, encrypt->ext_aad, encrypt->ext_aad_len);
+    return 0;
+}
+
+COSE_ssize_t cose_encrypt_build_dec(const cose_encrypt_dec_t *encrypt, uint8_t *buf, size_t len)
+{
+    nanocbor_encoder_t enc;
+    nanocbor_encoder_init(&enc, buf, len);
+    _encrypt_build_cbor_dec(encrypt, &enc);
+    return (COSE_ssize_t)nanocbor_encoded_len(&enc);
+}
+
+int cose_encrypt_decode_protected(const cose_encrypt_dec_t *encrypt, cose_hdr_t *hdr, int32_t key)
+{
+    const uint8_t *hdrs;
+    size_t len;
+    if (cose_cbor_decode_get_prot(encrypt->buf, encrypt->len, &hdrs, &len) < 0) {
+        return COSE_ERR_INVALID_CBOR;
+    }
+    if (cose_hdr_decode_from_cbor(hdrs, len, hdr, key)) {
+        return COSE_OK;
+    }
+    return COSE_ERR_NOT_FOUND;
+}
+
+int cose_encrypt_decode_unprotected(const cose_encrypt_dec_t *encrypt, cose_hdr_t *hdr, int32_t key)
+{
+    const uint8_t *hdrs;
+    size_t len;
+    if (cose_cbor_decode_get_unprot(encrypt->buf, encrypt->len, &hdrs, &len) < 0) {
+        return COSE_ERR_INVALID_CBOR;
+    }
+    if (cose_hdr_decode_from_cbor(hdrs, len, hdr, key)) {
+        return COSE_OK;
+    }
+    return COSE_ERR_NOT_FOUND;
+}
+
+int cose_encrypt_decode(cose_encrypt_dec_t *encrypt, uint8_t *buf, size_t len)
 {
     nanocbor_value_t it;
     nanocbor_value_t arr;
+
+    encrypt->ext_aad = NULL;
+    encrypt->ext_aad_len = 0;
+    encrypt->flags = 0;
+
+    encrypt->buf = buf;
+    encrypt->len = len;
 
     nanocbor_decoder_init(&it, buf, len);
 
     encrypt->flags |= COSE_FLAGS_DECODE;
 
-    /* Check tag values */
+    /* TODO: Check tag values */
     if (nanocbor_get_type(&it) == NANOCBOR_TYPE_TAG) {
         nanocbor_skip_simple(&it);
     }
-    if (nanocbor_enter_array(&it, &arr) < 0 ||
-            nanocbor_container_remaining(&arr) != 4) {
+    else {
+        encrypt->flags |= COSE_FLAGS_UNTAGGED;
+    }
+
+    if (nanocbor_get_subcbor(&it, &encrypt->buf, &encrypt->len) < 0) {
+        return COSE_ERR_INVALID_CBOR;
+    }
+    nanocbor_decoder_init(&it, encrypt->buf, encrypt->len);
+
+    if (nanocbor_enter_array(&it, &arr) < 0) {
         return COSE_ERR_INVALID_CBOR;
     }
 
-    if (nanocbor_get_bstr(&arr, &encrypt->hdrs.prot.b, &encrypt->hdrs.prot_len) < 0) {
+    if (nanocbor_container_remaining(&arr) == 3) {
+        encrypt->flags |= COSE_FLAGS_ENCRYPT0;
+    }
+    else if (nanocbor_container_remaining(&arr) != 4) {
         return COSE_ERR_INVALID_CBOR;
     }
 
-    if (nanocbor_get_type(&arr) !=  NANOCBOR_TYPE_MAP) {
+    /* Prot headers and unprot headers */
+    /* NOLINTNEXTLINE(misc-redundant-expression) */
+    if (nanocbor_skip(&arr) < 0 || nanocbor_skip(&arr) < 0) {
         return COSE_ERR_INVALID_CBOR;
     }
 
-    encrypt->hdrs.unprot.b = arr.start;
-
-    nanocbor_skip(&arr);
-
-    encrypt->hdrs.unprot_len = arr.start - encrypt->hdrs.unprot.b;
-
-    cose_hdr_t alg_hdr;
-    if (!cose_hdr_get(&encrypt->hdrs, &alg_hdr, COSE_HDR_ALG)) {
-        return COSE_ERR_INVALID_CBOR;
-    }
-    encrypt->algo = alg_hdr.v.value;
-
-    nanocbor_get_bstr(&arr, &encrypt->payload, &encrypt->payload_len);
-
-    if (!encrypt->payload_len) {
+    if (nanocbor_get_null(&arr) >= 0) {
         /* Zero payload length, thus external payload */
         encrypt->flags |= COSE_FLAGS_EXTDATA;
         encrypt->payload = NULL;
+        encrypt->payload_len = 0;
+    }
+    else if (nanocbor_get_bstr(&arr, (const uint8_t **)&encrypt->payload,
+                               &encrypt->payload_len) < 0) {
+        return COSE_ERR_INVALID_CBOR;
     }
 
-    /* Recipients */
-    if (nanocbor_get_type(&arr) == NANOCBOR_TYPE_ARR) {
-        nanocbor_value_t cp;
-        nanocbor_enter_array(&arr, &cp);
-        unsigned int i = 0;
-        while (!nanocbor_at_end(&cp)) {
-            nanocbor_value_t recp;
-            cose_recp_t *precp = &(encrypt->recps[i]);
-            if (i >= COSE_RECIPIENTS_MAX) {
-                break;
-            }
-            if (nanocbor_get_type(&cp) != NANOCBOR_TYPE_ARR) {
-                return COSE_ERR_INVALID_CBOR;
-            }
-            if (nanocbor_enter_array(&it, &arr) < 0 ||
-                (nanocbor_container_remaining(&arr) != 4 &&
-                 nanocbor_container_remaining(&arr) != 3)) {
-                    return COSE_ERR_INVALID_CBOR;
-            }
-
-            nanocbor_enter_array(&cp, &recp);
-
-            /* Protected headers */
-            nanocbor_get_bstr(&recp, &precp->hdrs.prot.b, &precp->hdrs.prot_len);
-
-            /* Unprotected headers */
-            if (nanocbor_get_type(&recp) != NANOCBOR_TYPE_MAP) {
-                return COSE_ERR_INVALID_CBOR;
-            }
-            precp->hdrs.unprot.b = recp.start;
-
-            nanocbor_skip(&recp);
-            precp->hdrs.unprot_len = recp.start - precp->hdrs.unprot.b;
-            if (nanocbor_get_bstr(&recp, &precp->skey, &precp->key_len) <0 ) {
-                return COSE_ERR_INVALID_CBOR;
-            }
-
-            if (!precp->key_len) {
-                precp->skey = NULL;
-            }
-            cose_hdr_t recp_alg;
-
-            if (cose_hdr_get(&precp->hdrs, &recp_alg, COSE_HDR_ALG) && recp_alg.v.value == COSE_ALGO_DIRECT) {
-                /* Mark cose encrypt as direct */
-                encrypt->algo = COSE_ALGO_DIRECT;
-            }
-            i++;
-        }
-        encrypt->num_recps = i;
-    }
     return COSE_OK;
 }
 
+bool cose_encrypt_recp_iter(const cose_encrypt_dec_t *encrypt,
+                            cose_recp_dec_t *recp)
+{
+    if(_is_encrypt0_dec(encrypt)) {
+        return false;
+    }
+    const uint8_t *buf = NULL;
+    size_t len = 0;
+    nanocbor_value_t tmp;
+    nanocbor_value_t arr;
+
+    _encrypt_decode_get_recps(encrypt, &buf, &len);
+    nanocbor_decoder_init(&tmp, buf, len);
+    nanocbor_enter_array(&tmp, &arr);
+
+    while ((recp->buf >= arr.cur) && !nanocbor_at_end(&arr)) {
+        nanocbor_skip(&arr);
+    }
+    if (!nanocbor_at_end(&arr)) {
+        const uint8_t *recp_buf;
+        size_t recp_len = 0;
+        if (nanocbor_get_subcbor(&arr, &recp_buf, &recp_len) < 0) {
+            return false;
+        }
+        cose_recp_decode_init(recp, recp_buf, recp_len);
+        return true;
+    }
+    return false;
+}
 
 /* Try to decrypt a packet */
-int cose_encrypt_decrypt(cose_encrypt_t *encrypt, cose_key_t *key, unsigned idx, uint8_t *buf, size_t len, uint8_t *payload, size_t *payload_len)
+int cose_encrypt_decrypt(const cose_encrypt_dec_t *encrypt,
+                         const cose_recp_dec_t *recp,
+                         const cose_key_t *key, uint8_t *buf,
+                         size_t len, uint8_t *payload, size_t *payload_len)
 {
-    if (idx >= COSE_RECIPIENTS_MAX) {
-        return COSE_ERR_NOMEM;
+    if (recp == NULL && !_is_encrypt0_dec(encrypt)) {
+        return COSE_ERR_CRYPTO;
     }
-    cose_recp_t *recp = &encrypt->recps[idx];
-    (void)recp;
-    COSE_ssize_t aad_len = cose_encrypt_build_enc(encrypt, buf, len);
+
+    COSE_ssize_t aad_len = cose_encrypt_build_dec(encrypt, buf, len);
     if (aad_len < 0) {
        return (int)aad_len;
     }
     cose_hdr_t nonce_hdr;
-    if (!cose_hdr_get(&encrypt->hdrs, &nonce_hdr, COSE_HDR_IV)) {
+    if (cose_encrypt_decode_unprotected(encrypt, &nonce_hdr, COSE_HDR_IV) < 0) {
         return COSE_ERR_CRYPTO;
     }
-    const uint8_t *nonce = nonce_hdr.v.data;
-    cose_algo_t algo = encrypt->algo;
-    const uint8_t *cek = encrypt->cek;
-    if (algo == COSE_ALGO_DIRECT) {
-        cose_hdr_t algo_hdr;
-        cose_hdr_get(&encrypt->hdrs, &algo_hdr, COSE_HDR_ALG);
-        algo = algo_hdr.v.value;
-        cek = key->d;
+
+    if (nonce_hdr.type != COSE_HDR_TYPE_BSTR) {
+        return COSE_ERR_INVALID_CBOR;
     }
+
+    const uint8_t *nonce = nonce_hdr.v.data;
+
+    cose_algo_t algo;
+    cose_hdr_t algo_hdr;
+
+    if (cose_encrypt_decode_protected(encrypt, &algo_hdr, COSE_HDR_ALG) < 0) {
+        return COSE_ERR_CRYPTO;
+    }
+
+    if (algo_hdr.type != COSE_HDR_TYPE_INT) {
+        return COSE_ERR_INVALID_CBOR;
+    }
+
+    algo = algo_hdr.v.value;
+
+    if (algo != key->algo) {
+        return COSE_ERR_CRYPTO;
+    }
+
+    const uint8_t *cek = key->d;
+
     return cose_crypto_aead_decrypt(payload, payload_len, encrypt->payload, encrypt->payload_len, buf, aad_len, nonce, cek, algo);
 }

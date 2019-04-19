@@ -47,10 +47,9 @@ void test_encrypt1(void)
     printf("Using nonce: ");
     print_bytestr(nonce, sizeof(nonce));
     printf("\n");
-    cose_encrypt_t crypt, decrypt;
+    cose_encrypt_t crypt;
     cose_key_t key;
-    cose_encrypt_init(&crypt);
-    cose_encrypt_init(&decrypt);
+    cose_encrypt_init(&crypt, 0);
     cose_key_init(&key);
     cose_key_set_kid(&key, kid, sizeof(kid) - 1);
     cose_key_set_keys(&key, 0, COSE_ALGO_CHACHA20POLY1305, NULL, NULL, chachakey);
@@ -63,9 +62,46 @@ void test_encrypt1(void)
         printf("\n");
     }
     CU_ASSERT_NOT_EQUAL_FATAL(len, 0);
+
+    cose_encrypt_dec_t decrypt;
+    cose_recp_dec_t derecp;
+
     CU_ASSERT_EQUAL(cose_encrypt_decode(&decrypt, out, len), 0);
     size_t plaintext_len = 0;
-    CU_ASSERT_EQUAL(cose_encrypt_decrypt(&decrypt, &key, 0, buf, sizeof(buf), plaintext, &plaintext_len), 0);
+
+    cose_encrypt_recp_iter(&decrypt, &derecp);
+    CU_ASSERT_EQUAL(cose_encrypt_decrypt(&decrypt, &derecp, &key, buf, sizeof(buf), plaintext, &plaintext_len), 0);
+    CU_ASSERT_EQUAL(plaintext_len, sizeof(payload)-1);
+}
+
+void test_encrypt2(void)
+{
+    uint8_t *out;
+    printf("Using nonce: ");
+    print_bytestr(nonce, sizeof(nonce));
+    printf("\n");
+    cose_encrypt_t crypt;
+    cose_key_t key;
+    cose_encrypt_init(&crypt, COSE_FLAGS_ENCRYPT0);
+    cose_key_init(&key);
+    cose_key_set_kid(&key, kid, sizeof(kid) - 1);
+    cose_key_set_keys(&key, 0, COSE_ALGO_CHACHA20POLY1305, NULL, NULL, chachakey);
+    cose_encrypt_add_recipient(&crypt, &key);
+    cose_encrypt_set_payload(&crypt, payload, sizeof(payload)-1);
+    cose_encrypt_set_algo(&crypt, COSE_ALGO_DIRECT);
+    COSE_ssize_t len = cose_encrypt_encode(&crypt, buf, sizeof(buf), nonce, &out);
+    if (len > 0) {
+        print_bytestr(out, len);
+        printf("\n");
+    }
+    CU_ASSERT_NOT_EQUAL_FATAL(len, 0);
+
+    cose_encrypt_dec_t decrypt;
+
+    CU_ASSERT_EQUAL(cose_encrypt_decode(&decrypt, out, len), 0);
+    size_t plaintext_len = 0;
+
+    CU_ASSERT_EQUAL(cose_encrypt_decrypt(&decrypt, NULL, &key, buf, sizeof(buf), plaintext, &plaintext_len), 0);
     CU_ASSERT_EQUAL(plaintext_len, sizeof(payload)-1);
 }
 #endif
@@ -75,6 +111,10 @@ const test_t tests_encrypt[] = {
     {
         .f = test_encrypt1,
         .n = "Encryption with 1 recipient",
+    },
+    {
+        .f = test_encrypt2,
+        .n = "Encryption with encryp0 structure",
     },
 #endif
     {

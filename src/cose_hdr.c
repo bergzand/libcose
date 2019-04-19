@@ -12,8 +12,8 @@
 #include <nanocbor/nanocbor.h>
 #include <string.h>
 
-/* Appends the header the given cbor map */
-int cose_hdr_to_cbor_map(const cose_hdr_t *hdr, nanocbor_encoder_t *map)
+/* Appends the header struct to the given cbor map */
+static int _hdr_encode_to_cbor_map(const cose_hdr_t *hdr, nanocbor_encoder_t *map)
 {
     int res = 0;
     nanocbor_fmt_int(map, hdr->key);
@@ -35,8 +35,9 @@ int cose_hdr_to_cbor_map(const cose_hdr_t *hdr, nanocbor_encoder_t *map)
     return res;
 }
 
-/* Convert a map key to a cose_hdr struct */
-bool cose_hdr_from_cbor_map(cose_hdr_t *hdr, int32_t key, nanocbor_value_t *val)
+/* Convert a map value to a cose_hdr struct */
+static bool _hdr_decode_from_cbor_map(cose_hdr_t *hdr, int32_t key,
+                                      nanocbor_value_t *val)
 {
     hdr->key = key;
     switch (nanocbor_get_type(val)) {
@@ -65,6 +66,7 @@ bool cose_hdr_from_cbor_map(cose_hdr_t *hdr, int32_t key, nanocbor_value_t *val)
     return true;
 }
 
+/* formatters */
 void cose_hdr_format_int(cose_hdr_t *hdr, int32_t key, int32_t value)
 {
     hdr->type = COSE_HDR_TYPE_INT;
@@ -93,24 +95,16 @@ void cose_hdr_insert(cose_hdr_t **hdrs, cose_hdr_t *nhdr)
     *hdrs = nhdr;
 }
 
-int cose_hdr_add_to_map(const cose_hdr_t *hdr, nanocbor_encoder_t *map)
+int cose_hdr_encode_to_map(const cose_hdr_t *hdr, nanocbor_encoder_t *map)
 {
     int err = 0;
     for (; hdr; hdr = hdr->next) {
-        err = cose_hdr_to_cbor_map(hdr, map);
+        err = _hdr_encode_to_cbor_map(hdr, map);
     }
     return err;
 }
 
-size_t cose_hdr_size(const cose_hdr_t *hdr)
-{
-    size_t res = 0;
-    for (; hdr; hdr = hdr->next) {
-        res++;
-    }
-    return res;
-}
-
+/* Retrieve header from cose encoder structure */
 bool cose_hdr_get_hdr(cose_hdr_t *hdrs, cose_hdr_t *hdr, int32_t key)
 {
     for (cose_hdr_t *h = hdrs; h; h = h->next) {
@@ -122,7 +116,38 @@ bool cose_hdr_get_hdr(cose_hdr_t *hdrs, cose_hdr_t *hdr, int32_t key)
     return false;
 }
 
-static bool _hdr_get_cbor(const uint8_t *buf, size_t len, cose_hdr_t *hdr, int32_t key)
+bool cose_hdr_get_protected(cose_headers_t *headers, cose_hdr_t *hdr, int32_t key)
+{
+    return cose_hdr_get_hdr(headers->prot, hdr, key);
+}
+
+bool cose_hdr_get_unprotected(cose_headers_t *headers, cose_hdr_t *hdr, int32_t key)
+{
+    return cose_hdr_get_hdr(headers->unprot, hdr, key);
+}
+
+bool cose_hdr_get(cose_headers_t *headers, cose_hdr_t *hdr,
+        int32_t key)
+{
+    if (cose_hdr_get_protected(headers, hdr, key) ||
+            cose_hdr_get_unprotected(headers, hdr, key)) {
+        return true;
+    }
+    return false;
+}
+
+
+/* Number of linked headers */
+size_t cose_hdr_size(const cose_hdr_t *hdr)
+{
+    size_t res = 0;
+    for (; hdr; hdr = hdr->next) {
+        res++;
+    }
+    return res;
+}
+
+bool cose_hdr_decode_from_cbor(const uint8_t *buf, size_t len, cose_hdr_t *hdr, int32_t key)
 {
     nanocbor_value_t it;
     nanocbor_value_t map;
@@ -134,7 +159,7 @@ static bool _hdr_get_cbor(const uint8_t *buf, size_t len, cose_hdr_t *hdr, int32
         int32_t ckey;
         if (nanocbor_get_int32(&map, &ckey) >= 0){
             if (ckey == key) {
-                cose_hdr_from_cbor_map(hdr, ckey, &map);
+                _hdr_decode_from_cbor_map(hdr, ckey, &map);
                 return true;
             }
             nanocbor_skip(&map);
@@ -144,33 +169,4 @@ static bool _hdr_get_cbor(const uint8_t *buf, size_t len, cose_hdr_t *hdr, int32
         }
     }
     return false;
-}
-
-bool cose_hdr_get_protected(cose_headers_t *headers, cose_hdr_t *hdr, int32_t key)
-{
-    bool res = false;
-    if (headers->prot.c) {
-        /* Unprotected header length can't be zero for cbor byte stream */
-        if (headers->unprot_len) {
-            res = _hdr_get_cbor(headers->prot.b, headers->prot_len, hdr, key);
-        }
-        else {
-            res = cose_hdr_get_hdr(headers->prot.c, hdr, key);
-        }
-    }
-  return res;
-}
-
-bool cose_hdr_get_unprotected(cose_headers_t *headers, cose_hdr_t *hdr, int32_t key)
-{
-    bool res = false;
-    if (headers->unprot.c) {
-        if (headers->unprot_len) {
-            res = _hdr_get_cbor(headers->unprot.b, headers->unprot_len, hdr, key);
-        }
-        else {
-            res = cose_hdr_get_hdr(headers->unprot.c, hdr, key);
-        }
-    }
-    return res;
 }
