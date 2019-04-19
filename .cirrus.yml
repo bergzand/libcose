@@ -45,12 +45,6 @@ build_task:
         CRYPTO: sodium
       crypto_script:
         - ls -al /usr/include/sodium
-    - name: tweetnacl
-      env:
-        CRYPTO: tweetnacl
-      crypto_script:
-        - git clone https://github.com/RIOT-OS/tweetnacl ../tweetnacl
-        - pwd
     - name: mbedtls
       env:
         CRYPTO: mbedtls
