@@ -32,9 +32,6 @@
 #ifdef CRYPTO_SODIUM
 #include "cose/crypto/sodium.h"
 #include <sodium.h>
-#elif defined(CRYPTO_TWEETNACL)
-#include "cose/crypto/tweetnacl.h"
-#include <tweetnacl.h>
 #elif defined(CRYPTO_MBEDTLS)
 #include "cose/crypto/mbedtls.h"
 #elif defined(CRYPTO_C25519)
