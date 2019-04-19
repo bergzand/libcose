@@ -40,9 +40,6 @@ endif
 ifeq ($(CRYPTO), mbedtls)
 	include $(MK_DIR)/mbedtls.mk
 endif
-ifeq ($(CRYPTO), tweetnacl)
-	include $(MK_DIR)/tweetnacl.mk
-endif
 ifeq ($(CRYPTO), hacl)
 	include $(MK_DIR)/hacl.mk
 endif
