@@ -45,6 +45,13 @@ build_task:
         CRYPTO: sodium
       crypto_script:
         - ls -al /usr/include/sodium
+    - name: monocypher
+      env:
+        CRYPTO: monocypher
+        MONOCYPHER_LOCAL: 1
+      crypto_script:
+        - git clone https://github.com/LoupVaillant/Monocypher.git ../Monocypher
+        - bash -c "cd ../Monocypher && make -j CFLAGS=-DED25519_SHA512"
     - name: mbedtls
       env:
         CRYPTO: mbedtls

@@ -37,6 +37,9 @@ CFLAGS += -fPIC $(CFLAGS_WARN) -I$(INC_DIR) -I$(INC_GLOBAL) -I$(INC_TINYCBOR) -I
 ifeq ($(CRYPTO), sodium)
 	include $(MK_DIR)/sodium.mk
 endif
+ifeq ($(CRYPTO), monocypher)
+	include $(MK_DIR)/monocypher.mk
+endif
 ifeq ($(CRYPTO), mbedtls)
 	include $(MK_DIR)/mbedtls.mk
 endif
