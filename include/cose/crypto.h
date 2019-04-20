@@ -32,6 +32,8 @@
 #ifdef CRYPTO_SODIUM
 #include "cose/crypto/sodium.h"
 #include <sodium.h>
+#elif defined(CRYPTO_MONOCYPHER)
+#include "cose/crypto/monocypher.h"
 #elif defined(CRYPTO_MBEDTLS)
 #include "cose/crypto/mbedtls.h"
 #elif defined(CRYPTO_C25519)
