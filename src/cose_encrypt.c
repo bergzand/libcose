@@ -89,10 +89,6 @@ static void _place_cbor_protected(cose_encrypt_t *encrypt, nanocbor_encoder_t *a
     size_t slen = _encrypt_serialize_protected(encrypt, NULL, 0);
     nanocbor_put_bstr(arr, arr->cur, slen);
     _encrypt_serialize_protected(encrypt, arr->cur - slen, slen);
-
-  //  else {
-  //      nanocbor_put_bstr(arr, encrypt->hdrs.prot.b, encrypt->hdrs.prot_len);
-  //  }
 }
 
 static size_t _encrypt_unprot_cbor(cose_encrypt_t *encrypt, nanocbor_encoder_t *enc)
@@ -269,61 +265,6 @@ COSE_ssize_t cose_encrypt_encode(cose_encrypt_t *encrypt, uint8_t *buf, size_t l
     }
     return nanocbor_encoded_len(&enc);
 }
-
-///* Retrieve an header from the encrypt object */
-//int cose_encrypt_get_protected_hdr(cose_encrypt_t *encrypt, cose_hdr_t *hdr, int32_t key) {
-//    nanocbor_value_t it;
-//    nanocbor_value_t arr;
-//
-//    nanocbor_decoder_init(&it, encrypt->buf, encrypt->len);
-//
-//    if (nanocbor_enter_array(&it, &arr) < 0) {
-//        return COSE_ERR_INVALID_CBOR;
-//    }
-//
-//    const uint8_t *buf;
-//    size_t len;
-//
-//    if (nanocbor_get_bstr(&arr, &buf, &len) < 0) {
-//        return COSE_ERR_INVALID_CBOR;
-//    }
-//
-//    if (cose_hdr_get_cbor(buf, len, hdr, key)) {
-//        return COSE_OK;
-//    }
-//    else {
-//        return COSE_ERR_NOT_FOUND;
-//    }
-//}
-//
-//int cose_encrypt_get_unprotected_hdr(cose_encrypt_t *encrypt, cose_hdr_t *hdr, int32_t key) {
-//    nanocbor_value_t it;
-//    nanocbor_value_t arr;
-//
-//    nanocbor_decoder_init(&it, encrypt->buf, encrypt->len);
-//
-//    if (nanocbor_enter_array(&it, &arr) < 0) {
-//        return COSE_ERR_INVALID_CBOR;
-//    }
-//
-//    if (nanocbor_skip(&arr) < 0) {
-//        return COSE_ERR_INVALID_CBOR;
-//    }
-//
-//    const uint8_t *buf;
-//    size_t len;
-//
-//    if (nanocbor_get_subcbor(&arr, &buf, &len) < 0) {
-//        return COSE_ERR_INVALID_CBOR;
-//    }
-//
-//    if (cose_hdr_get_cbor(buf, len, hdr, key)) {
-//        return COSE_OK;
-//    }
-//    else {
-//        return COSE_ERR_NOT_FOUND;
-//    }
-//}
 
 static int _encrypt_decode_get_prot(const cose_encrypt_dec_t *encrypt, const uint8_t **buf, size_t *len)
 {
