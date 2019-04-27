@@ -34,24 +34,23 @@ CFLAGS_DEBUG += $(CFLAGS_COVERAGE) -g3
 CFLAGS_WARN += -Wall -Wextra -pedantic -Werror -Wshadow
 CFLAGS += -fPIC $(CFLAGS_WARN) -I$(INC_DIR) -I$(INC_GLOBAL) -I$(INC_TINYCBOR) -I$(INC_NANOCBOR) -Os -g3
 
-ifeq ($(CRYPTO), sodium)
+ifneq (,$(filter sodium,$(CRYPTO)))
 	include $(MK_DIR)/sodium.mk
 endif
-ifeq ($(CRYPTO), monocypher)
+ifneq (,$(filter monocypher,$(CRYPTO)))
 	include $(MK_DIR)/monocypher.mk
 endif
-ifeq ($(CRYPTO), mbedtls)
+ifneq (,$(filter mbedtls,$(CRYPTO)))
 	include $(MK_DIR)/mbedtls.mk
 endif
-ifeq ($(CRYPTO), hacl)
+ifneq (,$(filter hacl,$(CRYPTO)))
 	include $(MK_DIR)/hacl.mk
 endif
-ifeq ($(CRYPTO), c25519)
+ifneq (,$(filter c25519,$(CRYPTO)))
 	include $(MK_DIR)/c25519.mk
 endif
 
 CFLAGS += $(CFLAGS_CRYPTO)
-LDFLAGS += $(LDFLAGS_CRYPTO)
 
 SRCS+=$(wildcard $(SRC_DIR)/*.c)
 BUILDSRCS=$(SRCS) $(CRYPTOSRC)
