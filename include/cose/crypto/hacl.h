@@ -39,15 +39,6 @@ extern "C" {
 #define HAVE_ALGO_EDDSA
 /** @} */
 
-/**
- * @name Size definitions
- * @{
- */
-#define COSE_CRYPTO_AEAD_CHACHA20POLY1305_KEYBYTES 32
-#define COSE_CRYPTO_AEAD_CHACHA20POLY1305_NONCEBYTES 12
-#define COSE_CRYPTO_AEAD_CHACHA20POLY1305_ABYTES 16
-/** @} */
-
 #ifdef __cplusplus
 }
 #endif

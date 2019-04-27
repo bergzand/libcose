@@ -38,10 +38,6 @@ extern "C" {
 #define HAVE_ALGO_EDDSA
 /** @} */
 
-#define COSE_CRYPTO_AEAD_CHACHA20POLY1305_KEYBYTES crypto_aead_chacha20poly1305_IETF_KEYBYTES
-#define COSE_CRYPTO_AEAD_CHACHA20POLY1305_NONCEBYTES crypto_aead_chacha20poly1305_IETF_NPUBBYTES
-#define COSE_CRYPTO_AEAD_CHACHA20POLY1305_ABYTES crypto_aead_chacha20poly1305_IETF_ABYTES
-
 #ifdef __cplusplus
 }
 #endif

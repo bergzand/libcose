@@ -23,8 +23,6 @@
 #ifndef COSE_CRYPTO_MBEDTLS_H
 #define COSE_CRYPTO_MBEDTLS_H
 
-#include <mbedtls/ecp.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -47,9 +45,6 @@ extern "C" {
 #define HAVE_CURVE_P384     /**< EC NIST p384 curve support */
 #define HAVE_CURVE_P256     /**< EC NIST p256 curve support */
 /** @} */
-
-#define COSE_CRYPTO_SIGN_P521_PUBLICKEYBYTES MBEDTLS_ECP_MAX_BYTES
-#define COSE_CRYPTO_SIGN_P521_SECRETKEYBYTES MBEDTLS_ECP_MAX_BYTES
 
 #define COSE_CRYPTO_AEAD_AESGCM_NONCEBYTES      12
 #define COSE_CRYPTO_AEAD_AESGCM_ABYTES          16
