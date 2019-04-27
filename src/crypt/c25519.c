@@ -16,9 +16,11 @@
 #include "cose_defines.h"
 #include "cose/crypto.h"
 #include "cose/crypto/c25519.h"
+#include "cose/crypto/selectors.h"
 
 extern void randombytes(uint8_t *target, uint64_t n);
 
+#ifdef CRYPTO_C25519_INCLUDE_ED25519
 int cose_crypto_sign_ed25519(const cose_key_t *key, uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen)
 {
     *signlen = EDSIGN_SIGNATURE_SIZE;
@@ -44,3 +46,4 @@ size_t cose_crypto_sig_size_ed25519(void)
 {
     return EDSIGN_SIGNATURE_SIZE;
 }
+#endif /* CRYPTO_C25519_INCLUDE_ED25519 */

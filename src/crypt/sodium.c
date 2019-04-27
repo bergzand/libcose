@@ -13,12 +13,14 @@
 
 #include "cose.h"
 #include "cose/crypto.h"
+#include "cose/crypto/selectors.h"
 #include <sodium/crypto_aead_chacha20poly1305.h>
 #include <sodium/crypto_sign.h>
 #include <sodium/randombytes.h>
 #include <stdint.h>
 #include <stdlib.h>
 
+#ifdef CRYPTO_SODIUM_INCLUDE_CHACHAPOLY
 int cose_crypto_aead_encrypt_chachapoly(uint8_t *c,
                                         size_t *clen,
                                         const uint8_t *msg,
@@ -75,8 +77,9 @@ size_t cose_crypto_aead_nonce_chachapoly(uint8_t *nonce, size_t len)
     randombytes_buf(nonce, crypto_aead_chacha20poly1305_ietf_NPUBBYTES);
     return crypto_aead_chacha20poly1305_ietf_NPUBBYTES;
 }
+#endif /* CRYPTO_SODIUM_INCLUDE_CHACHAPOLY */
 
-
+#ifdef CRYPTO_SODIUM_INCLUDE_ED25519
 int cose_crypto_sign_ed25519(const cose_key_t *key, uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen)
 {
     unsigned long long int signature_len = 0;
@@ -107,3 +110,4 @@ size_t cose_crypto_sig_size_ed25519(void)
 {
     return crypto_sign_BYTES;
 }
+#endif /* CRYPTO_SODIUM_INCLUDE_ED25519 */

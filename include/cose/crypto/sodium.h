@@ -23,8 +23,6 @@
 #ifndef COSE_CRYPTO_SODIUM_H
 #define COSE_CRYPTO_SODIUM_H
 
-#include "cose/crypto/sodium.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
