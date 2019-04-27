@@ -16,9 +16,11 @@
 #include <stdint.h>
 #include <monocypher.h>
 #include "cose/crypto.h"
+#include "cose/crypto/selectors.h"
 
 extern void randombytes(uint8_t *target, uint64_t n);
 
+#ifdef CRYPTO_MONOCYPHER_INCLUDE_CHACHAPOLY
 static uint32_t load32_le(const uint8_t *u)
 {
     return (uint32_t)u[0]
@@ -106,7 +108,9 @@ COSE_ssize_t cose_crypto_keygen_chachapoly(uint8_t *sk, size_t len)
     randombytes((unsigned char*)sk, 64);
     return 64;
 }
+#endif /* CRYPTO_MONOCYPHER_INCLUDE_CHACHAPOLY */
 
+#ifdef CRYPTO_MONOCYPHER_INCLUDE_ED25519
 int cose_crypto_sign_ed25519(const cose_key_t *key, uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen)
 {
     *signlen = cose_crypto_sig_size_ed25519();
@@ -138,3 +142,4 @@ size_t cose_crypto_sig_size_ed25519(void)
 {
     return 64;
 }
+#endif /* CRYPTO_MONOCYPHER_INCLUDE_ED25519 */

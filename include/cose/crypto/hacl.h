@@ -23,8 +23,6 @@
 #ifndef COSE_CRYPTO_HACL_H
 #define COSE_CRYPTO_HACL_H
 
-#include <haclnacl.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif

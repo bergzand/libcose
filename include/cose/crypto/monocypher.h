@@ -22,8 +22,6 @@
 #ifndef COSE_CRYPTO_MONOCYPHER_H
 #define COSE_CRYPTO_MONOCYPHER_H
 
-#include <monocypher.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif

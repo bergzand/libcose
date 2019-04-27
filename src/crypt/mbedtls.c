@@ -14,6 +14,7 @@
 #include "cose.h"
 #include "cose/intern.h"
 #include "cose/crypto.h"
+#include "cose/crypto/selectors.h"
 #include <mbedtls/ecp.h>
 #include <mbedtls/ecdsa.h>
 #include <mbedtls/gcm.h>

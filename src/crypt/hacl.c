@@ -14,6 +14,7 @@
 #include "cose.h"
 #include "cose/crypto.h"
 #include "cose/crypto/hacl.h"
+#include "cose/crypto/selectors.h"
 #include <haclnacl.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -23,6 +24,7 @@ extern void Hacl_Ed25519_sign(uint8_t *signature, uint8_t *secret, uint8_t *msg,
 extern bool Hacl_Ed25519_verify(uint8_t *public, uint8_t *msg, uint32_t len1, uint8_t *signature);
 extern void randombytes(uint8_t *target, uint64_t n);
 
+#ifdef CRYPTO_HACL_INCLUDE_CHACHAPOLY
 int cose_crypto_aead_encrypt_chachapoly(uint8_t *c,
                                         size_t *clen,
                                         const uint8_t *msg,
@@ -77,8 +79,9 @@ size_t cose_crypto_aead_nonce_chachapoly(uint8_t *nonce, size_t len)
     randombytes(nonce, COSE_CRYPTO_AEAD_CHACHA20POLY1305_NONCEBYTES);
     return COSE_CRYPTO_AEAD_CHACHA20POLY1305_NONCEBYTES;
 }
+#endif /* CRYPTO_HACL_INCLUDE_CHACHAPOLY */
 
-
+#ifdef CRYPTO_HACL_INCLUDE_ED25519
 int cose_crypto_sign_ed25519(const cose_key_t *key, uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen)
 {
     uint8_t skey[COSE_CRYPTO_SIGN_ED25519_SECRETKEYBYTES +
@@ -115,3 +118,4 @@ size_t cose_crypto_sig_size_ed25519(void)
 {
     return COSE_CRYPTO_SIGN_ED25519_SIGNBYTES;
 }
+#endif /* CRYPTO_HACL_INCLUDE_ED25519 */
