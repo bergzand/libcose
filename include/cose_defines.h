@@ -75,10 +75,11 @@ typedef enum {
  * Defines an enum to contain all header types in a single struct
  */
 typedef enum {
-    COSE_HDR_TYPE_INT,  /**< Integer type header */
-    COSE_HDR_TYPE_TSTR, /**< Text string type header */
-    COSE_HDR_TYPE_BSTR, /**< Byte string type header */
-    COSE_HDR_TYPE_CBOR, /**< CBOR type header */
+    COSE_HDR_TYPE_UNDEF,    /**< Unknown header type */
+    COSE_HDR_TYPE_INT,      /**< Integer type header */
+    COSE_HDR_TYPE_TSTR,     /**< Text string type header */
+    COSE_HDR_TYPE_BSTR,     /**< Byte string type header */
+    COSE_HDR_TYPE_CBOR,     /**< CBOR type header */
 } cose_hdr_type_t;
 
 /**
