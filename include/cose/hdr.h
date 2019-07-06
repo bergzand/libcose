@@ -43,6 +43,7 @@ typedef struct cose_hdr {
         int32_t value;          /**< Direct integer value */
         const uint8_t *data;    /**< Pointer to the content */
         const char *str;        /**< String type content */
+        const uint8_t *cbor;    /**< CBOR type content */
     } v;                        /**< Union to combine different value types */
     cose_hdr_type_t type;       /**< Type of the header */
 } cose_hdr_t;
