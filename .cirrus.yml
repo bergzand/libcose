@@ -1,6 +1,6 @@
 container:
   cpu: 1
-  memory: 128Mb
+  memory: 256Mb
 
 lint_task:
   env:
