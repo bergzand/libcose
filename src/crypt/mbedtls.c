@@ -20,6 +20,7 @@
 #include <mbedtls/gcm.h>
 #include <mbedtls/sha256.h>
 #include <mbedtls/sha512.h>
+#include <mbedtls/version.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -105,9 +106,15 @@ size_t _hash(cose_algo_t algo, const uint8_t *msg, size_t msglen, uint8_t *hash)
             {
                 mbedtls_sha256_context ctx;
                 mbedtls_sha256_init(&ctx);
+#if (MBEDTLS_VERSION_MINOR > 6)
+                mbedtls_sha256_starts_ret(&ctx, 0);
+                mbedtls_sha256_update_ret(&ctx, msg, msglen);
+                mbedtls_sha256_finish_ret(&ctx, hash);
+#else
                 mbedtls_sha256_starts(&ctx, 0);
                 mbedtls_sha256_update(&ctx, msg, msglen);
                 mbedtls_sha256_finish(&ctx, hash);
+#endif
                 return 32;
                 break;
             }
@@ -115,9 +122,15 @@ size_t _hash(cose_algo_t algo, const uint8_t *msg, size_t msglen, uint8_t *hash)
             {
                 mbedtls_sha512_context ctx;
                 mbedtls_sha512_init(&ctx);
+#if (MBEDTLS_VERSION_MINOR > 6)
+                mbedtls_sha512_starts_ret(&ctx, 1);
+                mbedtls_sha512_update_ret(&ctx, msg, msglen);
+                mbedtls_sha512_finish_ret(&ctx, hash);
+#else
                 mbedtls_sha512_starts(&ctx, 1);
                 mbedtls_sha512_update(&ctx, msg, msglen);
                 mbedtls_sha512_finish(&ctx, hash);
+#endif
                 return 48;
                 break;
             }
@@ -125,9 +138,15 @@ size_t _hash(cose_algo_t algo, const uint8_t *msg, size_t msglen, uint8_t *hash)
             {
                 mbedtls_sha512_context ctx;
                 mbedtls_sha512_init(&ctx);
+#if (MBEDTLS_VERSION_MINOR > 6)
+                mbedtls_sha512_starts_ret(&ctx, 0);
+                mbedtls_sha512_update_ret(&ctx, msg, msglen);
+                mbedtls_sha512_finish_ret(&ctx, hash);
+#else
                 mbedtls_sha512_starts(&ctx, 0);
                 mbedtls_sha512_update(&ctx, msg, msglen);
                 mbedtls_sha512_finish(&ctx, hash);
+#endif
                 return 64;
                 break;
             }
