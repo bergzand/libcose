@@ -39,6 +39,7 @@ build_task:
         matrix:
           image: gcc:7
           image: gcc:8
+          image: gcc:9
   matrix:
     - name: sodium
       env:
