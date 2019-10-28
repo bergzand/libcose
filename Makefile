@@ -69,6 +69,8 @@ LDFLAGS += $(LDFLAGS_CRYPTO)
 
 lib: $(BIN_DIR)/libcose.so
 
+hkdf-test: $(BIN_DIR)/hkdf-test
+
 prepare:
 	@mkdir -p $(OBJ_DIR)
 	@mkdir -p $(OBJ_DIR)/crypt
@@ -88,6 +90,9 @@ $(BIN_DIR)/test: $(OBJS) $(OTESTS) prepare
 
 $(BIN_DIR)/libcose.so: $(OBJS) prepare
 	$(CC) $(CFLAGS) $(OBJS) -o $@ -Wl,$(LIB_NANOCBOR)  -shared
+
+$(BIN_DIR)/hkdf-test: $(OBJS) $(OBJ_DIR)/tests/hkdf.o prepare
+	$(CC) $(CFLAGS) $(OBJS) $(OBJ_DIR)/tests/hkdf.o -o $@ -Wl,$(LIB_NANOCBOR) -lsodium
 
 test: $(BIN_DIR)/test
 	LD_LIBRARY_PATH=$(LIB_TINYCBOR_PATH) $<

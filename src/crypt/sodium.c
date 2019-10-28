@@ -17,6 +17,7 @@
 #include <sodium/crypto_aead_chacha20poly1305.h>
 #include <sodium/crypto_sign.h>
 #include <sodium/randombytes.h>
+#include <sodium/crypto_auth_hmacsha256.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -110,4 +111,53 @@ size_t cose_crypto_sig_size_ed25519(void)
 {
     return crypto_sign_BYTES;
 }
+
+int cose_crypto_hkdf_derive_sha256(const uint8_t *salt,
+        size_t salt_len,
+        const uint8_t *ikm,
+        size_t ikm_length,
+        const uint8_t *info,
+        size_t info_length,
+        uint8_t *out,
+        size_t out_length)
+{
+    uint8_t prk[crypto_auth_hmacsha256_KEYBYTES];
+
+    if (salt_len == crypto_auth_hmacsha256_KEYBYTES) {
+        crypto_auth_hmacsha256(prk, ikm, ikm_length, salt);
+    } else if (salt_len == 0) {
+        uint8_t padding[crypto_auth_hmacsha256_KEYBYTES];
+        memset(padding, 0, crypto_auth_hmacsha256_KEYBYTES);
+        crypto_auth_hmacsha256(prk, ikm, ikm_length, padding);
+    } else {
+        return COSE_ERR_INVALID_PARAM;
+    }
+
+    uint8_t slice[crypto_auth_hmacsha256_BYTES];
+    size_t slice_len = crypto_auth_hmacsha256_BYTES;
+    uint8_t counter[1] = {0x01};
+    crypto_auth_hmacsha256_state state;
+    size_t rounds = out_length / crypto_auth_hmacsha256_BYTES;
+    if (out_length % crypto_auth_hmacsha256_BYTES > 0) {
+        rounds++;
+    }
+    for (size_t i = 0; i < rounds; ++i) {
+        size_t offset = i * crypto_auth_hmacsha256_BYTES;
+        *counter = i + 1;
+        crypto_auth_hmacsha256_init(&state, prk, crypto_auth_hmacsha256_KEYBYTES);
+        if (i > 0) {
+            crypto_auth_hmacsha256_update(&state, slice, slice_len);
+        }
+        crypto_auth_hmacsha256_update(&state, info, info_length);
+        crypto_auth_hmacsha256_update(&state, counter, 1);
+        crypto_auth_hmacsha256_final(&state, slice);
+        if (i + 1 == rounds) {
+            slice_len = out_length - offset;
+        }
+        memcpy(out + offset, slice, slice_len);
+    }
+
+    return COSE_OK;
+}
+
 #endif /* CRYPTO_SODIUM_INCLUDE_ED25519 */
