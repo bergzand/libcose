@@ -125,9 +125,10 @@ int cose_crypto_hkdf_derive_sha256(const uint8_t *salt,
 
     if (salt_len == crypto_auth_hmacsha256_KEYBYTES) {
         crypto_auth_hmacsha256(prk, ikm, ikm_length, salt);
-    } else if (salt_len == 0) {
+    } else if (salt_len < crypto_auth_hmacsha256_KEYBYTES) {
         uint8_t padding[crypto_auth_hmacsha256_KEYBYTES];
         memset(padding, 0, crypto_auth_hmacsha256_KEYBYTES);
+        memcpy(padding, salt, salt_len);
         crypto_auth_hmacsha256(prk, ikm, ikm_length, padding);
     } else {
         return COSE_ERR_INVALID_PARAM;
