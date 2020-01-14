@@ -44,6 +44,9 @@
 #if defined(CRYPTO_HACL)
 #include "cose/crypto/hacl.h"
 #endif
+#if defined(CRYPTO_TINYDTLS)
+#include "cose/crypto/tinydtls.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
