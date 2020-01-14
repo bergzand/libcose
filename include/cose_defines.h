@@ -160,6 +160,7 @@ typedef enum {
     COSE_ALGO_A128GCM = 1,              /**< AES-GCM mode w/ 128-bit key, 128-bit tag */
     COSE_ALGO_A192GCM = 2,              /**< AES-GCM mode w/ 192-bit key, 128-bit tag */
     COSE_ALGO_A256GCM = 3,              /**< AES-GCM mode w/ 256-bit key, 128-bit tag */
+    COSE_ALGO_AESCCM_16_64_128 = 10,    /**< AES-CCM mode 128-bit key, 64-bit tag, 13-byte nonce */
     COSE_ALGO_CHACHA20POLY1305 = 24,    /**< IETF ChaCha20/Poly1305 w/ 256-bit key, 128-bit tag */
 } cose_algo_t;
 
