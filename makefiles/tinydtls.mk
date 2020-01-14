@@ -11,4 +11,4 @@ CRYPTOOBJS += $(TINYDTLS_DIR)/hmac.o
 CRYPTOOBJS += $(TINYDTLS_DIR)/ccm.o
 CRYPTOOBJS += $(TINYDTLS_DIR)/sha2/sha2.o
 CRYPTOOBJS += $(TINYDTLS_DIR)/netq.o
-$(CRYPTOOBJS): CFLAGS += -Wno-old-style-declaration -Wno-empty-body
+$(CRYPTOOBJS): CFLAGS += -Wno-gnu-zero-variadic-macro-arguments -Wno-unused-function

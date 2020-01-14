@@ -214,44 +214,44 @@ static const uint8_t aesccm1_output[39] = {
 // respectively; this plucks them apart.
 
 static const uint8_t *aesccm1_aad = &aesccm1_input[0];
-static const size_t aesccm1_aad_len = 8;
+#define AESCCM1_AAD_LEN 8
 
-static const uint8_t *aesccm1_plaintext = &aesccm1_input[aesccm1_aad_len];
-static const size_t aesccm1_plaintext_len = sizeof(aesccm1_input) - aesccm1_aad_len;
+static const uint8_t *aesccm1_plaintext = &aesccm1_input[AESCCM1_AAD_LEN];
+#define AESCCM1_PLAINTEXT_LEN (sizeof(aesccm1_input) - AESCCM1_AAD_LEN)
 
-static const uint8_t *aesccm1_ciphertext = &aesccm1_output[aesccm1_aad_len];
-static const size_t aesccm1_ciphertext_len = sizeof(aesccm1_output) - aesccm1_aad_len;
+static const uint8_t *aesccm1_ciphertext = &aesccm1_output[AESCCM1_AAD_LEN];
+#define AESCCM1_CIPHERTEXT_LEN (sizeof(aesccm1_output) - AESCCM1_AAD_LEN)
 
 void test_crypto_aesccm_vector(void)
 {
-    unsigned char ciphertext[aesccm1_ciphertext_len];
-    unsigned char plaintext[aesccm1_plaintext_len];
+    unsigned char ciphertext[AESCCM1_CIPHERTEXT_LEN];
+    unsigned char plaintext[AESCCM1_PLAINTEXT_LEN];
 
     size_t cipherlen = 0;
     size_t msglen = 0;
     /* Generate key */
     cose_crypto_aead_encrypt(
             ciphertext, &cipherlen,
-            aesccm1_plaintext, aesccm1_plaintext_len,
-            aesccm1_aad, aesccm1_aad_len,
+            aesccm1_plaintext, AESCCM1_PLAINTEXT_LEN,
+            aesccm1_aad, AESCCM1_AAD_LEN,
             NULL, aesccm1_nonce,
             aesccm1_key,
             COSE_ALGO_AESCCM_16_64_128
             );
-    CU_ASSERT_EQUAL(aesccm1_ciphertext_len, cipherlen);
-    CU_ASSERT_EQUAL(memcmp(ciphertext, aesccm1_ciphertext, aesccm1_ciphertext_len), 0);
+    CU_ASSERT_EQUAL(AESCCM1_CIPHERTEXT_LEN, cipherlen);
+    CU_ASSERT_EQUAL(memcmp(ciphertext, aesccm1_ciphertext, AESCCM1_CIPHERTEXT_LEN), 0);
     CU_ASSERT_EQUAL(
         cose_crypto_aead_decrypt(
                 plaintext, &msglen,
                 ciphertext, cipherlen,
-                aesccm1_aad, aesccm1_aad_len,
+                aesccm1_aad, AESCCM1_AAD_LEN,
                 aesccm1_nonce,
                 aesccm1_key,
                 COSE_ALGO_AESCCM_16_64_128
                 ),
         0 );
-    CU_ASSERT_EQUAL(msglen, aesccm1_plaintext_len);
-    CU_ASSERT_EQUAL(memcmp(aesccm1_plaintext, plaintext, aesccm1_plaintext_len), 0);
+    CU_ASSERT_EQUAL(msglen, AESCCM1_PLAINTEXT_LEN);
+    CU_ASSERT_EQUAL(memcmp(aesccm1_plaintext, plaintext, AESCCM1_PLAINTEXT_LEN), 0);
 }
 #endif
 
