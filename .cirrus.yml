@@ -19,7 +19,7 @@ build_task:
     MBEDTLS_LIB: /usr/lib/x86_64-linux-gnu/libmbedcrypto.so
   install_script:
     - apt update
-    - apt install -y libgcc-6-dev build-essential pkg-config libcunit1-dev wget libsodium-dev libmbedtls-dev ca-certificates
+    - apt install -y libgcc-8-dev build-essential pkg-config libcunit1-dev wget libsodium-dev libmbedtls-dev ca-certificates
     - git clone https://github.com/intel/tinycbor/ ../tinycbor
     - bash -c "cd ../tinycbor && make -j"
     - git clone https://github.com/bergzand/nanocbor/ ../nanocbor
