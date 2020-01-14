@@ -181,6 +181,11 @@ int cose_crypto_sign(const cose_key_t *key, uint8_t *sign, size_t *signlen, uint
             break;
 #endif
         default:
+            (void)key;
+            (void)sign;
+            (void)signlen;
+            (void)msg;
+            (void)msglen;
             return COSE_ERR_NOTIMPLEMENTED;
     }
     return 0;
@@ -204,6 +209,11 @@ int cose_crypto_verify(const cose_key_t *key, const uint8_t *sign, size_t signle
             break;
 #endif
         default:
+            (void)key;
+            (void)sign;
+            (void)signlen;
+            (void)msg;
+            (void)msglen;
             return COSE_ERR_NOTIMPLEMENTED;
     }
     return 0;
