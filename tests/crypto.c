@@ -187,7 +187,7 @@ void test_crypto_aes256(void)
 #endif
 
 #ifdef HAVE_ALGO_AESCCM_16_64_128
-// Values from https://www.rfc-editor.org/rfc/rfc3610.html#section-8
+/* Values from https://www.rfc-editor.org/rfc/rfc3610.html#section-8 */
 static const uint8_t aesccm1_key[16] = {
     0xc0, 0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xca, 0xcb, 0xcc, 0xcd, 0xce, 0xcf,
 };
@@ -209,9 +209,9 @@ static const uint8_t aesccm1_output[39] = {
     0xf9, 0x26, 0xe0,
 };
 
-// The input and output packets in the RFC's test vectors are shown in
-// concatenated form AAD || cleartext and AAD || ciphertext || tag,
-// respectively; this plucks them apart.
+/* The input and output packets in the RFC's test vectors are shown in
+ * concatenated form AAD || cleartext and AAD || ciphertext || tag,
+ * respectively; this plucks them apart. */
 
 static const uint8_t *aesccm1_aad = &aesccm1_input[0];
 #define AESCCM1_AAD_LEN 8
