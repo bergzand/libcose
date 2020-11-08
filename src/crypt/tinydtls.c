@@ -25,8 +25,8 @@ int cose_crypto_aead_encrypt_aesccm(uint8_t *c,
                                     const uint8_t *k,
                                     size_t keysize)
 {
-    /* Casts: discarding const -- see https://github.com/eclipse/tinydtls/issues/25 */
-    int ret = dtls_encrypt(msg, msglen, c, (uint8_t*)npub, (uint8_t*)k, keysize, aad, aadlen);
+    const dtls_ccm_params_t params = { npub, 8, 2 };
+    int ret = dtls_encrypt_params(&params, msg, msglen, c, (uint8_t*)k, keysize, aad, aadlen);
     if (ret >= 0 && (size_t)ret == msglen + COSE_CRYPTO_AEAD_AESCCM_16_64_128_ABYTES) {
         *clen = ret;
         return COSE_OK;
@@ -45,8 +45,8 @@ int cose_crypto_aead_decrypt_aesccm(uint8_t *msg,
                                     const uint8_t *k,
                                     size_t keysize)
 {
-    /* Casts: discarding const -- see https://github.com/eclipse/tinydtls/issues/25 */
-    int ret = dtls_decrypt(c, clen, msg, (uint8_t*)npub, (uint8_t*)k, keysize, aad, aadlen);
+    const dtls_ccm_params_t params = { npub, 8, 2 };
+    int ret = dtls_decrypt_params(&params, c, clen, msg, (uint8_t*)k, keysize, aad, aadlen);
     if (ret >= 0 && (size_t)ret == clen - COSE_CRYPTO_AEAD_AESCCM_16_64_128_ABYTES) {
         *msglen = ret;
         return COSE_OK;
