@@ -1,10 +1,13 @@
-#include <assert.h>
+#include <cose/test.h>
+
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <cose/crypto.h>
 
-int test() {
+#include "CUnit/CUnit.h"
+
+void test_hkdf_vectors_hmac256(void) {
     uint8_t out[100];
     uint8_t salt[] = "1234567890abcdefghijklmnopqrstuv";
     uint8_t ikm[] = "abcdefghijklmnopqrst";
@@ -18,36 +21,43 @@ int test() {
 
     size_t out_len = 10;
     cose_crypto_hkdf_derive(salt, salt_len, ikm, ikm_len, info, info_len, out, out_len, COSE_ALGO_HMAC256);
-    assert(memcmp(out, expected, out_len) == 0);
+    CU_ASSERT_EQUAL(memcmp(out, expected, out_len), 0);
     cose_crypto_hkdf_derive(salt, 0, ikm, ikm_len, info, info_len, out, out_len, COSE_ALGO_HMAC256);
-    assert(memcmp(out, expected_nosalt, out_len) == 0);
+    CU_ASSERT_EQUAL(memcmp(out, expected_nosalt, out_len), 0);
 
     out_len = 64;
     cose_crypto_hkdf_derive(salt, salt_len, ikm, ikm_len, info, info_len, out, out_len, COSE_ALGO_HMAC256);
-    assert(memcmp(out, expected, out_len) == 0);
+    CU_ASSERT_EQUAL(memcmp(out, expected, out_len), 0);
     cose_crypto_hkdf_derive(salt, 0, ikm, ikm_len, info, info_len, out, out_len, COSE_ALGO_HMAC256);
-    assert(memcmp(out, expected_nosalt, out_len) == 0);
+    CU_ASSERT_EQUAL(memcmp(out, expected_nosalt, out_len), 0);
 
     out_len = 100;
     cose_crypto_hkdf_derive(salt, salt_len, ikm, ikm_len, info, info_len, out, out_len, COSE_ALGO_HMAC256);
-    assert(memcmp(out, expected, out_len) == 0);
+    CU_ASSERT_EQUAL(memcmp(out, expected, out_len), 0);
     cose_crypto_hkdf_derive(salt, 0, ikm, ikm_len, info, info_len, out, out_len, COSE_ALGO_HMAC256);
-    assert(memcmp(out, expected_nosalt, out_len) == 0);
+    CU_ASSERT_EQUAL(memcmp(out, expected_nosalt, out_len), 0);
 
 
     uint8_t master_secret[16] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
                                  0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10};
     uint8_t master_salt[8] = {0x9e, 0x7c, 0xa9, 0x22, 0x23, 0x78, 0x63, 0x40};
+    /* An example key info map for RFC8613 */
     uint8_t skey_info[9] = {0x85, 0x40, 0xf6, 0x0a, 0x63, 0x4b, 0x65, 0x79, 0x10};
     uint8_t expected_key_S[16] = {0xf0, 0x91, 0x0e, 0xd7, 0x29, 0x5e, 0x6a, 0xd4,
                                   0xb5, 0x4f, 0xc7, 0x93, 0x15, 0x43, 0x02, 0xff};
     cose_crypto_hkdf_derive(master_salt, 8, master_secret, 16, skey_info, 9, out, 16, COSE_ALGO_HMAC256);
-    assert(memcmp(out, expected_key_S, 16) == 0);
-
-    return 0;
+    CU_ASSERT_EQUAL(memcmp(out, expected_key_S, 16), 0);
 }
 
-int main() {
-    test();
-    printf("Success\n");
-}
+const test_t tests_hkdf[] = {
+#ifdef HAVE_ALGO_HMAC256
+    {
+        .f = test_hkdf_vectors_hmac256,
+        .n = "HKDF test vectors for HMAC 256/256",
+    },
+#endif
+    {
+        .f = NULL,
+        .n = NULL,
+    },
+};
