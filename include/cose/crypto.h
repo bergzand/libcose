@@ -312,6 +312,13 @@ size_t cose_crypto_sig_size_ed25519(void);
  * @{
  */
 
+/** @brief Decide whether a given algorithm is known and an HKDF algorithm
+ *
+ * @param[in]  alg The algorithm to be checked
+ * @return     true iff @p alg can be used with @ref cose_crypto_hkdf_derive
+ */
+bool cose_crypto_is_hkdf(cose_algo_t alg);
+
 /** @brief Derive a key using HKDF (HMAC based key derivation function)
  *
  * @param[in] salt Salt for key generation. Can be empty

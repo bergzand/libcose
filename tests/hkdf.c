@@ -49,6 +49,19 @@ void test_hkdf_vectors_hmac256(void) {
     CU_ASSERT_EQUAL(memcmp(out, expected_key_S, 16), 0);
 }
 
+void test_is_hkdf(void) {
+    CU_ASSERT_EQUAL(cose_crypto_is_hkdf(COSE_ALGO_NONE), false);
+    CU_ASSERT_EQUAL(cose_crypto_is_hkdf(COSE_ALGO_CHACHA20POLY1305), false);
+    bool have_algo_hmac256 =
+#ifdef HAVE_ALGO_HMAC256
+            true
+#else
+            false
+#endif
+            ;
+    CU_ASSERT_EQUAL(cose_crypto_is_hkdf(COSE_ALGO_HMAC256), have_algo_hmac256);
+}
+
 const test_t tests_hkdf[] = {
 #ifdef HAVE_ALGO_HMAC256
     {
@@ -56,6 +69,10 @@ const test_t tests_hkdf[] = {
         .n = "HKDF test vectors for HMAC 256/256",
     },
 #endif
+    {
+        .f = test_is_hkdf,
+        .n = "cose_crypto_is_hkdf",
+    },
     {
         .f = NULL,
         .n = NULL,

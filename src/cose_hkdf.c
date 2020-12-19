@@ -9,6 +9,19 @@
 
 #include "cose/crypto.h"
 
+bool cose_crypto_is_hkdf(cose_algo_t alg)
+{
+    /* NOLINTNEXTLINE(hicpp-multiway-paths-covered) */
+    switch(alg) {
+#ifdef HAVE_ALGO_HMAC256
+        case COSE_ALGO_HMAC256:
+            return true;
+#endif
+        default:
+            return false;
+    }
+}
+
 int cose_crypto_hkdf_derive(const uint8_t *salt,
                                    size_t salt_len,
                                    const uint8_t *ikm,
