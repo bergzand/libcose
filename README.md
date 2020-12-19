@@ -11,6 +11,8 @@ Libcose implements modern ed25519 based signatures for signing. ECDSA based
 signing and verification is implemented using Mbed TLS. RSA will probably
 be skipped.
 
+There is [online documentation](https://bergzand.github.io/libcose/) available.
+
 ### Dependencies:
 
 - [NanoCBOR]
