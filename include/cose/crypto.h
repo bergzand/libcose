@@ -304,6 +304,14 @@ void cose_crypto_keypair_ecdsa(cose_key_t *key, cose_curve_t curve);
  */
 size_t cose_crypto_sig_size_ed25519(void);
 
+/** @} */
+
+/**
+ * @name HKDF related functions
+ *
+ * @{
+ */
+
 /** @brief Derive a key using HKDF (HMAC based key derivation function)
  *
  * @param[in] salt Salt for key generation. Can be empty
@@ -323,7 +331,8 @@ int cose_crypto_hkdf_derive(const uint8_t *salt,
                             const uint8_t *info,
                             size_t info_length,
                             uint8_t *out,
-                            size_t out_length, cose_algo_t alg);
+                            size_t out_length,
+                            cose_algo_t alg);
 
 /** @brief Derive a key using HMAC256
  *
@@ -335,7 +344,6 @@ int cose_crypto_hkdf_derive(const uint8_t *salt,
  * @param[in] info_length Length of @p info
  * @param[out] out Output buffer where the key is written to
  * @param[in] out_length Length of @p out
- * @param[in] alg HKDF algorithm to use
  */
 int cose_crypto_hkdf_derive_sha256(const uint8_t *salt,
                                    size_t salt_len,
