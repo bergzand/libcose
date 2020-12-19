@@ -219,23 +219,3 @@ size_t cose_crypto_sig_size(const cose_key_t *key)
     }
     return 0;
 }
-
-int cose_crypto_hkdf_derive(const uint8_t *salt,
-                                   size_t salt_len,
-                                   const uint8_t *ikm,
-                                   size_t ikm_length,
-                                   const uint8_t *info,
-                                   size_t info_length,
-                                   uint8_t *out,
-                                   size_t out_length, cose_algo_t alg) {
-    /* NOLINTNEXTLINE(hicpp-multiway-paths-covered) */
-    switch(alg) {
-#ifdef HAVE_ALGO_HMAC256
-        case COSE_ALGO_HMAC256:
-            return cose_crypto_hkdf_derive_sha256(salt, salt_len, ikm,
-                    ikm_length, info, info_length, out, out_length);
-#endif
-        default:
-            return COSE_ERR_NOTIMPLEMENTED;
-    }
-}
