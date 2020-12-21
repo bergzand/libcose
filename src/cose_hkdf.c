@@ -18,6 +18,7 @@ bool cose_crypto_is_hkdf(cose_algo_t alg)
             return true;
 #endif
         default:
+            (void)alg;
             return false;
     }
 }
@@ -38,6 +39,15 @@ int cose_crypto_hkdf_derive(const uint8_t *salt,
                     ikm_length, info, info_length, out, out_length);
 #endif
         default:
+            (void)salt;
+            (void)salt_len;
+            (void)ikm;
+            (void)ikm_length;
+            (void)info;
+            (void)info_length;
+            (void)out;
+            (void)out_length;
+            (void)alg;
             return COSE_ERR_NOTIMPLEMENTED;
     }
 }
