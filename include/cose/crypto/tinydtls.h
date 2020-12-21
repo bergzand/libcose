@@ -34,6 +34,8 @@ extern "C" {
  * @{
  */
 #define HAVE_ALGO_AESCCM_16_64_128 /**< AES-CCM mode 128-bit key, 64-bit tag, 13-byte nonce */
+#define HAVE_ALGO_HMAC256
+
 /** @} */
 
 #ifdef __cplusplus
