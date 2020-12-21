@@ -111,7 +111,9 @@ size_t cose_crypto_sig_size_ed25519(void)
 {
     return crypto_sign_BYTES;
 }
+#endif /* CRYPTO_SODIUM_INCLUDE_ED25519 */
 
+#ifdef CRYPTO_SODIUM_INCLUDE_HKDFSHA256
 int cose_crypto_hkdf_derive_sha256(const uint8_t *salt,
         size_t salt_len,
         const uint8_t *ikm,
@@ -160,5 +162,4 @@ int cose_crypto_hkdf_derive_sha256(const uint8_t *salt,
 
     return COSE_OK;
 }
-
-#endif /* CRYPTO_SODIUM_INCLUDE_ED25519 */
+#endif /* CRYPTO_SODIUM_INCLUDE_HKDFSHA256 */
