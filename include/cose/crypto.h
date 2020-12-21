@@ -44,6 +44,9 @@
 #if defined(CRYPTO_HACL)
 #include "cose/crypto/hacl.h"
 #endif
+#if defined(CRYPTO_TINYDTLS)
+#include "cose/crypto/tinydtls.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -150,6 +153,9 @@ extern "C" {
 #define COSE_CRYPTO_AEAD_AES256GCM_NONCEBYTES   COSE_CRYPTO_AEAD_AESGCM_NONCEBYTES
 #define COSE_CRYPTO_AEAD_AES256GCM_ABYTES       COSE_CRYPTO_AEAD_AESGCM_ABYTES
 
+#define COSE_CRYPTO_AEAD_AESCCM_16_64_128_KEYBYTES     16
+#define COSE_CRYPTO_AEAD_AESCCM_16_64_128_ABYTES       8
+#define COSE_CRYPTO_AEAD_AESCCM_16_64_128_NONCEBYTES   13
 
 /** @} */
 
@@ -233,6 +239,26 @@ int cose_crypto_aead_decrypt_aesgcm(uint8_t *msg,
                                     const uint8_t *k,
                                     size_t keysize);
 
+int cose_crypto_aead_encrypt_aesccm(uint8_t *c,
+                                    size_t *clen,
+                                    const uint8_t *msg,
+                                    size_t msglen,
+                                    const uint8_t *aad,
+                                    size_t aadlen,
+                                    const uint8_t *npub,
+                                    const uint8_t *k,
+                                    size_t keysize);
+
+int cose_crypto_aead_decrypt_aesccm(uint8_t *msg,
+                                    size_t *msglen,
+                                    const uint8_t *c,
+                                    size_t clen,
+                                    const uint8_t *aad,
+                                    size_t aadlen,
+                                    const uint8_t *npub,
+                                    const uint8_t *k,
+                                    size_t keysize);
+
 /**
  * Generate a symmetric key for AEAD operations
  */
@@ -303,6 +329,63 @@ void cose_crypto_keypair_ecdsa(cose_key_t *key, cose_curve_t curve);
  * @return      Signature size
  */
 size_t cose_crypto_sig_size_ed25519(void);
+
+/** @} */
+
+/**
+ * @name HKDF related functions
+ *
+ * @{
+ */
+
+/** @brief Decide whether a given algorithm is known and an HKDF algorithm
+ *
+ * @param[in]  alg The algorithm to be checked
+ * @return     true iff @p alg can be used with @ref cose_crypto_hkdf_derive
+ */
+bool cose_crypto_is_hkdf(cose_algo_t alg);
+
+/** @brief Derive a key using HKDF (HMAC based key derivation function)
+ *
+ * @param[in] salt Salt for key generation. Can be empty
+ * @param[in] salt_len Length of @p salt
+ * @param[in] ikm key material
+ * @param[in] ikm_length Length of @p ikm
+ * @param[in] info Info for for derived key
+ * @param[in] info_length Length of @p info
+ * @param[out] out Output buffer where the key is written to
+ * @param[in] out_length Length of @p out
+ * @param[in] alg HKDF algorithm to use
+ */
+int cose_crypto_hkdf_derive(const uint8_t *salt,
+                            size_t salt_len,
+                            const uint8_t *ikm,
+                            size_t ikm_length,
+                            const uint8_t *info,
+                            size_t info_length,
+                            uint8_t *out,
+                            size_t out_length,
+                            cose_algo_t alg);
+
+/** @brief Derive a key using HMAC256
+ *
+ * @param[in] salt Salt for key generation. Can be empty
+ * @param[in] salt_len Length of @p salt
+ * @param[in] ikm key material
+ * @param[in] ikm_length Length of @p ikm
+ * @param[in] info Info for for derived key
+ * @param[in] info_length Length of @p info
+ * @param[out] out Output buffer where the key is written to
+ * @param[in] out_length Length of @p out
+ */
+int cose_crypto_hkdf_derive_sha256(const uint8_t *salt,
+                                   size_t salt_len,
+                                   const uint8_t *ikm,
+                                   size_t ikm_length,
+                                   const uint8_t *info,
+                                   size_t info_length,
+                                   uint8_t *out,
+                                   size_t out_length);
 /** @} */
 
 #ifdef __cplusplus
