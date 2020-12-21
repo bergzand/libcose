@@ -86,10 +86,7 @@ int cose_crypto_hkdf_derive_sha256(const uint8_t *salt,
     size_t slice_len = SHA256_OUTPUT_BYTES;
     uint8_t counter[1] = {0x01};
     dtls_hmac_context_t state;
-    size_t rounds = out_length / SHA256_OUTPUT_BYTES;
-    if (out_length % SHA256_OUTPUT_BYTES > 0) {
-        rounds++;
-    }
+    size_t rounds = (out_length + SHA256_OUTPUT_BYTES - 1) / SHA256_OUTPUT_BYTES;
     for (size_t i = 0; i < rounds; ++i) {
         size_t offset = i * SHA256_OUTPUT_BYTES;
         *counter = i + 1;
