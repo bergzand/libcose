@@ -20,9 +20,6 @@
 #include "CUnit/Basic.h"
 #include "CUnit/Automated.h"
 
-static char kid[] = "koen@example.org";
-static char kid2[] = "koen@example.net";
-
 #ifdef HAVE_ALGO_EDDSA
 #define TEST_CRYPTO_SIGN_PUBLICKEYBYTES COSE_CRYPTO_SIGN_ED25519_PUBLICKEYBYTES
 #define TEST_CRYPTO_SIGN_SECRETKEYBYTES COSE_CRYPTO_SIGN_ED25519_SECRETKEYBYTES
@@ -30,6 +27,11 @@ static char kid2[] = "koen@example.net";
 #define TEST_CRYPTO_SIGN_PUBLICKEYBYTES COSE_CRYPTO_SIGN_P521_PUBLICKEYBYTES
 #define TEST_CRYPTO_SIGN_SECRETKEYBYTES COSE_CRYPTO_SIGN_P521_SECRETKEYBYTES
 #endif
+
+#if defined(HAVE_ALGO_EDDSA) || defined(HAVE_ALGO_ECDSA)
+
+static char kid[] = "koen@example.org";
+static char kid2[] = "koen@example.net";
 
 static unsigned char pkx1[TEST_CRYPTO_SIGN_PUBLICKEYBYTES];
 static unsigned char pky1[TEST_CRYPTO_SIGN_PUBLICKEYBYTES];
@@ -486,8 +488,10 @@ void test_sign8(void)
     verification = cose_sign_verify(&verify, &vsignature, &key, ver_buf, sizeof(ver_buf));
     CU_ASSERT_NOT_EQUAL(verification, COSE_OK);
 }
+#endif
 
 const test_t tests_sign[] = {
+#if defined(HAVE_ALGO_EDDSA) || defined(HAVE_ALGO_ECDSA)
     {
         .f = test_sign1,
         .n = "Sign with 1 sig",
@@ -520,6 +524,7 @@ const test_t tests_sign[] = {
         .f = test_sign8,
         .n = "Sign with aad test",
     },
+#endif
     {
         .f = NULL,
         .n = NULL,

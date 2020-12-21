@@ -186,6 +186,75 @@ void test_crypto_aes256(void)
 }
 #endif
 
+#ifdef HAVE_ALGO_AESCCM_16_64_128
+/* Values from https://www.rfc-editor.org/rfc/rfc3610.html#section-8 */
+static const uint8_t aesccm1_key[16] = {
+    0xc0, 0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xca, 0xcb, 0xcc, 0xcd, 0xce, 0xcf,
+};
+
+static const uint8_t aesccm1_nonce[13] = {
+    0x00, 0x00, 0x00, 0x03, 0x02, 0x01, 0x00, 0xa0, 0xa1, 0xa2, 0xa3, 0xa4, 0xa5,
+};
+
+static const uint8_t aesccm1_input[31] = {
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b,
+    0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
+    0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e
+};
+
+static const uint8_t aesccm1_output[39] = {
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x58, 0x8c, 0x97, 0x9a,
+    0x61, 0xc6, 0x63, 0xd2, 0xf0, 0x66, 0xd0, 0xc2, 0xc0, 0xf9, 0x89, 0x80,
+    0x6d, 0x5f, 0x6b, 0x61, 0xda, 0xc3, 0x84, 0x17, 0xe8, 0xd1, 0x2c, 0xfd,
+    0xf9, 0x26, 0xe0,
+};
+
+/* The input and output packets in the RFC's test vectors are shown in
+ * concatenated form AAD || cleartext and AAD || ciphertext || tag,
+ * respectively; this plucks them apart. */
+
+static const uint8_t *aesccm1_aad = &aesccm1_input[0];
+#define AESCCM1_AAD_LEN 8
+
+static const uint8_t *aesccm1_plaintext = &aesccm1_input[AESCCM1_AAD_LEN];
+#define AESCCM1_PLAINTEXT_LEN (sizeof(aesccm1_input) - AESCCM1_AAD_LEN)
+
+static const uint8_t *aesccm1_ciphertext = &aesccm1_output[AESCCM1_AAD_LEN];
+#define AESCCM1_CIPHERTEXT_LEN (sizeof(aesccm1_output) - AESCCM1_AAD_LEN)
+
+void test_crypto_aesccm_vector(void)
+{
+    unsigned char ciphertext[AESCCM1_CIPHERTEXT_LEN];
+    unsigned char plaintext[AESCCM1_PLAINTEXT_LEN];
+
+    size_t cipherlen = 0;
+    size_t msglen = 0;
+    /* Generate key */
+    cose_crypto_aead_encrypt(
+            ciphertext, &cipherlen,
+            aesccm1_plaintext, AESCCM1_PLAINTEXT_LEN,
+            aesccm1_aad, AESCCM1_AAD_LEN,
+            NULL, aesccm1_nonce,
+            aesccm1_key,
+            COSE_ALGO_AESCCM_16_64_128
+            );
+    CU_ASSERT_EQUAL(AESCCM1_CIPHERTEXT_LEN, cipherlen);
+    CU_ASSERT_EQUAL(memcmp(ciphertext, aesccm1_ciphertext, AESCCM1_CIPHERTEXT_LEN), 0);
+    CU_ASSERT_EQUAL(
+        cose_crypto_aead_decrypt(
+                plaintext, &msglen,
+                ciphertext, cipherlen,
+                aesccm1_aad, AESCCM1_AAD_LEN,
+                aesccm1_nonce,
+                aesccm1_key,
+                COSE_ALGO_AESCCM_16_64_128
+                ),
+        0 );
+    CU_ASSERT_EQUAL(msglen, AESCCM1_PLAINTEXT_LEN);
+    CU_ASSERT_EQUAL(memcmp(aesccm1_plaintext, plaintext, AESCCM1_PLAINTEXT_LEN), 0);
+}
+#endif
+
 const test_t tests_crypto[] = {
 #ifdef HAVE_ALGO_EDDSA
     {
@@ -219,6 +288,12 @@ const test_t tests_crypto[] = {
     {
         .f = test_crypto_aes256,
         .n = "AEAD aes256gcm encrypt/decrypt",
+    },
+#endif
+#ifdef HAVE_ALGO_AESCCM_16_64_128
+    {
+        .f = test_crypto_aesccm_vector,
+        .n = "AEAD Chacha20poly1305 encrypt/decrypt with IETF test vector",
     },
 #endif
     {

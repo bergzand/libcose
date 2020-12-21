@@ -49,6 +49,10 @@ bool cose_crypto_is_aead(cose_algo_t algo)
     switch(algo) {
         case COSE_ALGO_CHACHA20POLY1305:
             return true;
+#ifdef HAVE_ALGO_AESCCM_16_64_128
+        case COSE_ALGO_AESCCM_16_64_128:
+            return true;
+#endif
         default:
             return false;
     }
@@ -82,6 +86,10 @@ int cose_crypto_aead_encrypt(uint8_t *c,  /* NOLINT(readability-non-const-parame
 #ifdef HAVE_ALGO_AES128GCM
         case COSE_ALGO_A128GCM:
             return cose_crypto_aead_encrypt_aesgcm(c, clen, msg, msglen, aad, aadlen, npub, key, COSE_CRYPTO_AEAD_AES128GCM_KEYBYTES);
+#endif
+#ifdef HAVE_ALGO_AESCCM_16_64_128
+        case COSE_ALGO_AESCCM_16_64_128:
+            return cose_crypto_aead_encrypt_aesccm(c, clen, msg, msglen, aad, aadlen, npub, key, COSE_CRYPTO_AEAD_AESCCM_16_64_128_KEYBYTES);
 #endif
         default:
             (void)c;
@@ -124,6 +132,10 @@ int cose_crypto_aead_decrypt(uint8_t *msg, /* NOLINT(readability-non-const-param
 #ifdef HAVE_ALGO_AES128GCM
         case COSE_ALGO_A128GCM:
             return cose_crypto_aead_decrypt_aesgcm(msg, msglen, c, clen, aad, aadlen, npub, k, COSE_CRYPTO_AEAD_AES128GCM_KEYBYTES);
+#endif
+#ifdef HAVE_ALGO_AESCCM_16_64_128
+        case COSE_ALGO_AESCCM_16_64_128:
+            return cose_crypto_aead_decrypt_aesccm(msg, msglen, c, clen, aad, aadlen, npub, k, COSE_CRYPTO_AEAD_AESCCM_16_64_128_KEYBYTES);
 #endif
         default:
             (void)c;
@@ -169,6 +181,11 @@ int cose_crypto_sign(const cose_key_t *key, uint8_t *sign, size_t *signlen, uint
             break;
 #endif
         default:
+            (void)key;
+            (void)sign;
+            (void)signlen;
+            (void)msg;
+            (void)msglen;
             return COSE_ERR_NOTIMPLEMENTED;
     }
     return 0;
@@ -192,6 +209,11 @@ int cose_crypto_verify(const cose_key_t *key, const uint8_t *sign, size_t signle
             break;
 #endif
         default:
+            (void)key;
+            (void)sign;
+            (void)signlen;
+            (void)msg;
+            (void)msglen;
             return COSE_ERR_NOTIMPLEMENTED;
     }
     return 0;

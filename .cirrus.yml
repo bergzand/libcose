@@ -19,7 +19,7 @@ build_task:
     MBEDTLS_LIB: /usr/lib/x86_64-linux-gnu/libmbedcrypto.so
   install_script:
     - apt update
-    - apt install -y libgcc-6-dev build-essential pkg-config libcunit1-dev wget libsodium-dev libmbedtls-dev ca-certificates
+    - apt install -y libgcc-8-dev build-essential pkg-config libcunit1-dev wget libsodium-dev libmbedtls-dev ca-certificates
     - git clone https://github.com/intel/tinycbor/ ../tinycbor
     - bash -c "cd ../tinycbor && make -j"
     - git clone https://github.com/bergzand/nanocbor/ ../nanocbor
@@ -69,6 +69,11 @@ build_task:
         - apt install -y unzip
         - wget https://www.dlbeer.co.nz/downloads/c25519-2017-10-05.zip -O ../c25519.zip
         - bash -c 'cd .. && unzip c25519.zip' 
+    - name: tinydtls
+      env:
+        CRYPTO: tinydtls
+      crypto_script:
+        - git clone https://github.com/eclipse/tinydtls.git ../tinydtls -b develop
   test_script:
     - ls -al
     - pwd
