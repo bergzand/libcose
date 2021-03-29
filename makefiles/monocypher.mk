@@ -4,7 +4,7 @@ CFLAGS +=-DCRYPTO_MONOCYPHER -DED25519_SHA512
 CRYPTOSRC +=$(SRC_DIR)/crypt/helpers.c
 CRYPTOSRC +=$(SRC_DIR)/crypt/monocypher.c
 
-MONOCYPHER_DIR ?= ../Monocypher/
+MONOCYPHER_DIR ?= $(PWD)/../Monocypher
 
 ifeq ($(MONOCYPHER_LOCAL), 1)
   MONOCYPHER_INCLUDE ?= -I$(MONOCYPHER_DIR)/src -I$(MONOCYPHER_DIR)/src/optional

@@ -1,6 +1,6 @@
 container:
   cpu: 1
-  memory: 256Mb
+  memory: 384Mb
 
 lint_task:
   env:
@@ -19,10 +19,11 @@ build_task:
     MBEDTLS_LIB: /usr/lib/x86_64-linux-gnu/libmbedcrypto.so
   install_script:
     - apt update
-    - apt install -y libgcc-6-dev build-essential pkg-config libcunit1-dev wget libsodium-dev libmbedtls-dev ca-certificates
+    - apt install -y libgcc-8-dev build-essential pkg-config libcunit1-dev wget libsodium-dev libmbedtls-dev ca-certificates
     - git clone https://github.com/intel/tinycbor/ ../tinycbor
     - bash -c "cd ../tinycbor && make -j"
     - git clone https://github.com/bergzand/nanocbor/ ../nanocbor
+    - git -C ../nanocbor checkout 7b5c141db4d3b1da1ab7d81568c718600d2d7552
     - bash -c "cd ../nanocbor && make -j"
   matrix:
     - name: clang
@@ -30,14 +31,13 @@ build_task:
         CC: clang
       container:
         matrix:
-          image: silkeh/clang:6
           image: silkeh/clang:7
+          image: silkeh/clang:8
     - name: gcc
       env:
         CC: gcc
       container:
         matrix:
-          image: gcc:7
           image: gcc:8
           image: gcc:9
   matrix:
@@ -60,8 +60,9 @@ build_task:
       env:
         CRYPTO: hacl
       crypto_script:
-        - git clone https://github.com/mitls/hacl-c.git ../hacl-c
-        - bash -c "cd ../hacl-c && make -j"
+        - git clone https://github.com/benpicco/hacl-c_archived ../hacl-c
+        - git -C ../hacl-c checkout ad0f2ec2ae71c9d8470f6192562aed1352e786f5
+        - bash -c "cd ../hacl-c && make -j libhacl.so"
     - name: c25519
       env:
         CRYPTO: c25519
