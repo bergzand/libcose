@@ -52,7 +52,7 @@ build_task:
         MONOCYPHER_LOCAL: 1
       crypto_script:
         - git clone https://github.com/LoupVaillant/Monocypher.git ../Monocypher
-        - bash -c "cd ../Monocypher && make -j CFLAGS=-DED25519_SHA512"
+        - bash -c "cd ../Monocypher && make -j USE_ED25519=1"
     - name: mbedtls
       env:
         CRYPTO: mbedtls
