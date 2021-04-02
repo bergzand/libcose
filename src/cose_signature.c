@@ -103,7 +103,7 @@ void cose_signature_decode_init(cose_signature_dec_t *signature, const uint8_t *
 int cose_signature_decode_protected(const cose_signature_dec_t *signature,
                                          cose_hdr_t *hdr, int32_t key)
 {
-    const uint8_t *prot;
+    const uint8_t *prot = NULL;
     size_t len = 0;
     if (cose_cbor_decode_get_prot(signature->buf, signature->len, &prot, &len) < 0) {
         return COSE_ERR_INVALID_CBOR;
@@ -116,7 +116,7 @@ int cose_signature_decode_protected(const cose_signature_dec_t *signature,
 int cose_signature_decode_unprotected(const cose_signature_dec_t *signature,
                                            cose_hdr_t *hdr, int32_t key)
 {
-    const uint8_t *unprot;
+    const uint8_t *unprot = NULL;
     size_t len = 0;
     if (cose_cbor_decode_get_unprot(signature->buf, signature->len, &unprot, &len) < 0) {
         return COSE_ERR_INVALID_CBOR;

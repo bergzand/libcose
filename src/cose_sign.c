@@ -258,12 +258,9 @@ COSE_ssize_t cose_sign_encode(cose_sign_enc_t *sign, uint8_t *buf, size_t len, u
     }
 
     *out = buf;
-    size_t res;
-    if (nanocbor_encoded_len(&enc) > len) {
-        res = COSE_ERR_NOMEM;
-    }
-    else {
-        res = nanocbor_encoded_len(&enc);
+    size_t res = nanocbor_encoded_len(&enc);
+    if (res > len) {
+        return COSE_ERR_NOMEM;
     }
     return res;
 }
@@ -313,15 +310,15 @@ static int _sign1_decode_sig(const cose_sign_dec_t *sign, const uint8_t **buf, s
 static void _sign_sig_cbor_dec(const cose_sign_dec_t *sign, cose_signature_dec_t *sig, nanocbor_encoder_t *enc)
 {
     _sign_sig_cbor_start(enc, _is_sign1_dec(sign));
-    const uint8_t *buf;
-    size_t len;
+    const uint8_t *buf = NULL;
+    size_t len = 0;
 
     /* Sign protected */
     _sign_decode_get_prot(sign, &buf, &len);
     nanocbor_put_bstr(enc, buf, len);
 
     if (!_is_sign1_dec(sign)) {
-        const uint8_t *sig_prot_buf;
+        const uint8_t *sig_prot_buf = NULL;
         size_t sig_prot_len = 0;
         cose_signature_decode_protected_buf(sig, &sig_prot_buf, &sig_prot_len);
         nanocbor_put_bstr(enc, sig_prot_buf, sig_prot_len);
@@ -427,7 +424,7 @@ bool cose_sign_signature_iter(const cose_sign_dec_t *sign,
         nanocbor_skip(&arr);
     }
     if (!nanocbor_at_end(&arr)) {
-        const uint8_t *sig_buf;
+        const uint8_t *sig_buf = NULL;
         size_t sig_len = 0;
         if (nanocbor_get_subcbor(&arr, &sig_buf, &sig_len) < 0) {
             return false;
@@ -449,8 +446,8 @@ int cose_sign_decode_header(const cose_sign_dec_t *sign, cose_hdr_t *hdr, int32_
 
 int cose_sign_decode_protected(const cose_sign_dec_t *sign, cose_hdr_t *hdr, int32_t key)
 {
-    const uint8_t *hdrs;
-    size_t len;
+    const uint8_t *hdrs = NULL;
+    size_t len = 0;
     if (cose_cbor_decode_get_prot(sign->buf, sign->len, &hdrs, &len) < 0) {
         return COSE_ERR_INVALID_CBOR;
     }
@@ -462,8 +459,8 @@ int cose_sign_decode_protected(const cose_sign_dec_t *sign, cose_hdr_t *hdr, int
 
 int cose_sign_decode_unprotected(const cose_sign_dec_t *sign, cose_hdr_t *hdr, int32_t key)
 {
-    const uint8_t *hdrs;
-    size_t len;
+    const uint8_t *hdrs = NULL;
+    size_t len = 0;
     if (cose_cbor_decode_get_unprot(sign->buf, sign->len, &hdrs, &len) < 0) {
         return COSE_ERR_INVALID_CBOR;
     }
