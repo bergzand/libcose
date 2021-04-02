@@ -26,6 +26,7 @@ INC_NANOCBOR=$(NANOCBOR_ROOT)/include
 LIB_NANOCBOR_PATH=$(NANOCBOR_ROOT)/bin
 LIB_NANOCBOR=$(LIB_NANOCBOR_PATH)/nanocbor.so
 
+CFLAGS_TIDY ?= -std=c99
 TIDYFLAGS=-checks=* -warnings-as-errors=*
 
 CFLAGS_COVERAGE += -coverage
@@ -97,7 +98,7 @@ debug-test: $(BIN_DIR)/test
 	LD_LIBRARY_PATH=$(LIB_TINYCBOR_PATH) gdb $<
 
 clang-tidy:
-	$(TIDY) $(TIDYFLAGS) $(TIDYSRCS) -- $(CFLAGS)
+	$(TIDY) $(TIDYFLAGS) $(TIDYSRCS) -- $(CFLAGS) $(CFLAGS_TIDY)
 
 clean:
 	$(RM) $(BIN_DIR)

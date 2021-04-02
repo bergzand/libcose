@@ -90,7 +90,7 @@ void cose_recp_decode_init(cose_recp_dec_t *recp, const uint8_t *buf, size_t len
 int cose_recp_decode_protected(const cose_recp_dec_t *recp,
                                          cose_hdr_t *hdr, int32_t key)
 {
-    const uint8_t *prot;
+    const uint8_t *prot = NULL;
     size_t len = 0;
     if (cose_cbor_decode_get_prot(recp->buf, recp->len, &prot, &len) < 0) {
         return COSE_ERR_INVALID_CBOR;
@@ -104,7 +104,7 @@ int cose_recp_decode_protected(const cose_recp_dec_t *recp,
 int cose_recp_decode_unprotected(const cose_recp_dec_t *recp,
                                            cose_hdr_t *hdr, int32_t key)
 {
-    const uint8_t *unprot;
+    const uint8_t *unprot = NULL;
     size_t len = 0;
     if (cose_cbor_decode_get_unprot(recp->buf, recp->len, &unprot, &len) < 0) {
         return COSE_ERR_INVALID_CBOR;

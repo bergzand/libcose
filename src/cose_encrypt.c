@@ -119,7 +119,7 @@ COSE_ssize_t cose_encrypt_build_enc(cose_encrypt_t *encrypt, uint8_t *buf, size_
 
 cose_algo_t cose_encrypt_get_algo(const cose_encrypt_t *encrypt)
 {
-    cose_algo_t res;
+    cose_algo_t res = COSE_ALGO_NONE;
     if (encrypt->recps[0].key) {
         res = encrypt->recps[0].key->algo;
     }
@@ -312,8 +312,8 @@ static int _encrypt_build_cbor_dec(const cose_encrypt_dec_t *encrypt, nanocbor_e
     }
 
     /* Add body protected headers */
-    const uint8_t *prot;
-    size_t prot_len;
+    const uint8_t *prot = NULL;
+    size_t prot_len = 0;
     _encrypt_decode_get_prot(encrypt, &prot, &prot_len);
     nanocbor_put_bstr(enc, prot, prot_len);
 
@@ -332,8 +332,8 @@ COSE_ssize_t cose_encrypt_build_dec(const cose_encrypt_dec_t *encrypt, uint8_t *
 
 int cose_encrypt_decode_protected(const cose_encrypt_dec_t *encrypt, cose_hdr_t *hdr, int32_t key)
 {
-    const uint8_t *hdrs;
-    size_t len;
+    const uint8_t *hdrs = NULL;
+    size_t len = 0;
     if (cose_cbor_decode_get_prot(encrypt->buf, encrypt->len, &hdrs, &len) < 0) {
         return COSE_ERR_INVALID_CBOR;
     }
@@ -345,8 +345,8 @@ int cose_encrypt_decode_protected(const cose_encrypt_dec_t *encrypt, cose_hdr_t 
 
 int cose_encrypt_decode_unprotected(const cose_encrypt_dec_t *encrypt, cose_hdr_t *hdr, int32_t key)
 {
-    const uint8_t *hdrs;
-    size_t len;
+    const uint8_t *hdrs = NULL;
+    size_t len = 0;
     if (cose_cbor_decode_get_unprot(encrypt->buf, encrypt->len, &hdrs, &len) < 0) {
         return COSE_ERR_INVALID_CBOR;
     }
@@ -435,7 +435,7 @@ bool cose_encrypt_recp_iter(const cose_encrypt_dec_t *encrypt,
         nanocbor_skip(&arr);
     }
     if (!nanocbor_at_end(&arr)) {
-        const uint8_t *recp_buf;
+        const uint8_t *recp_buf = NULL;
         size_t recp_len = 0;
         if (nanocbor_get_subcbor(&arr, &recp_buf, &recp_len) < 0) {
             return false;
@@ -471,7 +471,7 @@ int cose_encrypt_decrypt(const cose_encrypt_dec_t *encrypt,
 
     const uint8_t *nonce = nonce_hdr.v.data;
 
-    cose_algo_t algo;
+    cose_algo_t algo = COSE_ALGO_NONE;
     cose_hdr_t algo_hdr;
 
     if (cose_encrypt_decode_protected(encrypt, &algo_hdr, COSE_HDR_ALG) < 0) {

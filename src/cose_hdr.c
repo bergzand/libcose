@@ -157,7 +157,7 @@ bool cose_hdr_decode_from_cbor(const uint8_t *buf, size_t len, cose_hdr_t *hdr, 
         return false;
     }
     while(!nanocbor_at_end(&map)) {
-        int32_t ckey;
+        int32_t ckey = 0;
         if (nanocbor_get_int32(&map, &ckey) >= 0){
             if (ckey == key) {
                 return _hdr_decode_from_cbor_map(hdr, ckey, &map);

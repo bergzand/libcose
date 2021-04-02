@@ -15,41 +15,17 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <monocypher.h>
+#include <optional/monocypher-ed25519.h>
 #include "cose/crypto.h"
 #include "cose/crypto/selectors.h"
 
 extern void randombytes(uint8_t *target, uint64_t n);
+static const uint8_t zero[32] = { 0 };
 
 #ifdef CRYPTO_MONOCYPHER_INCLUDE_CHACHAPOLY
-static uint32_t load32_le(const uint8_t *u)
+static size_t _align(size_t x, size_t pow2)
 {
-    return (uint32_t)u[0]
-        | ((uint32_t)u[1] <<  8U)
-        | ((uint32_t)u[2] << 16U)
-        | ((uint32_t)u[3] << 24U);
-}
-
-static void _crypto_aead_chachapoly_init(crypto_lock_ctx *ctx,
-                                         const uint8_t *npub, const uint8_t *k)
-{
-    /* Have to mess around a bit to get IETF style chacha20poly1305 here */
-    uint8_t auth_key[64];
-
-    ctx->ad_phase = 1;
-    ctx->ad_size = 0;
-    ctx->message_size = 0;
-
-    /* Chacha20poly1305 initialization */
-    crypto_chacha20_init(&ctx->chacha, k, npub);
-
-	/* Fix IETF chacha20poly1305 mode */
-    ctx->chacha.input[13] = load32_le(npub + 0);
-    ctx->chacha.input[14] = load32_le(npub + 4);
-    ctx->chacha.input[15] = load32_le(npub + 8);
-
-    crypto_chacha20_stream(&ctx->chacha, auth_key, 64);
-    crypto_poly1305_init(&ctx->poly, auth_key);
-    crypto_wipe(auth_key, sizeof(auth_key));
+    return (~x + 1) & (pow2 - 1);
 }
 
 int cose_crypto_aead_encrypt_chachapoly(uint8_t *c,
@@ -61,15 +37,27 @@ int cose_crypto_aead_encrypt_chachapoly(uint8_t *c,
                                         const uint8_t *npub,
                                         const uint8_t *k)
 {
-    crypto_lock_ctx ctx;
+    uint8_t auth_key[32];
+    crypto_poly1305_ctx poly;
+    /* Use block 0 for the poly1305 one-time key */
+    crypto_ietf_chacha20_ctr(auth_key, zero, sizeof(auth_key),
+                             k, npub, 0);
+    crypto_ietf_chacha20_ctr(c, msg, msglen, k, npub, 1);
 
-    _crypto_aead_chachapoly_init(&ctx, npub, k);
+    crypto_poly1305_init(&poly, auth_key);
+    crypto_poly1305_update(&poly, aad, aadlen);
+    crypto_poly1305_update(&poly, zero, _align(aadlen, 16));
+    crypto_poly1305_update(&poly, c, msglen);
+    crypto_poly1305_update(&poly, zero, _align(msglen, 16));
 
-    crypto_lock_auth_ad(&ctx, aad, aadlen);
-    crypto_lock_update (&ctx, c, msg, msglen);
-    crypto_lock_final  (&ctx, c + msglen);
+    uint64_t poly_aad_len = aadlen;
+    uint64_t poly_cipher_len = msglen;
 
+    crypto_poly1305_update(&poly, (uint8_t*)&poly_aad_len, sizeof(poly_aad_len));
+    crypto_poly1305_update(&poly, (uint8_t*)&poly_cipher_len, sizeof(poly_cipher_len));
+    crypto_poly1305_final(&poly, c + msglen);
     *clen = msglen + 16;
+    crypto_wipe(auth_key, sizeof(auth_key));
     return COSE_OK;
 }
 
@@ -82,22 +70,38 @@ int cose_crypto_aead_decrypt_chachapoly(uint8_t *msg,
                                         const uint8_t *npub,
                                         const uint8_t *k)
 {
-    crypto_unlock_ctx ctx;
+    uint8_t auth_key[32];
+    uint8_t mac[16];
+    crypto_poly1305_ctx poly;
+    int res = COSE_OK;
 
-    _crypto_aead_chachapoly_init(&ctx, npub, k);
     *msglen = clen - 16;
 
-    crypto_unlock_auth_ad(&ctx, aad, aadlen);
-    crypto_unlock_auth_message(&ctx, c, *msglen);
-    crypto_chacha_ctx chacha_ctx = ctx.chacha;
-    if (crypto_unlock_final(&ctx, c + *msglen)) {
-        crypto_wipe(&chacha_ctx, sizeof(chacha_ctx));
-        return COSE_ERR_CRYPTO;
-    }
-    crypto_chacha20_encrypt(&chacha_ctx, msg, c, *msglen);
-    crypto_wipe(&chacha_ctx, sizeof(chacha_ctx));
+    /* Use block 0 for the poly1305 one-time key */
+    crypto_ietf_chacha20_ctr(auth_key, zero, sizeof(auth_key),
+                             k, npub, 0);
+    crypto_poly1305_init(&poly, auth_key);
+    crypto_poly1305_update(&poly, aad, aadlen);
+    crypto_poly1305_update(&poly, zero, _align(aadlen, 16));
+    crypto_poly1305_update(&poly, c, *msglen);
+    crypto_poly1305_update(&poly, zero, _align(*msglen, 16));
 
-    return COSE_OK;
+    uint64_t poly_aad_len = aadlen;
+    uint64_t poly_cipher_len = *msglen;
+
+    crypto_poly1305_update(&poly, (uint8_t*)&poly_aad_len, sizeof(poly_aad_len));
+    crypto_poly1305_update(&poly, (uint8_t*)&poly_cipher_len, sizeof(poly_cipher_len));
+    crypto_poly1305_final(&poly, mac);
+
+    if (crypto_verify16(mac, c + *msglen)) {
+        res = COSE_ERR_CRYPTO;
+    }
+    else {
+        crypto_ietf_chacha20_ctr(msg, c, *msglen, k, npub, 1);
+    }
+    crypto_wipe(mac, sizeof(mac));
+    crypto_wipe(auth_key, sizeof(auth_key));
+    return res;
 }
 
 COSE_ssize_t cose_crypto_keygen_chachapoly(uint8_t *sk, size_t len)
@@ -114,14 +118,14 @@ COSE_ssize_t cose_crypto_keygen_chachapoly(uint8_t *sk, size_t len)
 int cose_crypto_sign_ed25519(const cose_key_t *key, uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen)
 {
     *signlen = cose_crypto_sig_size_ed25519();
-    crypto_sign(sign, key->d, key->x, msg, msglen);
+    crypto_ed25519_sign(sign, key->d, key->x, msg, msglen);
     return COSE_OK;
 }
 
 int cose_crypto_verify_ed25519(const cose_key_t *key, const uint8_t *sign, size_t signlen, uint8_t *msg, uint64_t msglen)
 {
     (void)signlen;
-    return crypto_check(sign, key->x, msg, msglen) == 0 ? COSE_OK : COSE_ERR_CRYPTO;
+    return crypto_ed25519_check(sign, key->x, msg, msglen) == 0 ? COSE_OK : COSE_ERR_CRYPTO;
 }
 
 static void _ed25519_clamp(uint8_t *key)
