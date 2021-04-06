@@ -433,6 +433,7 @@ void test_sign8(void)
     cose_sign_enc_t sign;
     cose_signature_t signature;
     cose_key_t key;
+
     /* Initialize struct */
     cose_sign_init(&sign, 0);
     cose_signature_init(&signature);
@@ -448,15 +449,18 @@ void test_sign8(void)
     /* Octet stream content type */
 
     /* Encode COSE sign object */
-    size_t size_no_aad = cose_sign_encode(&sign, buf, sizeof(buf), &psign);
+    ssize_t size_no_aad = cose_sign_encode(&sign, buf, sizeof(buf), &psign);
 
     CU_ASSERT_NOT_EQUAL_FATAL(size_no_aad, 0);
 
     cose_sign_set_external_aad(&sign, sign_aad, strlen(sign_aad));
 
-    size_t size_w_aad = cose_sign_encode(&sign, buf, sizeof(buf), &psign);
+    ssize_t size_w_aad = cose_sign_encode(&sign, buf, sizeof(buf), &psign);
 
-    CU_ASSERT_EQUAL(size_w_aad, size_no_aad);
+    if (key.algo != COSE_ALGO_ES512) {
+        /* ECDSA signatures have variable lengths, no sense in checking this */
+        CU_ASSERT_EQUAL(size_w_aad, size_no_aad);
+    }
 
     cose_sign_dec_t verify;
     cose_signature_dec_t vsignature;
