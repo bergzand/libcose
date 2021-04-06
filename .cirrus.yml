@@ -23,7 +23,6 @@ build_task:
     - git clone https://github.com/intel/tinycbor/ ../tinycbor
     - bash -c "cd ../tinycbor && make -j"
     - git clone https://github.com/bergzand/nanocbor/ ../nanocbor
-    - git -C ../nanocbor checkout 7b5c141db4d3b1da1ab7d81568c718600d2d7552
     - bash -c "cd ../nanocbor && make -j"
   matrix:
     - name: clang
