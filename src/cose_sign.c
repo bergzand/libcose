@@ -376,14 +376,14 @@ int cose_sign_decode(cose_sign_dec_t *sign, const uint8_t *buf, size_t len)
         return COSE_ERR_INVALID_CBOR;
     }
 
-    if (nanocbor_get_null(&arr) >= 0) {
+    if (nanocbor_get_null(&arr) == NANOCBOR_OK) {
         /* Zero payload length, thus external payload */
         sign->flags |= COSE_FLAGS_EXTDATA;
         sign->payload = NULL;
         sign->payload_len = 0;
     }
     else if (nanocbor_get_bstr(&arr, (const uint8_t **)&sign->payload,
-                               &sign->payload_len) < 0) {
+                               &sign->payload_len) != NANOCBOR_OK) {
         return COSE_ERR_INVALID_CBOR;
     }
 

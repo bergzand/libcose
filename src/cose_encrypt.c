@@ -402,7 +402,7 @@ int cose_encrypt_decode(cose_encrypt_dec_t *encrypt, uint8_t *buf, size_t len)
         return COSE_ERR_INVALID_CBOR;
     }
 
-    if (nanocbor_get_null(&arr) >= 0) {
+    if (nanocbor_get_null(&arr) == NANOCBOR_OK) {
         /* Zero payload length, thus external payload */
         encrypt->flags |= COSE_FLAGS_EXTDATA;
         encrypt->payload = NULL;
