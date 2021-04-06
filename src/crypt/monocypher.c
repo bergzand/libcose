@@ -139,7 +139,7 @@ void cose_crypto_keypair_ed25519(cose_key_t *key)
 {
     randombytes(key->d, COSE_CRYPTO_SIGN_ED25519_SECRETKEYBYTES);
     _ed25519_clamp(key->d);
-    crypto_sign_public_key(key->x, key->d);
+    crypto_ed25519_public_key(key->x, key->d);
 }
 
 size_t cose_crypto_sig_size_ed25519(void)
