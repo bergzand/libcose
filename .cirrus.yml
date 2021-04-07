@@ -69,6 +69,11 @@ build_task:
         - apt install -y unzip
         - wget https://www.dlbeer.co.nz/downloads/c25519-2017-10-05.zip -O ../c25519.zip
         - bash -c 'cd .. && unzip c25519.zip' 
+    - name: tinydtls
+      env:
+        CRYPTO: tinydtls
+      crypto_script:
+        - git clone https://github.com/eclipse/tinydtls.git ../tinydtls -b develop
   test_script:
     - ls -al
     - pwd

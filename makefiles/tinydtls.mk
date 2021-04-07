@@ -1,0 +1,14 @@
+TINYDTLS_DIR ?= ../tinydtls
+TINYDTLS_CONFIGDIR ?= makefiles/tinydtls_config/
+CFLAGS += -DCRYPTO_TINYDTLS
+CRYPTOSRC += $(SRC_DIR)/crypt/tinydtls.c
+CFLAGS_CRYPTO += -I$(TINYDTLS_DIR)
+CFLAGS_CRYPTO += -I$(TINYDTLS_CONFIGDIR)
+CRYPTOOBJS += $(TINYDTLS_DIR)/crypto.o
+CRYPTOOBJS += $(TINYDTLS_DIR)/aes/rijndael.o
+CRYPTOOBJS += $(TINYDTLS_DIR)/aes/rijndael_wrap.o
+CRYPTOOBJS += $(TINYDTLS_DIR)/hmac.o
+CRYPTOOBJS += $(TINYDTLS_DIR)/ccm.o
+CRYPTOOBJS += $(TINYDTLS_DIR)/sha2/sha2.o
+CRYPTOOBJS += $(TINYDTLS_DIR)/netq.o
+$(CRYPTOOBJS): CFLAGS += -Wno-gnu-zero-variadic-macro-arguments -Wno-unused-function

@@ -20,8 +20,6 @@
 #include "CUnit/Basic.h"
 #include "CUnit/Automated.h"
 
-static uint8_t buf[2048];
-
 #ifdef HAVE_ALGO_EDDSA
 static const unsigned char cose_suit[] = {
   0xd8, 0x62, 0x84, 0x44, 0xa1, 0x03, 0x18, 0x2a, 0xa0, 0x58, 0xcd, 0x8a,
@@ -115,8 +113,11 @@ static unsigned char pk_y[COSE_CRYPTO_SIGN_P521_PUBLICKEYBYTES] = {
 
 #define COSE_ALGO  COSE_ALGO_ES256
 #define COSE_CURVE COSE_EC_CURVE_P256
-
 #endif
+
+#if defined(HAVE_ALGO_EDDSA) || defined(HAVE_ALGO_ECDSA)
+
+static uint8_t buf[2048];
 
 static const uint8_t keyid[] = "Something@somewhere";
 
@@ -159,6 +160,7 @@ void test_suit1(void)
     CU_ASSERT(res);
     CU_ASSERT_EQUAL(memcmp(kid, keyid, sizeof(keyid) - 1), 0);
 }
+#endif
 
 const test_t tests_suit[] = {
 #if defined(HAVE_ALGO_EDDSA) || defined(HAVE_ALGO_ECDSA)

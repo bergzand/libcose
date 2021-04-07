@@ -44,6 +44,9 @@
 #if defined(CRYPTO_HACL)
 #include "cose/crypto/hacl.h"
 #endif
+#if defined(CRYPTO_TINYDTLS)
+#include "cose/crypto/tinydtls.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -150,6 +153,9 @@ extern "C" {
 #define COSE_CRYPTO_AEAD_AES256GCM_NONCEBYTES   COSE_CRYPTO_AEAD_AESGCM_NONCEBYTES
 #define COSE_CRYPTO_AEAD_AES256GCM_ABYTES       COSE_CRYPTO_AEAD_AESGCM_ABYTES
 
+#define COSE_CRYPTO_AEAD_AESCCM_16_64_128_KEYBYTES     16
+#define COSE_CRYPTO_AEAD_AESCCM_16_64_128_ABYTES       8
+#define COSE_CRYPTO_AEAD_AESCCM_16_64_128_NONCEBYTES   13
 
 /** @} */
 
@@ -224,6 +230,26 @@ int cose_crypto_aead_encrypt_aesgcm(uint8_t *c,
                                     size_t keysize);
 
 int cose_crypto_aead_decrypt_aesgcm(uint8_t *msg,
+                                    size_t *msglen,
+                                    const uint8_t *c,
+                                    size_t clen,
+                                    const uint8_t *aad,
+                                    size_t aadlen,
+                                    const uint8_t *npub,
+                                    const uint8_t *k,
+                                    size_t keysize);
+
+int cose_crypto_aead_encrypt_aesccm(uint8_t *c,
+                                    size_t *clen,
+                                    const uint8_t *msg,
+                                    size_t msglen,
+                                    const uint8_t *aad,
+                                    size_t aadlen,
+                                    const uint8_t *npub,
+                                    const uint8_t *k,
+                                    size_t keysize);
+
+int cose_crypto_aead_decrypt_aesccm(uint8_t *msg,
                                     size_t *msglen,
                                     const uint8_t *c,
                                     size_t clen,
