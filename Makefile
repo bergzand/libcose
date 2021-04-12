@@ -50,6 +50,9 @@ endif
 ifneq (,$(filter c25519,$(CRYPTO)))
 	include $(MK_DIR)/c25519.mk
 endif
+ifneq (,$(filter tinycrypt,$(CRYPTO)))
+	include $(MK_DIR)/tinycrypt.mk
+endif
 
 CFLAGS += $(CFLAGS_CRYPTO)
 

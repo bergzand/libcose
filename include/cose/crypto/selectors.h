@@ -50,4 +50,15 @@
 /** @} */
 #endif /* COSE_CRYPTO_SELECTORS_H */
 
+#if defined(HAVE_ALGO_AES128CCM_16_64_128) || \
+    defined(HAVE_ALGO_AES128CCM_64_64_128) || \
+    defined(HAVE_ALGO_AES128CCM_16_128_128) || \
+    defined(HAVE_ALGO_AES128CCM_64_128_128) || \
+    defined(HAVE_ALGO_AES128CCM_16_64_256) || \
+    defined(HAVE_ALGO_AES128CCM_64_64_256) || \
+    defined(HAVE_ALGO_AES128CCM_16_128_256) || \
+    defined(HAVE_ALGO_AES128CCM_64_128_256)
+#define HAVE_ALGO_AESCCM
+#endif
+
 /** @} */
