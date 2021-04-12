@@ -161,7 +161,7 @@ void test_suit1(void)
 }
 
 const test_t tests_suit[] = {
-#if defined(HAVE_ALGO_EDDSA) || defined(HAVE_ALGO_ECDSA)
+#if defined(HAVE_ALGO_EDDSA) || ( defined(HAVE_ALGO_ECDSA) && defined(HAVE_CURVE_P521))
     {
         .f = test_suit1,
         .n = "Verify with known signed",
