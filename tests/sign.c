@@ -29,6 +29,8 @@ static char kid2[] = "koen@example.net";
 #elif defined(HAVE_ALGO_ECDSA)
 #define TEST_CRYPTO_SIGN_PUBLICKEYBYTES COSE_CRYPTO_SIGN_P521_PUBLICKEYBYTES
 #define TEST_CRYPTO_SIGN_SECRETKEYBYTES COSE_CRYPTO_SIGN_P521_SECRETKEYBYTES
+#else
+#error No suitable signature algorithm
 #endif
 
 static unsigned char pkx1[TEST_CRYPTO_SIGN_PUBLICKEYBYTES];
@@ -45,13 +47,22 @@ static uint8_t ver_buf[2048];
 static void genkey(cose_key_t *key, uint8_t *pkx, uint8_t *pky, uint8_t *sk)
 {
     cose_key_init(key);
-    #ifdef HAVE_ALGO_EDDSA
+#ifdef HAVE_ALGO_EDDSA
     cose_key_set_keys(key, COSE_EC_CURVE_ED25519, COSE_ALGO_EDDSA, pkx, pky, sk);
     cose_crypto_keypair_ed25519(key);
-    #elif defined(HAVE_ALGO_ECDSA)
-    cose_key_set_keys(key, COSE_EC_CURVE_P521, COSE_ALGO_ES512, pkx, pky, sk);
-    cose_crypto_keypair_ecdsa(key, COSE_EC_CURVE_P521);
-    #endif
+#elif defined(HAVE_ALGO_ECDSA)
+#if defined(HAVE_CURVE_P521)
+    cose_curve_t curve = COSE_EC_CURVE_P521;
+    cose_algo_t algo = COSE_ALGO_ES512;
+#elif defined(HAVE_CURVE_P256)
+    cose_curve_t curve = COSE_EC_CURVE_P256;
+    cose_algo_t algo = COSE_ALGO_ES256;
+#else
+#error No suitable ECDSA curve signature algorithm available
+#endif
+    cose_key_set_keys(key, curve, algo, pkx, pky, sk);
+    cose_crypto_keypair_ecdsa(key, curve);
+#endif
 }
 
 static void print_bytestr(const uint8_t *bytes, size_t len)

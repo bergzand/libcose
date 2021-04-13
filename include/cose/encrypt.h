@@ -70,7 +70,7 @@ typedef struct cose_encrypt {
     uint16_t flags;                             /**< Flags as defined */
     uint8_t *cek;                               /**< Pointer to the content encryption key */
     cose_algo_t algo;                           /**< Algo used for the base encrypt structure */
-    uint8_t *nonce;                             /**< Possible Nonce to use */
+    const uint8_t *nonce;                       /**< Possible Nonce to use */
     uint8_t num_recps;                          /**< Number of recipients to encrypt for */
     cose_headers_t hdrs;                        /**< Headers included in the body */
     cose_recp_t recps[COSE_RECIPIENTS_MAX];     /**< recipient data array */
@@ -145,7 +145,7 @@ void cose_encrypt_set_algo(cose_encrypt_t *encrypt, cose_algo_t algo);
  * @return                  Size of the COSE encrypt object
  * @return                  Negative on failure
  */
-COSE_ssize_t cose_encrypt_encode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len, uint8_t *nonce, uint8_t **out);
+COSE_ssize_t cose_encrypt_encode(cose_encrypt_t *encrypt, uint8_t *buf, size_t len, const uint8_t *nonce, uint8_t **out);
 
 /**
  * @brief cose_encrypt_decode decodes a buffer containing a COSE encrypt object into

@@ -22,12 +22,26 @@
 #include <mbedtls/sha512.h>
 #include <mbedtls/version.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 extern cose_crypt_rng cose_crypt_get_random;
 extern void *cose_crypt_rng_arg;
+
+static size_t _key_bits(cose_algo_t algo)
+{
+    switch(algo) {
+        case COSE_ALGO_A128GCM:
+            return 8 * COSE_CRYPTO_AEAD_AES128GCM_KEYBYTES;
+        case COSE_ALGO_A192GCM:
+            return 8 * COSE_CRYPTO_AEAD_AES192GCM_KEYBYTES;
+        case COSE_ALGO_A256GCM:
+            return 8 * COSE_CRYPTO_AEAD_AES256GCM_KEYBYTES;
+        default:
+            return 0;
+    }
+}
 
 static mbedtls_md_type_t _translate_md(cose_algo_t algo)
 {
@@ -196,23 +210,24 @@ int cose_crypto_aead_encrypt_aesgcm(uint8_t *c,
                                     size_t aadlen,
                                     const uint8_t *npub,
                                     const uint8_t *k,
-                                    size_t keysize)
+                                    cose_algo_t algo)
 {
     uint8_t *ptag = c + msglen;
     int res = 0;
-    *clen = msglen + COSE_CRYPTO_AEAD_AES256GCM_ABYTES;
+    *clen = msglen + COSE_CRYPTO_AEAD_AESGCM_ABYTES;
+
     mbedtls_gcm_context ctx;
     mbedtls_gcm_init(&ctx);
-    res = mbedtls_gcm_setkey(&ctx, MBEDTLS_CIPHER_ID_AES, k, keysize * 8);
+
+    res = mbedtls_gcm_setkey(&ctx, MBEDTLS_CIPHER_ID_AES, k, _key_bits(algo));
     if (res) {
         return COSE_ERR_CRYPTO;
     }
     res = mbedtls_gcm_crypt_and_tag(&ctx, MBEDTLS_GCM_ENCRYPT, msglen,
-            npub, COSE_CRYPTO_AEAD_AES128GCM_NONCEBYTES,
+            npub, COSE_CRYPTO_AEAD_AESGCM_NONCEBYTES,
             aad, aadlen, msg, c,
-            COSE_CRYPTO_AEAD_AES128GCM_ABYTES, ptag);
+            COSE_CRYPTO_AEAD_AESGCM_ABYTES, ptag);
     mbedtls_gcm_free(&ctx);
-    printf("Crypt res: %d", res);
     return res ? COSE_ERR_CRYPTO : COSE_OK;
 }
 
@@ -224,19 +239,19 @@ int cose_crypto_aead_decrypt_aesgcm(uint8_t *msg,
                                     size_t aadlen,
                                     const uint8_t *npub,
                                     const uint8_t *k,
-                                    size_t keysize)
+                                    cose_algo_t algo)
 {
-    const uint8_t *ptag = c + clen - COSE_CRYPTO_AEAD_AES256GCM_ABYTES;
+    const uint8_t *ptag = c + clen - COSE_CRYPTO_AEAD_AESGCM_ABYTES;
     int res = 0;
-    *msglen = clen - COSE_CRYPTO_AEAD_AES256GCM_ABYTES;
+    *msglen = clen - COSE_CRYPTO_AEAD_AESGCM_ABYTES;
     mbedtls_gcm_context ctx;
     mbedtls_gcm_init(&ctx);
-    res = mbedtls_gcm_setkey(&ctx, MBEDTLS_CIPHER_ID_AES, k, keysize * 8);
+    res = mbedtls_gcm_setkey(&ctx, MBEDTLS_CIPHER_ID_AES, k, _key_bits(algo));
     if (res) {
         return COSE_ERR_CRYPTO;
     }
-    res = mbedtls_gcm_auth_decrypt(&ctx, *msglen, npub, COSE_CRYPTO_AEAD_AES128GCM_NONCEBYTES,
-            aad, aadlen, ptag, COSE_CRYPTO_AEAD_AES256GCM_ABYTES, c, msg);
+    res = mbedtls_gcm_auth_decrypt(&ctx, *msglen, npub, COSE_CRYPTO_AEAD_AESGCM_NONCEBYTES,
+            aad, aadlen, ptag, COSE_CRYPTO_AEAD_AESGCM_ABYTES, c, msg);
     return res ? COSE_ERR_CRYPTO : COSE_OK;
 
 }
@@ -254,7 +269,7 @@ void cose_crypto_keypair_ecdsa(cose_key_t *key, cose_curve_t curve)
     mbedtls_ecdsa_context ctx;
     mbedtls_ecdsa_init(&ctx);
     if (mbedtls_ecp_gen_key(_translate_curve(curve), &ctx, cose_crypt_get_random, cose_crypt_rng_arg) != 0) {
-        printf("Key generation failed\n");
+        assert(false);
     }
 
     mbedtls_mpi_write_binary(&ctx.Q.X, key->x, MBEDTLS_ECP_MAX_BYTES);

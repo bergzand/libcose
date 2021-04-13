@@ -160,7 +160,18 @@ typedef enum {
     COSE_ALGO_A128GCM = 1,              /**< AES-GCM mode w/ 128-bit key, 128-bit tag */
     COSE_ALGO_A192GCM = 2,              /**< AES-GCM mode w/ 192-bit key, 128-bit tag */
     COSE_ALGO_A256GCM = 3,              /**< AES-GCM mode w/ 256-bit key, 128-bit tag */
+
+    COSE_ALGO_AESCCM_16_64_128 = 10,    /**< AES-CCM w/ 128-bit key, 64-bit tag and 13-byte nonce */
+    COSE_ALGO_AESCCM_16_64_256 = 11,    /**< AES-CCM w/ 256-bit key, 64-bit tag and 13-byte nonce */
+    COSE_ALGO_AESCCM_64_64_128 = 12,    /**< AES-CCM w/ 128-bit key, 64-bit tag and 7-byte nonce */
+    COSE_ALGO_AESCCM_64_64_256 = 13,    /**< AES-CCM w/ 256-bit key, 64-bit tag and 7-byte nonce */
+
     COSE_ALGO_CHACHA20POLY1305 = 24,    /**< IETF ChaCha20/Poly1305 w/ 256-bit key, 128-bit tag */
+
+    COSE_ALGO_AESCCM_16_128_128 = 30,   /**< AES-CCM w/ 128-bit key, 128-bit tag and 13-byte nonce */
+    COSE_ALGO_AESCCM_16_128_256 = 31,   /**< AES-CCM w/ 256-bit key, 128-bit tag and 13-byte nonce */
+    COSE_ALGO_AESCCM_64_128_128 = 32,   /**< AES-CCM w/ 128-bit key, 128-bit tag and 7-byte nonce */
+    COSE_ALGO_AESCCM_64_128_256 = 33,   /**< AES-CCM w/ 256-bit key, 128-bit tag and 7-byte nonce */
 } cose_algo_t;
 
 #ifdef __cplusplus

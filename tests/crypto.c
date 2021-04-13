@@ -129,9 +129,9 @@ void test_crypto_aes128(void)
     printf("Key:\n");
     print_bytestr(sk, sizeof(sk));
     printf("\n");
-    CU_ASSERT_EQUAL(cose_crypto_aead_encrypt_aesgcm(ciphertext, &cipherlen, (unsigned char *)payload, sizeof(payload), (unsigned char *)additional_data, sizeof(additional_data), nonce, sk, COSE_CRYPTO_AEAD_AES128GCM_KEYBYTES), 0);
+    CU_ASSERT_EQUAL(cose_crypto_aead_encrypt_aesgcm(ciphertext, &cipherlen, (unsigned char *)payload, sizeof(payload), (unsigned char *)additional_data, sizeof(additional_data), nonce, sk, COSE_ALGO_A128GCM), 0);
     CU_ASSERT_EQUAL(
-        cose_crypto_aead_decrypt_aesgcm(plaintext, &msglen, ciphertext, cipherlen, additional_data, sizeof(additional_data), nonce, sk, COSE_CRYPTO_AEAD_AES128GCM_KEYBYTES),
+        cose_crypto_aead_decrypt_aesgcm(plaintext, &msglen, ciphertext, cipherlen, additional_data, sizeof(additional_data), nonce, sk, COSE_ALGO_A128GCM),
         0 );
     CU_ASSERT_EQUAL(msglen, sizeof(payload));
     CU_ASSERT_EQUAL(memcmp(payload, plaintext, sizeof(payload)), 0);
@@ -153,9 +153,9 @@ void test_crypto_aes192(void)
     printf("Key:\n");
     print_bytestr(sk, sizeof(sk));
     printf("\n");
-    CU_ASSERT_EQUAL(cose_crypto_aead_encrypt_aesgcm(ciphertext, &cipherlen, (unsigned char *)payload, sizeof(payload), (unsigned char *)additional_data, sizeof(additional_data), nonce, sk, COSE_CRYPTO_AEAD_AES192GCM_KEYBYTES), 0);
+    CU_ASSERT_EQUAL(cose_crypto_aead_encrypt_aesgcm(ciphertext, &cipherlen, (unsigned char *)payload, sizeof(payload), (unsigned char *)additional_data, sizeof(additional_data), nonce, sk, COSE_ALGO_A192GCM), 0);
     CU_ASSERT_EQUAL(
-        cose_crypto_aead_decrypt_aesgcm(plaintext, &msglen, ciphertext, cipherlen, additional_data, sizeof(additional_data), nonce, sk, COSE_CRYPTO_AEAD_AES192GCM_KEYBYTES),
+        cose_crypto_aead_decrypt_aesgcm(plaintext, &msglen, ciphertext, cipherlen, additional_data, sizeof(additional_data), nonce, sk, COSE_ALGO_A192GCM),
         0 );
     CU_ASSERT_EQUAL(msglen, sizeof(payload));
     CU_ASSERT_EQUAL(memcmp(payload, plaintext, sizeof(payload)), 0);
@@ -177,9 +177,9 @@ void test_crypto_aes256(void)
     printf("Key:\n");
     print_bytestr(sk, sizeof(sk));
     printf("\n");
-    CU_ASSERT_EQUAL(cose_crypto_aead_encrypt_aesgcm(ciphertext, &cipherlen, (unsigned char *)payload, sizeof(payload), (unsigned char *)additional_data, sizeof(additional_data), nonce, sk, COSE_CRYPTO_AEAD_AES256GCM_KEYBYTES), 0);
+    CU_ASSERT_EQUAL(cose_crypto_aead_encrypt_aesgcm(ciphertext, &cipherlen, (unsigned char *)payload, sizeof(payload), (unsigned char *)additional_data, sizeof(additional_data), nonce, sk, COSE_ALGO_A256GCM), 0);
     CU_ASSERT_EQUAL(
-        cose_crypto_aead_decrypt_aesgcm(plaintext, &msglen, ciphertext, cipherlen, additional_data, sizeof(additional_data), nonce, sk, COSE_CRYPTO_AEAD_AES256GCM_KEYBYTES),
+        cose_crypto_aead_decrypt_aesgcm(plaintext, &msglen, ciphertext, cipherlen, additional_data, sizeof(additional_data), nonce, sk, COSE_ALGO_A256GCM),
         0 );
     CU_ASSERT_EQUAL(msglen, sizeof(payload));
     CU_ASSERT_EQUAL(memcmp(payload, plaintext, sizeof(payload)), 0);
