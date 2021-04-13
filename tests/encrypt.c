@@ -155,6 +155,7 @@ void test_encrypt_generic(void)
     for (size_t i = 0; i < algo_count; i++) {
         cose_algo_t algo = algos[i];
 
+        /* Empty arrays is a GCC extension */
         if (algo == COSE_ALGO_NONE) {
             continue;
         }
@@ -163,7 +164,7 @@ void test_encrypt_generic(void)
 
         uint8_t *out;
         uint8_t key_bytes[64];
-        uint8_t nonce_bytes[32] = { 0 };
+        static const uint8_t nonce_bytes[32] = { 0 };
         cose_encrypt_t crypt;
         cose_key_t key;
 
