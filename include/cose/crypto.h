@@ -48,6 +48,8 @@
 #include "cose/crypto/tinycrypt.h"
 #endif
 
+#include "cose/crypto/selectors.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -255,7 +257,7 @@ int cose_crypto_aead_encrypt_aesgcm(uint8_t *c,
                                     size_t aadlen,
                                     const uint8_t *npub,
                                     const uint8_t *k,
-                                    size_t keysize);
+                                    cose_algo_t algo);
 
 int cose_crypto_aead_decrypt_aesgcm(uint8_t *msg,
                                     size_t *msglen,
@@ -265,7 +267,7 @@ int cose_crypto_aead_decrypt_aesgcm(uint8_t *msg,
                                     size_t aadlen,
                                     const uint8_t *npub,
                                     const uint8_t *k,
-                                    size_t keysize);
+                                    cose_algo_t algo);
 
 int cose_crypto_aead_encrypt_aesccm(uint8_t *c,
                                     size_t *clen,

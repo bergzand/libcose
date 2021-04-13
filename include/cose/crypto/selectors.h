@@ -50,6 +50,12 @@
 /** @} */
 #endif /* COSE_CRYPTO_SELECTORS_H */
 
+#if defined(HAVE_ALGO_AES128GCM) || \
+    defined(HAVE_ALGO_AES192GCM) || \
+    defined(HAVE_ALGO_AES256GCM)
+#define HAVE_ALGO_AESGCM    /**< AES GCM mode support */
+#endif
+
 #if defined(HAVE_ALGO_AES128CCM_16_64_128) || \
     defined(HAVE_ALGO_AES128CCM_64_64_128) || \
     defined(HAVE_ALGO_AES128CCM_16_128_128) || \

@@ -31,7 +31,7 @@ COSE_ssize_t cose_crypto_keygen(uint8_t *buf, /* NOLINT(readability-non-const-pa
         case COSE_ALGO_CHACHA20POLY1305:
             return cose_crypto_keygen_chachapoly(buf, len);
 #endif /* HAVE_ALGO_CHACHA20POLY1305 */
-#if defined(HAVE_ALGO_AES128GCM) || defined(HAVE_ALGO_AES192GCM) || defined(HAVE_ALGO_AES256GCM)
+#if defined(HAVE_ALGO_AESGCM)
         case COSE_ALGO_A128GCM:
         case COSE_ALGO_A192GCM:
         case COSE_ALGO_A256GCM:
@@ -83,17 +83,11 @@ int cose_crypto_aead_encrypt(uint8_t *c,  /* NOLINT(readability-non-const-parame
         case COSE_ALGO_CHACHA20POLY1305:
             return cose_crypto_aead_encrypt_chachapoly(c, clen, msg, msglen, aad, aadlen, npub, key);
 #endif /* HAVE_ALGO_CHACHA20POLY1305 */
-#ifdef HAVE_ALGO_AES256GCM
-        case COSE_ALGO_A256GCM:
-            return cose_crypto_aead_encrypt_aesgcm(c, clen, msg, msglen, aad, aadlen, npub, key, COSE_CRYPTO_AEAD_AES256GCM_KEYBYTES);
-#endif
-#ifdef HAVE_ALGO_AES192GCM
-        case COSE_ALGO_A192GCM:
-            return cose_crypto_aead_encrypt_aesgcm(c, clen, msg, msglen, aad, aadlen, npub, key, COSE_CRYPTO_AEAD_AES192GCM_KEYBYTES);
-#endif
-#ifdef HAVE_ALGO_AES128GCM
+#ifdef HAVE_ALGO_AESGCM
         case COSE_ALGO_A128GCM:
-            return cose_crypto_aead_encrypt_aesgcm(c, clen, msg, msglen, aad, aadlen, npub, key, COSE_CRYPTO_AEAD_AES128GCM_KEYBYTES);
+        case COSE_ALGO_A192GCM:
+        case COSE_ALGO_A256GCM:
+            return cose_crypto_aead_encrypt_aesgcm(c, clen, msg, msglen, aad, aadlen, npub, key, algo);
 #endif
 #ifdef HAVE_ALGO_AESCCM
         case COSE_ALGO_AESCCM_16_64_128:
@@ -136,17 +130,11 @@ int cose_crypto_aead_decrypt(uint8_t *msg, /* NOLINT(readability-non-const-param
         case COSE_ALGO_CHACHA20POLY1305:
             return cose_crypto_aead_decrypt_chachapoly(msg, msglen, c, clen, aad, aadlen, npub, k);
 #endif
-#ifdef HAVE_ALGO_AES256GCM
-        case COSE_ALGO_A256GCM:
-            return cose_crypto_aead_decrypt_aesgcm(msg, msglen, c, clen, aad, aadlen, npub, k, COSE_CRYPTO_AEAD_AES256GCM_KEYBYTES);
-#endif
-#ifdef HAVE_ALGO_AES192GCM
-        case COSE_ALGO_A192GCM:
-            return cose_crypto_aead_decrypt_aesgcm(msg, msglen, c, clen, aad, aadlen, npub, k, COSE_CRYPTO_AEAD_AES192GCM_KEYBYTES);
-#endif
-#ifdef HAVE_ALGO_AES128GCM
+#ifdef HAVE_ALGO_AESGCM
         case COSE_ALGO_A128GCM:
-            return cose_crypto_aead_decrypt_aesgcm(msg, msglen, c, clen, aad, aadlen, npub, k, COSE_CRYPTO_AEAD_AES128GCM_KEYBYTES);
+        case COSE_ALGO_A192GCM:
+        case COSE_ALGO_A256GCM:
+            return cose_crypto_aead_decrypt_aesgcm(msg, msglen, c, clen, aad, aadlen, npub, k, algo);
 #endif
 #ifdef HAVE_ALGO_AESCCM
         case COSE_ALGO_AESCCM_16_64_128:
@@ -180,6 +168,10 @@ COSE_ssize_t cose_crypto_aead_nonce_size(cose_algo_t algo)
         case COSE_ALGO_CHACHA20POLY1305:
             return COSE_CRYPTO_AEAD_CHACHA20POLY1305_NONCEBYTES;
 #endif /* HAVE_ALGO_CHACHA20POLY1305 */
+        case COSE_ALGO_A128GCM:
+        case COSE_ALGO_A192GCM:
+        case COSE_ALGO_A256GCM:
+            return COSE_CRYPTO_AEAD_AES128GCM_NONCEBYTES;
         case COSE_ALGO_AESCCM_16_64_128:
         case COSE_ALGO_AESCCM_16_64_256:
         case COSE_ALGO_AESCCM_16_128_128:
