@@ -493,6 +493,10 @@ int cose_sign_verify(const cose_sign_dec_t *sign, cose_signature_dec_t *signatur
 
     size_t sig_len = _dec_sign_sig(sign, signature, buf, len);
 
+    if (sig_len > len) {
+        return COSE_ERR_NOMEM;
+    }
+
     if (_is_sign1_dec(sign)) {
         _sign1_decode_sig(sign, &signature_buf, &signature_len);
     }
