@@ -1,6 +1,6 @@
 # libcose
 
-[![Build Status](https://api.cirrus-ci.com/github/bergzand/libcose.svg)](https://cirrus-ci.com/github/bergzand/libcose)
+[![build](https://github.com/bergzand/libcose/actions/workflows/build.yml/badge.svg)](https://github.com/bergzand/libcose/actions/workflows/build.yml)
 
 Libcose is a C library aiming to implement the full [COSE] standard.
 Libcose is aimed at constrained devices without dynamic memory allocation,
