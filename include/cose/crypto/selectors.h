@@ -48,6 +48,15 @@
 #define CRYPTO_HACL_INCLUDE_CHACHAPOLY
 #endif
 /** @} */
+
+/**
+ *
+ * @name HKDF SHA256 selector
+ */
+#if defined(CRYPTO_SODIUM)
+#define CRYPTO_SODIUM_INCLUDE_HKDFSHA256
+#endif
+
 #endif /* COSE_CRYPTO_SELECTORS_H */
 
 #if defined(HAVE_ALGO_AES128GCM) || \

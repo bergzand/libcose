@@ -34,6 +34,7 @@ extern "C" {
  */
 #define HAVE_ALGO_CHACHA20POLY1305
 #define HAVE_ALGO_EDDSA
+#define HAVE_ALGO_HMAC256
 /** @} */
 
 #ifdef __cplusplus
