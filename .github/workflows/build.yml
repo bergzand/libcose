@@ -58,8 +58,8 @@ jobs:
     - name: build tinycbor
       run: cd ../tinycbor && make
 
-    - name: crypto setup script
+    - name: ${{ matrix.crypto }} setup script
       run: ${{ matrix.crypto_script }}
 
-    - name: build libcose
+    - name: build & test libcose with ${{ matrix.crypto }}
       run: make clean test
