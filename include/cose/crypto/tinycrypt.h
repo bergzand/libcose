@@ -37,6 +37,9 @@ extern "C" {
 #define HAVE_CURVE_P256     /**< EC NIST p256 curve support */
 
 #define HAVE_ALGO_AESCCM
+#if __has_include (<tinycrypt/hkdf.h>)
+#define HAVE_ALGO_HMAC256
+#endif
 
 #define HAVE_ALGO_AESCCM_16_64_128 /**< AES CCM mode support with 16 bit length, 64 bit tag 128 bit key */
 #define HAVE_ALGO_AESCCM_16_128_128 /**< AES CCM mode support with 16 bit length, 128 bit tag 128 bit key */

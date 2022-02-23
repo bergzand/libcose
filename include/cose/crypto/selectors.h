@@ -55,6 +55,10 @@
  */
 #if defined(CRYPTO_SODIUM)
 #define CRYPTO_SODIUM_INCLUDE_HKDFSHA256
+#elif defined(CRYPTO_TINYCRYPT)
+#if __has_include (<tinycrypt/hkdf.h>)
+#define CRYPTO_TINYCRYPT_INCLUDE_HKDFSHA256
+#endif
 #endif
 
 #endif /* COSE_CRYPTO_SELECTORS_H */
