@@ -41,7 +41,6 @@ jobs:
 
     container: ${{ matrix.container }}
     env:
-      TINYCBOR_ROOT: ../tinycbor
       CRYPTO: ${{ matrix.crypto }}
       CC: ${{ matrix.CC }}
       MBEDTLS_LIB: /usr/lib/x86_64-linux-gnu/libmbedcrypto.so
