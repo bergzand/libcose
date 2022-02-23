@@ -22,6 +22,7 @@ jobs:
           - tinycrypt
           - mbedtls
           - c25519
+          - hash-sigs
         include:
           - crypto: sodium
             crypto_script: true
@@ -40,6 +41,9 @@ jobs:
               apt install -y unzip &&
               wget https://www.dlbeer.co.nz/downloads/c25519-2017-10-05.zip -O ../c25519.zip &&
               bash -c 'cd .. && unzip c25519.zip'
+          - crypto: hash-sigs
+            crypto_script: >-
+              git clone https://github.com/future-proof-iot/hash-sigs.git ../hash-sigs
 
           - container: silkeh/clang:12
             CC: clang
