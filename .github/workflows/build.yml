@@ -12,8 +12,8 @@ jobs:
     strategy:
       matrix:
         container:
-          - silkeh/clang:7
-          - silkeh/clang:8
+          - silkeh/clang:12
+          - silkeh/clang:13
         crypto:
           - sodium
           - monocypher
@@ -30,10 +30,10 @@ jobs:
               git clone https://github.com/intel/tinycrypt ../tinycrypt &&
               bash -c 'cd ../tinycrypt && make -j all'
 
-          - container: silkeh/clang:7
+          - container: silkeh/clang:12
             CC: clang
 
-          - container: silkeh/clang:8
+          - container: silkeh/clang:13
             CC: clang
 
     container: ${{ matrix.container }}
