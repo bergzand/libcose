@@ -321,6 +321,9 @@ bool cose_sign_signature_iter(const cose_sign_dec_t *sign, cose_signature_dec_t 
  * The buffer must be large enough to contain the headers, payload and the
  * additional authenticated data.
  *
+ * See @ref cose_sign_verify_buffer_required to get the buffer size required to
+ * verify the signature
+ *
  * @param   sign        The sign object to verify
  * @param   signature   A signature object belonging to the sign object
  * @param   key         The key to verify with
@@ -331,6 +334,17 @@ bool cose_sign_signature_iter(const cose_sign_dec_t *sign, cose_signature_dec_t 
  * @return              Negative on error
  */
 int cose_sign_verify(const cose_sign_dec_t *sign, cose_signature_dec_t *signature, cose_key_t *key, uint8_t *buf, size_t len);
+
+/**
+ * Determine the scratch buffer required for verifying the signature
+ *
+ * @param   sign        The sign object
+ * @param   signature   A signature object belonging to the sign object
+ *
+ * @return              The size required for the scratch buffer
+ */
+size_t cose_sign_verify_buffer_required(const cose_sign_dec_t *sign,
+                                        const cose_signature_dec_t *signature);
 
 /**
  * Wrapper function to attempt signature verification with the first signature

@@ -113,13 +113,21 @@ void test_sign1(void)
     CU_ASSERT(cose_sign_signature_iter(&verify, &vsignature));
     /* Verify with signature slot 0 */
     CU_ASSERT_EQUAL_FATAL(decode_success, 0);
-    int verification = cose_sign_verify(&verify, &vsignature, &key, ver_buf, sizeof(ver_buf));
+    size_t ver_buf_required = cose_sign_verify_buffer_required(&verify,
+                                                               &vsignature);
+    int verification = cose_sign_verify(&verify, &vsignature, &key, ver_buf, ver_buf_required);
     CU_ASSERT_EQUAL(verification, 0);
+
+    verification = cose_sign_verify(&verify, &vsignature, &key, ver_buf, ver_buf_required - 1);
+    CU_ASSERT_EQUAL(verification, COSE_ERR_NOMEM);
     /* Modify payload */
     ((int*)(verify.payload))[0]++;
-    verification = cose_sign_verify(&verify, &vsignature, &key, ver_buf, sizeof(ver_buf));
+    ver_buf_required = cose_sign_verify_buffer_required(&verify,
+                                                               &vsignature);
+    verification = cose_sign_verify(&verify, &vsignature, &key, ver_buf, ver_buf_required);
     /* Should fail due to modified payload */
     CU_ASSERT_NOT_EQUAL(verification, 0);
+
 }
 
 /* Untagged 1 signer test */

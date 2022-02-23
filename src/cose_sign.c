@@ -510,6 +510,12 @@ int cose_sign_verify(const cose_sign_dec_t *sign, cose_signature_dec_t *signatur
     return res;
 }
 
+size_t cose_sign_verify_buffer_required(const cose_sign_dec_t *sign,
+                                        const cose_signature_dec_t *signature)
+{
+    return _dec_sign_sig(sign, signature, NULL, 0);
+}
+
 int cose_sign_verify_first(const cose_sign_dec_t* sign, cose_key_t *key,
                            uint8_t *buf, size_t len)
 {
