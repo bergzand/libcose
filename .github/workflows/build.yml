@@ -19,6 +19,7 @@ jobs:
           - monocypher
           - tinycrypt
           - mbedtls
+          - c25519
         include:
           - crypto: sodium
             crypto_script: true
@@ -32,6 +33,11 @@ jobs:
               bash -c 'cd ../tinycrypt && make -j all'
           - crypto: mbedtls
             crypto_script: true
+          - crypto: c25519
+            crypto_script: >-
+              apt install -y unzip &&
+              wget https://www.dlbeer.co.nz/downloads/c25519-2017-10-05.zip -O ../c25519.zip &&
+              bash -c 'cd .. && unzip c25519.zip'
 
           - container: silkeh/clang:12
             CC: clang
