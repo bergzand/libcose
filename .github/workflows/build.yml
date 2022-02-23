@@ -58,12 +58,6 @@ jobs:
     - name: build nanocbor
       run: cd ../nanocbor && mkdir bin && meson . build  && ninja -C build && mv build/libnanocbor.so bin/libnanocbor.so
 
-    - name: clone tinycbor
-      run: git clone https://github.com/intel/tinycbor ../tinycbor
-
-    - name: build tinycbor
-      run: cd ../tinycbor && make
-
     - name: ${{ matrix.crypto }} setup script
       run: ${{ matrix.crypto_script }}
 
