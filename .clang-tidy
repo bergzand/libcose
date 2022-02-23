@@ -1,0 +1,6 @@
+---
+Checks:          '*,-altera-*,-cert-*,-llvmlibc-restrict-system-libc-headers,-bugprone-reserved-identifier,-bugprone-easily-swappable-parameters,-cppcoreguidelines-avoid-non-const-global-variables,-cppcoreguidelines-narrowing-conversions,-bugprone-narrowing-conversions'
+WarningsAsErrors: '*'
+HeaderFilterRegex: ''
+AnalyzeTemporaryDtors: false
+FormatStyle:     none
