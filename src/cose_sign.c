@@ -307,7 +307,7 @@ static int _sign1_decode_sig(const cose_sign_dec_t *sign, const uint8_t **buf, s
     return COSE_OK;
 }
 
-static void _sign_sig_cbor_dec(const cose_sign_dec_t *sign, cose_signature_dec_t *sig, nanocbor_encoder_t *enc)
+static void _sign_sig_cbor_dec(const cose_sign_dec_t *sign, const cose_signature_dec_t *sig, nanocbor_encoder_t *enc)
 {
     _sign_sig_cbor_start(enc, _is_sign1_dec(sign));
     const uint8_t *buf = NULL;
@@ -329,7 +329,7 @@ static void _sign_sig_cbor_dec(const cose_sign_dec_t *sign, cose_signature_dec_t
     nanocbor_put_bstr(enc, sign->payload, sign->payload_len);
 }
 
-static size_t _dec_sign_sig(const cose_sign_dec_t *sign, cose_signature_dec_t *sig, uint8_t *buf, size_t buflen)
+static size_t _dec_sign_sig(const cose_sign_dec_t *sign, const cose_signature_dec_t *sig, uint8_t *buf, size_t buflen)
 {
     nanocbor_encoder_t enc;
     nanocbor_encoder_init(&enc, buf, buflen);
