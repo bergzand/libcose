@@ -27,7 +27,6 @@ LIB_NANOCBOR_PATH=$(NANOCBOR_ROOT)/bin
 LIB_NANOCBOR=$(LIB_NANOCBOR_PATH)/nanocbor.so
 
 CFLAGS_TIDY ?= -std=c99
-TIDYFLAGS=-checks=* -warnings-as-errors=*
 
 CFLAGS_COVERAGE += -coverage
 CFLAGS_DEBUG += $(CFLAGS_COVERAGE) -g3
