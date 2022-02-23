@@ -14,7 +14,6 @@
 #include "cose/test.h"
 #include "cose_defines.h"
 #include <nanocbor/nanocbor.h>
-#include <cbor.h>
 #include <CUnit/CUnit.h>
 
 #define HDRS_SIZE   4
