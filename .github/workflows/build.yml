@@ -17,21 +17,24 @@ jobs:
         crypto:
           - sodium
           - monocypher
+          - tinycrypt
         include:
           - crypto: sodium
             crypto_script: true
           - crypto: monocypher
             crypto_script: >-
               git clone https://github.com/LoupVaillant/Monocypher.git ../Monocypher &&
-              bash -c "cd ../Monocypher &&
-              make -j USE_ED25519=1"
+              bash -c "cd ../Monocypher && make -j USE_ED25519=1"
+          - crypto: tinycrypt
+            crypto_script: >-
+              git clone https://github.com/intel/tinycrypt ../tinycrypt &&
+              bash -c 'cd ../tinycrypt && make -j all'
 
           - container: silkeh/clang:7
             CC: clang
 
           - container: silkeh/clang:8
             CC: clang
-
 
     container: ${{ matrix.container }}
     env:
