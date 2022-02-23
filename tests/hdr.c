@@ -13,7 +13,6 @@
 #include "cose/hdr.h"
 #include "cose/test.h"
 #include "cose_defines.h"
-#include <cbor.h>
 #include <nanocbor/nanocbor.h>
 #include <CUnit/CUnit.h>
 
@@ -22,31 +21,18 @@
 #define BUF_SIZE    128
 static uint8_t buf[BUF_SIZE];
 
-static int cose_cbor_get_string(const CborValue *it, const uint8_t **cbuf, size_t *len)
-{
-    if (!(cbor_value_is_text_string(it) || cbor_value_is_byte_string(it) || cbor_value_is_length_known(it))) {
-         return COSE_ERR_INVALID_CBOR;
-    }
-    CborValue next = *it;
-    cbor_value_get_string_length(it, len);
-    cbor_value_advance(&next);
-    *cbuf = next.source.ptr - *len;
-    return COSE_OK;
-}
-
 void test_hdr1(void)
 {
-    int val = 3278;
-    int key = 5734;
-    CborEncoder enc, map;
+    const int val = 3278;
+    const int key = 5734;
+    nanocbor_encoder_t enc;
     cose_hdr_t header;
 
-    cbor_encoder_init(&enc, buf, BUF_SIZE, 0);
-    cbor_encoder_create_map(&enc, &map, 1);
-    cbor_encode_int(&map, key);
-    cbor_encode_int(&map, val);
-    cbor_encoder_close_container(&enc, &map);
-    size_t len = cbor_encoder_get_buffer_size(&enc, buf);
+    nanocbor_encoder_init(&enc, buf, BUF_SIZE);
+    nanocbor_fmt_map(&enc, 1);
+    nanocbor_fmt_int(&enc, key);
+    nanocbor_fmt_int(&enc, val);
+    size_t len = nanocbor_encoded_len(&enc);
 
     CU_ASSERT(cose_hdr_decode_from_cbor(buf, len, &header, key));
     CU_ASSERT_EQUAL(header.key, key);
@@ -56,17 +42,16 @@ void test_hdr1(void)
 
 void test_hdr2(void)
 {
-    char str[] = "test string";
-    int key = 5734;
-    CborEncoder enc, map;
+    const char str[] = "test string";
+    const int key = 5734;
+    nanocbor_encoder_t enc;
     cose_hdr_t header;
 
-    cbor_encoder_init(&enc, buf, BUF_SIZE, 0);
-    cbor_encoder_create_map(&enc, &map, 1);
-    cbor_encode_int(&map, key);
-    cbor_encode_text_stringz(&map, str);
-    cbor_encoder_close_container(&enc, &map);
-    size_t len = cbor_encoder_get_buffer_size(&enc, buf);
+    nanocbor_encoder_init(&enc, buf, BUF_SIZE);
+    nanocbor_fmt_map(&enc, 1);
+    nanocbor_fmt_int(&enc, key);
+    nanocbor_put_tstr(&enc, str);
+    size_t len = nanocbor_encoded_len(&enc);
 
     CU_ASSERT(cose_hdr_decode_from_cbor(buf, len, &header, key));
     CU_ASSERT_EQUAL(header.key, key);
@@ -76,17 +61,16 @@ void test_hdr2(void)
 
 void test_hdr3(void)
 {
-    uint8_t str[] = "test string";
-    int key = -4;
-    CborEncoder enc, map;
+    const uint8_t str[] = "test string";
+    const int key = -4;
+    nanocbor_encoder_t enc;
     cose_hdr_t header;
 
-    cbor_encoder_init(&enc, buf, BUF_SIZE, 0);
-    cbor_encoder_create_map(&enc, &map, 1);
-    cbor_encode_int(&map, key);
-    cbor_encode_byte_string(&map, (uint8_t*)str, sizeof(str));
-    cbor_encoder_close_container(&enc, &map);
-    size_t len = cbor_encoder_get_buffer_size(&enc, buf);
+    nanocbor_encoder_init(&enc, buf, BUF_SIZE);
+    nanocbor_fmt_map(&enc, 1);
+    nanocbor_fmt_int(&enc, key);
+    nanocbor_put_bstr(&enc, str, sizeof(str));
+    size_t len = nanocbor_encoded_len(&enc);
 
     CU_ASSERT(cose_hdr_decode_from_cbor(buf, len, &header, key));
     CU_ASSERT_EQUAL(header.key, key);
@@ -102,25 +86,21 @@ void test_hdr5(void)
         .v = { .value = 32 },
         .len = 0
     };
-    CborParser p;
-    CborValue it, imap;
     nanocbor_encoder_t enc;
+    nanocbor_value_t decode, imap;
 
     nanocbor_encoder_init(&enc, buf, BUF_SIZE);
     nanocbor_fmt_map(&enc, 1);
     CU_ASSERT_EQUAL(cose_hdr_encode_to_map(&header, &enc), 0);
     size_t len = nanocbor_encoded_len(&enc);
 
-    cbor_parser_init(buf, len, 0, &p, &it);
-    cbor_value_enter_container(&it, &imap);
+    nanocbor_decoder_init(&decode, buf, len);
+    nanocbor_enter_map(&decode, &imap);
 
-    int val;
-    CU_ASSERT_EQUAL(cbor_value_is_integer(&imap), true);
-    cbor_value_get_int(&imap, &val);
+    int32_t val;
+    CU_ASSERT(nanocbor_get_int32(&imap, &val) > NANOCBOR_OK);
     CU_ASSERT_EQUAL(val, header.key);
-    cbor_value_advance_fixed(&imap);
-    CU_ASSERT_EQUAL(cbor_value_is_integer(&imap), true);
-    cbor_value_get_int(&imap, &val);
+    CU_ASSERT(nanocbor_get_int32(&imap, &val) > NANOCBOR_OK);
     CU_ASSERT_EQUAL(val, header.v.value);
 }
 
@@ -133,8 +113,6 @@ void test_hdr6(void)
         .v = { .str = input },
         .len = 0
     };
-    CborParser p;
-    CborValue it, imap;
     nanocbor_encoder_t enc;
 
     nanocbor_encoder_init(&enc, buf, BUF_SIZE);
@@ -142,18 +120,17 @@ void test_hdr6(void)
     CU_ASSERT_EQUAL(cose_hdr_encode_to_map(&header, &enc), 0);
     size_t len = nanocbor_encoded_len(&enc);
 
-    cbor_parser_init(buf, len, 0, &p, &it);
-    cbor_value_enter_container(&it, &imap);
+    nanocbor_value_t decode, imap;
+    nanocbor_decoder_init(&decode, buf, len);
+    nanocbor_enter_map(&decode, &imap);
 
-    int val;
-    const uint8_t *str;
-    CU_ASSERT_EQUAL(cbor_value_is_integer(&imap), true);
-    cbor_value_get_int(&imap, &val);
+    int32_t val = 0;
+    const uint8_t *str = NULL;
+    size_t str_len = 0;
+    CU_ASSERT(nanocbor_get_int32(&imap, &val) > NANOCBOR_OK);
     CU_ASSERT_EQUAL(val, header.key);
-    cbor_value_advance_fixed(&imap);
-    CU_ASSERT_EQUAL(cbor_value_is_text_string(&imap), true);
-    cose_cbor_get_string(&imap, &str, &len);
-    CU_ASSERT_EQUAL(memcmp(str, header.v.str, len), 0);
+    CU_ASSERT_EQUAL(nanocbor_get_tstr(&imap, &str, &str_len), NANOCBOR_OK);
+    CU_ASSERT_EQUAL(memcmp(str, header.v.str, str_len), 0);
 }
 
 void test_hdr7(void)
@@ -165,8 +142,6 @@ void test_hdr7(void)
         .v = { .data = input },
         .len = 0
     };
-    CborParser p;
-    CborValue it, imap;
     nanocbor_encoder_t enc;
 
     nanocbor_encoder_init(&enc, buf, BUF_SIZE);
@@ -174,18 +149,17 @@ void test_hdr7(void)
     CU_ASSERT_EQUAL(cose_hdr_encode_to_map(&header, &enc), 0);
     size_t len = nanocbor_encoded_len(&enc);
 
-    cbor_parser_init(buf, len, 0, &p, &it);
-    cbor_value_enter_container(&it, &imap);
+    nanocbor_value_t decode, imap;
+    nanocbor_decoder_init(&decode, buf, len);
+    nanocbor_enter_map(&decode, &imap);
 
     int val;
-    const uint8_t *str;
-    CU_ASSERT_EQUAL(cbor_value_is_integer(&imap), true);
-    cbor_value_get_int(&imap, &val);
+    const uint8_t *str = NULL;
+    size_t str_len = 0;
+    CU_ASSERT(nanocbor_get_int32(&imap, &val) > NANOCBOR_OK);
     CU_ASSERT_EQUAL(val, header.key);
-    cbor_value_advance_fixed(&imap);
-    CU_ASSERT_EQUAL(cbor_value_is_byte_string(&imap), true);
-    cose_cbor_get_string(&imap, &str, &len);
-    CU_ASSERT_EQUAL(memcmp(str, header.v.str, len), 0);
+    CU_ASSERT_EQUAL(nanocbor_get_bstr(&imap, &str, &str_len), NANOCBOR_OK);
+    CU_ASSERT_EQUAL(memcmp(str, header.v.str, str_len), 0);
 }
 
 const test_t tests_hdr[] = {

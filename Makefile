@@ -1,5 +1,3 @@
-CBOR_ROOT ?= $(PWD)/../cn-cbor/
-TINYCBOR_ROOT ?= $(PWD)/../tinycbor/
 NANOCBOR_ROOT ?= $(PWD)/../nanocbor/
 INC_GLOBAL ?= /usr/include
 CRYPTO ?= sodium
@@ -18,10 +16,6 @@ OBJ_DIR=$(BIN_DIR)/objs
 LIB_DIR=lib
 BUILD_DIR=$(PWD)
 
-INC_TINYCBOR=$(TINYCBOR_ROOT)/src
-LIB_TINYCBOR_PATH=$(TINYCBOR_ROOT)/lib
-LIB_TINYCBOR=$(LIB_TINYCBOR_PATH)/libtinycbor.so
-
 INC_NANOCBOR=$(NANOCBOR_ROOT)/include
 LIB_NANOCBOR_PATH=$(NANOCBOR_ROOT)/bin
 LIB_NANOCBOR=$(LIB_NANOCBOR_PATH)/libnanocbor.so
@@ -32,7 +26,7 @@ CFLAGS_COVERAGE += -coverage
 CFLAGS_DEBUG += $(CFLAGS_COVERAGE) -g3
 
 CFLAGS_WARN += -Wall -Wextra -pedantic -Werror -Wshadow
-CFLAGS += -fPIC $(CFLAGS_WARN) -I$(INC_DIR) -I$(INC_GLOBAL) -I$(INC_TINYCBOR) -I$(INC_NANOCBOR) -Os -g3
+CFLAGS += -fPIC $(CFLAGS_WARN) -I$(INC_DIR) -I$(INC_GLOBAL) -I$(INC_NANOCBOR) -Os -g3
 
 ifneq (,$(filter sodium,$(CRYPTO)))
 	include $(MK_DIR)/sodium.mk
@@ -66,7 +60,7 @@ OTESTS=$(patsubst %.c,$(OBJ_DIR)/%.o,$(TESTS))
 OBJS += $(CRYPTOOBJS)
 
 CFLAGS_TEST += $(shell pkg-config --cflags cunit) $(CFLAGS_COVERAGE)
-LDFLAGS_TEST += -Wl,$(shell pkg-config --libs cunit || echo -lcunit) -Wl,$(LIB_TINYCBOR)
+LDFLAGS_TEST += -Wl,$(shell pkg-config --libs cunit || echo -lcunit)
 
 LDFLAGS += $(LDFLAGS_CRYPTO)
 
@@ -87,17 +81,17 @@ $(OBJ_DIR)/tests/%.o: $(TEST_DIR)/%.c
 $(BIN_DIR)/test: CFLAGS += $(CFLAGS_TEST)
 $(BIN_DIR)/test: LDFLAGS += $(LDFLAGS_TEST)
 $(BIN_DIR)/test: $(OBJS) $(OTESTS) prepare
-	$(CC) $(CFLAGS) $(OBJS) $(OTESTS) -o $@  -Wl,$(LIB_TINYCBOR) -Wl,$(LIB_NANOCBOR) $(LDFLAGS)
+	$(CC) $(CFLAGS) $(OBJS) $(OTESTS) -o $@  -Wl,$(LIB_NANOCBOR) $(LDFLAGS)
 
 $(BIN_DIR)/libcose.so: $(OBJS) prepare
 	$(CC) $(CFLAGS) $(OBJS) -o $@ -Wl,$(LIB_NANOCBOR)  -shared
 
 test: $(BIN_DIR)/test
-	LD_LIBRARY_PATH="$(LIB_TINYCBOR_PATH):$(LIB_NANOCBOR_PATH)" $<
+	LD_LIBRARY_PATH="$(LIB_NANOCBOR_PATH)" $<
 
 debug-test: CFLAGS += $(CFLAGS_DEBUG)
 debug-test: $(BIN_DIR)/test
-	LD_LIBRARY_PATH="$(LIB_TINYCBOR_PATH):$(LIB_NANOCBOR_PATH)" gdb $<
+	LD_LIBRARY_PATH="$(LIB_NANOCBOR_PATH)" gdb $<
 
 clang-tidy:
 	$(TIDY) $(TIDYFLAGS) $(TIDYSRCS) -- $(CFLAGS) $(CFLAGS_TIDY)

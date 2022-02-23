@@ -47,7 +47,6 @@ jobs:
 
     container: ${{ matrix.container }}
     env:
-      TINYCBOR_ROOT: ../tinycbor
       CRYPTO: ${{ matrix.crypto }}
       CC: ${{ matrix.CC }}
       MBEDTLS_LIB: /usr/lib/x86_64-linux-gnu/libmbedcrypto.so
@@ -63,12 +62,6 @@ jobs:
 
     - name: build nanocbor
       run: cd ../nanocbor && mkdir bin && meson . build  && ninja -C build && mv build/libnanocbor.so bin/libnanocbor.so
-
-    - name: clone tinycbor
-      run: git clone https://github.com/intel/tinycbor ../tinycbor
-
-    - name: build tinycbor
-      run: cd ../tinycbor && make
 
     - name: ${{ matrix.crypto }} setup script
       run: ${{ matrix.crypto_script }}
