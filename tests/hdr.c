@@ -30,7 +30,7 @@ static int cose_cbor_get_string(const CborValue *it, const uint8_t **cbuf, size_
     CborValue next = *it;
     cbor_value_get_string_length(it, len);
     cbor_value_advance(&next);
-    *cbuf = next.ptr - *len;
+    *cbuf = next.source.ptr - *len;
     return COSE_OK;
 }
 
