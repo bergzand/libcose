@@ -307,7 +307,7 @@ static int _sign1_decode_sig(const cose_sign_dec_t *sign, const uint8_t **buf, s
     return COSE_OK;
 }
 
-static void _sign_sig_cbor_dec(const cose_sign_dec_t *sign, cose_signature_dec_t *sig, nanocbor_encoder_t *enc)
+static void _sign_sig_cbor_dec(const cose_sign_dec_t *sign, const cose_signature_dec_t *sig, nanocbor_encoder_t *enc)
 {
     _sign_sig_cbor_start(enc, _is_sign1_dec(sign));
     const uint8_t *buf = NULL;
@@ -329,7 +329,7 @@ static void _sign_sig_cbor_dec(const cose_sign_dec_t *sign, cose_signature_dec_t
     nanocbor_put_bstr(enc, sign->payload, sign->payload_len);
 }
 
-static size_t _dec_sign_sig(const cose_sign_dec_t *sign, cose_signature_dec_t *sig, uint8_t *buf, size_t buflen)
+static size_t _dec_sign_sig(const cose_sign_dec_t *sign, const cose_signature_dec_t *sig, uint8_t *buf, size_t buflen)
 {
     nanocbor_encoder_t enc;
     nanocbor_encoder_init(&enc, buf, buflen);
@@ -493,6 +493,10 @@ int cose_sign_verify(const cose_sign_dec_t *sign, cose_signature_dec_t *signatur
 
     size_t sig_len = _dec_sign_sig(sign, signature, buf, len);
 
+    if (sig_len > len) {
+        return COSE_ERR_NOMEM;
+    }
+
     if (_is_sign1_dec(sign)) {
         _sign1_decode_sig(sign, &signature_buf, &signature_len);
     }
@@ -504,6 +508,12 @@ int cose_sign_verify(const cose_sign_dec_t *sign, cose_signature_dec_t *signatur
         res = COSE_ERR_CRYPTO;
     }
     return res;
+}
+
+size_t cose_sign_verify_buffer_required(const cose_sign_dec_t *sign,
+                                        const cose_signature_dec_t *signature)
+{
+    return _dec_sign_sig(sign, signature, NULL, 0);
 }
 
 int cose_sign_verify_first(const cose_sign_dec_t* sign, cose_key_t *key,
