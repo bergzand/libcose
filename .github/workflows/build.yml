@@ -14,9 +14,17 @@ jobs:
         container:
           - silkeh/clang:7
           - silkeh/clang:8
+        crypto:
+          - sodium
+          - monocypher
         include:
           - crypto: sodium
             crypto_script: true
+          - crypto: monocypher
+            crypto_script: >-
+              git clone https://github.com/LoupVaillant/Monocypher.git ../Monocypher &&
+              bash -c "cd ../Monocypher &&
+              make -j USE_ED25519=1"
 
           - container: silkeh/clang:7
             CC: clang
@@ -31,6 +39,7 @@ jobs:
       CRYPTO: ${{ matrix.crypto }}
       CC: ${{ matrix.CC }}
       MBEDTLS_LIB: /usr/lib/x86_64-linux-gnu/libmbedcrypto.so
+      MONOCYPHER_LOCAL: 1
     steps:
     - uses: actions/checkout@v2
 
