@@ -12,8 +12,8 @@ jobs:
     strategy:
       matrix:
         container:
-          - silkeh/clang:7
-          - silkeh/clang:8
+          - silkeh/clang:12
+          - silkeh/clang:13
         crypto:
           - sodium
           - monocypher
@@ -26,10 +26,10 @@ jobs:
               bash -c "cd ../Monocypher &&
               make -j USE_ED25519=1"
 
-          - container: silkeh/clang:7
+          - container: silkeh/clang:12
             CC: clang
 
-          - container: silkeh/clang:8
+          - container: silkeh/clang:13
             CC: clang
 
 
