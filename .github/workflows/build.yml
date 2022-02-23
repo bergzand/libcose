@@ -1,0 +1,56 @@
+name: build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        container:
+          - silkeh/clang:7
+          - silkeh/clang:8
+        include:
+          - crypto: sodium
+            crypto_script: true
+
+          - container: silkeh/clang:7
+            CC: clang
+
+          - container: silkeh/clang:8
+            CC: clang
+
+
+    container: ${{ matrix.container }}
+    env:
+      TINYCBOR_ROOT: ../tinycbor
+      CRYPTO: ${{ matrix.crypto }}
+      CC: ${{ matrix.CC }}
+      MBEDTLS_LIB: /usr/lib/x86_64-linux-gnu/libmbedcrypto.so
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: install packages
+      run: apt update && apt install -y libgcc-10-dev build-essential pkg-config libcunit1-dev wget libsodium-dev libmbedtls-dev ca-certificates meson ninja-build
+
+    - name: clone nanocbor
+      run: git clone https://github.com/bergzand/nanocbor/ ../nanocbor
+
+    - name: build nanocbor
+      run: cd ../nanocbor && mkdir bin && meson . build  && ninja -C build && mv build/libnanocbor.so bin/libnanocbor.so
+
+    - name: clone tinycbor
+      run: git clone https://github.com/intel/tinycbor ../tinycbor
+
+    - name: build tinycbor
+      run: cd ../tinycbor && make
+
+    - name: crypto setup script
+      run: ${{ matrix.crypto_script }}
+
+    - name: build libcose
+      run: make clean test
