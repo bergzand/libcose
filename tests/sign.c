@@ -32,6 +32,9 @@ static char kid2[] = "koen@example.net";
 #elif defined(HAVE_ALGO_HSSLMS)
 #define TEST_CRYPTO_SIGN_PUBLICKEYBYTES (8192)
 #define TEST_CRYPTO_SIGN_SECRETKEYBYTES (8192)
+// segfaults with these:
+/* #define TEST_CRYPTO_SIGN_PUBLICKEYBYTES (COSE_CRYPTO_HSSLMS_PUBLICKEYBYTES) */
+/* #define TEST_CRYPTO_SIGN_SECRETKEYBYTES (COSE_CRYPTO_HSSLMS_SECRETKEYBYTES) */
 #else
 #error No suitable signature algorithm
 #endif
