@@ -131,6 +131,7 @@ typedef enum {
     COSE_KTY_EC2    = 2,    /**< Elliptic curve */
     COSE_KTY_RSA    = 3,    /**< RSA */
     COSE_KTY_SYMM   = 4,    /**< Symmetric key types */
+    COSE_KTY_HSSLMS = 5,    /**< HSS-LMS type keys */
 } cose_kty_t;
 
 /**
@@ -152,6 +153,7 @@ typedef enum {
  */
 typedef enum {
     COSE_ALGO_NONE  = 0,                /**< Invalid algo */
+    COSE_ALGO_HSSLMS = -46,             /**< HSS-LMS signature algo */
     COSE_ALGO_ES512 = -36,              /**< ECDSA w/ SHA512 */
     COSE_ALGO_ES384 = -35,              /**< ECDSA w/ SHA384 */
     COSE_ALGO_EDDSA = -8,               /**< EdDSA */
