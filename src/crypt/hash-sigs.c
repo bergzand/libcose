@@ -6,7 +6,9 @@
 int cose_crypto_keypair_hsslms(cose_key_t *key)
 {
     key->algo = COSE_ALGO_HSSLMS;
-    return keygen(key->d, key->x);
+    int res = keygen(key->d, key->x);
+
+    return res ? COSE_OK : COSE_ERR_CRYPTO;;
 }
 
 int cose_crypto_sign_hsslms(const cose_key_t *key, uint8_t *sig, size_t *siglen,
@@ -19,13 +21,14 @@ int cose_crypto_sign_hsslms(const cose_key_t *key, uint8_t *sig, size_t *siglen,
 
     *siglen = siglen_tmp;
 
-    return res;
+    return res ? COSE_OK : COSE_ERR_CRYPTO;;
 }
 
 int cose_crypto_verify_hsslms(const cose_key_t *key, const uint8_t *sig,
                               size_t siglen, uint8_t *msg, uint64_t msglen)
 {
-    return verify(key->d, (unsigned char *)sig, siglen, msg, msglen);
+    int res = verify(key->d, (unsigned char *)sig, siglen, msg, msglen);
+    return res ? COSE_OK : COSE_ERR_CRYPTO;;
 }
 
 size_t cose_crypto_sig_size_hsslms(void)
