@@ -29,6 +29,9 @@ static char kid2[] = "koen@example.net";
 #elif defined(HAVE_ALGO_ECDSA)
 #define TEST_CRYPTO_SIGN_PUBLICKEYBYTES COSE_CRYPTO_SIGN_P521_PUBLICKEYBYTES
 #define TEST_CRYPTO_SIGN_SECRETKEYBYTES COSE_CRYPTO_SIGN_P521_SECRETKEYBYTES
+#elif defined(HAVE_ALGO_HSSLMS)
+#define TEST_CRYPTO_SIGN_PUBLICKEYBYTES (8192)
+#define TEST_CRYPTO_SIGN_SECRETKEYBYTES (8192)
 #else
 #error No suitable signature algorithm
 #endif
@@ -58,10 +61,15 @@ static void genkey(cose_key_t *key, uint8_t *pkx, uint8_t *pky, uint8_t *sk)
     cose_curve_t curve = COSE_EC_CURVE_P256;
     cose_algo_t algo = COSE_ALGO_ES256;
 #else
-#error No suitable ECDSA curve signature algorithm available
+#error No suitable signature algorithm available
 #endif
     cose_key_set_keys(key, curve, algo, pkx, pky, sk);
     cose_crypto_keypair_ecdsa(key, curve);
+#elif defined(HAVE_ALGO_HSSLMS)
+    cose_curve_t curve = COSE_EC_NONE;
+    cose_algo_t algo = COSE_ALGO_HSSLMS;
+    cose_key_set_keys(key, curve, algo, pkx, NULL, sk);
+    cose_crypto_keypair_hsslms(key);
 #endif
 }
 
