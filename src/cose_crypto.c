@@ -27,16 +27,12 @@ COSE_ssize_t cose_crypto_keygen(uint8_t *buf, /* NOLINT(readability-non-const-pa
 {
     /* NOLINTNEXTLINE(hicpp-multiway-paths-covered) */
     switch(algo) {
-#ifdef HAVE_ALGO_CHACHA20POLY1305
         case COSE_ALGO_CHACHA20POLY1305:
             return cose_crypto_keygen_chachapoly(buf, len);
-#endif /* HAVE_ALGO_CHACHA20POLY1305 */
-#if defined(HAVE_ALGO_AESGCM)
         case COSE_ALGO_A128GCM:
         case COSE_ALGO_A192GCM:
         case COSE_ALGO_A256GCM:
             return cose_crypto_keygen_aesgcm(buf, len, algo);
-#endif
         default:
             (void)buf;
             (void)len;

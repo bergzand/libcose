@@ -61,24 +61,6 @@ int cose_crypto_aead_decrypt_chachapoly(uint8_t *msg,
     *msglen = clen - COSE_CRYPTO_AEAD_CHACHA20POLY1305_ABYTES;
     return res;
 }
-
-COSE_ssize_t cose_crypto_keygen_chachapoly(uint8_t *sk, size_t len)
-{
-    if (len < COSE_CRYPTO_AEAD_CHACHA20POLY1305_KEYBYTES) {
-        return COSE_ERR_NOMEM;
-    }
-    randombytes(sk, COSE_CRYPTO_AEAD_CHACHA20POLY1305_KEYBYTES);
-    return COSE_CRYPTO_AEAD_CHACHA20POLY1305_KEYBYTES;
-}
-
-size_t cose_crypto_aead_nonce_chachapoly(uint8_t *nonce, size_t len)
-{
-    if (len < COSE_CRYPTO_AEAD_CHACHA20POLY1305_NONCEBYTES) {
-        return 0;
-    }
-    randombytes(nonce, COSE_CRYPTO_AEAD_CHACHA20POLY1305_NONCEBYTES);
-    return COSE_CRYPTO_AEAD_CHACHA20POLY1305_NONCEBYTES;
-}
 #endif /* CRYPTO_HACL_INCLUDE_CHACHAPOLY */
 
 #ifdef CRYPTO_HACL_INCLUDE_ED25519
