@@ -74,8 +74,18 @@ COSE_ssize_t cose_crypto_keygen(uint8_t *buf, size_t len, cose_algo_t algo);
  * @name crypto AEAD functions
  * @{
  */
-/**
- * Generic AEAD function, key must match sizes of selected algo
+ /**
+ * @brief    Generic AEAD function, key must match sizes of selected algo
+ *
+ *
+ * @param[out]      c       resulting ciphertext
+ * @param[inout]    clen    length of the buffer, length of resulting ciphertext
+ * @param           msg     message to encrypt
+ * @param           msglen  length of the message
+ * @param           aad     additional authenticated data to protect
+ * @param           aadlen  length of the additional authenticated data
+ * @param           key     key to decrypt with
+ * @param           nonce   nonce to use
  */
 int cose_crypto_aead_encrypt(uint8_t *c, size_t *clen, const uint8_t *msg, size_t msglen, const uint8_t *aad, size_t aadlen, const uint8_t *nsec, const uint8_t *npub, const uint8_t *key, cose_algo_t algo);
 int cose_crypto_aead_decrypt(uint8_t *msg,
