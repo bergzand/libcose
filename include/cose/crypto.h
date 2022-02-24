@@ -55,8 +55,6 @@
 extern "C" {
 #endif
 
-/**
-
 typedef int (*cose_crypt_rng)(void *, unsigned char *, size_t);
 void cose_crypt_set_rng(cose_crypt_rng f_rng, void *p_rng);
 

@@ -50,6 +50,7 @@ endif
 CFLAGS += $(CFLAGS_CRYPTO)
 
 SRCS+=$(wildcard $(SRC_DIR)/*.c)
+SRCS += $(SRC_DIR)/crypt/keygen_symm.c
 BUILDSRCS=$(SRCS) $(CRYPTOSRC)
 TIDYSRCS=$(SRCS)
 TESTS+=$(wildcard $(TEST_DIR)/*.c)

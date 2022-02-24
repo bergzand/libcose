@@ -169,39 +169,6 @@ size_t _hash(cose_algo_t algo, const uint8_t *msg, size_t msglen, uint8_t *hash)
     }
 }
 
-COSE_ssize_t cose_crypto_keygen_aesgcm(uint8_t *buf, size_t len, cose_algo_t algo)
-{
-    (void)len;
-    switch(algo) {
-        case COSE_ALGO_A128GCM:
-            if (len < COSE_CRYPTO_AEAD_AES128GCM_KEYBYTES) {
-                return COSE_ERR_NOMEM;
-            }
-            if (!cose_crypt_get_random(cose_crypt_rng_arg, buf, COSE_CRYPTO_AEAD_AES128GCM_KEYBYTES)) {
-                return COSE_CRYPTO_AEAD_AES128GCM_KEYBYTES;
-            }
-            return COSE_ERR_CRYPTO;
-        case COSE_ALGO_A192GCM:
-            if (len < COSE_CRYPTO_AEAD_AES192GCM_KEYBYTES) {
-                return COSE_ERR_NOMEM;
-            }
-            if (!cose_crypt_get_random(cose_crypt_rng_arg, buf, COSE_CRYPTO_AEAD_AES192GCM_KEYBYTES)) {
-                return COSE_CRYPTO_AEAD_AES192GCM_KEYBYTES;
-            }
-            return COSE_ERR_CRYPTO;
-        case COSE_ALGO_A256GCM:
-            if (len < COSE_CRYPTO_AEAD_AES256GCM_KEYBYTES) {
-                return COSE_ERR_NOMEM;
-            }
-            if (!cose_crypt_get_random(cose_crypt_rng_arg, buf, COSE_CRYPTO_AEAD_AES256GCM_KEYBYTES)) {
-                return COSE_CRYPTO_AEAD_AES256GCM_KEYBYTES;
-            }
-            return COSE_ERR_CRYPTO;
-        default:
-            return COSE_ERR_NOTIMPLEMENTED;
-    }
-}
-
 int cose_crypto_aead_encrypt_aesgcm(uint8_t *c,
                                     size_t *clen,
                                     const uint8_t *msg,

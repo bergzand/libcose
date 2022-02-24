@@ -103,15 +103,6 @@ int cose_crypto_aead_decrypt_chachapoly(uint8_t *msg,
     crypto_wipe(auth_key, sizeof(auth_key));
     return res;
 }
-
-COSE_ssize_t cose_crypto_keygen_chachapoly(uint8_t *sk, size_t len)
-{
-    if (len < 64) {
-        return COSE_ERR_NOMEM;
-    }
-    randombytes((unsigned char*)sk, 64);
-    return 64;
-}
 #endif /* CRYPTO_MONOCYPHER_INCLUDE_CHACHAPOLY */
 
 #ifdef CRYPTO_MONOCYPHER_INCLUDE_ED25519
