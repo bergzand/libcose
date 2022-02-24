@@ -108,7 +108,7 @@ int cose_crypto_aead_decrypt_chachapoly(uint8_t *msg,
 #ifdef CRYPTO_MONOCYPHER_INCLUDE_ED25519
 int cose_crypto_sign_ed25519(const cose_key_t *key, uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen)
 {
-    *signlen = cose_crypto_sig_size_ed25519();
+    *signlen = COSE_CRYPTO_SIGN_ED25519_SIGNBYTES;
     crypto_ed25519_sign(sign, key->d, key->x, msg, msglen);
     return COSE_OK;
 }
@@ -131,10 +131,5 @@ void cose_crypto_keypair_ed25519(cose_key_t *key)
     randombytes(key->d, COSE_CRYPTO_SIGN_ED25519_SECRETKEYBYTES);
     _ed25519_clamp(key->d);
     crypto_ed25519_public_key(key->x, key->d);
-}
-
-size_t cose_crypto_sig_size_ed25519(void)
-{
-    return 64;
 }
 #endif /* CRYPTO_MONOCYPHER_INCLUDE_ED25519 */

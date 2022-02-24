@@ -87,11 +87,6 @@ void cose_crypto_keypair_ed25519(cose_key_t *key)
     crypto_sign_keypair(key->x, skey);
     memcpy(key->d, skey, COSE_CRYPTO_SIGN_ED25519_SECRETKEYBYTES);
 }
-
-size_t cose_crypto_sig_size_ed25519(void)
-{
-    return crypto_sign_BYTES;
-}
 #endif /* CRYPTO_SODIUM_INCLUDE_ED25519 */
 
 #ifdef CRYPTO_SODIUM_INCLUDE_HKDFSHA256

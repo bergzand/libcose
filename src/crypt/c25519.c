@@ -41,9 +41,4 @@ void cose_crypto_keypair_ed25519(cose_key_t *key)
     randombytes(key->d, EDSIGN_SECRET_KEY_SIZE);
     edsign_sec_to_pub(key->x, key->d);
 }
-
-size_t cose_crypto_sig_size_ed25519(void)
-{
-    return EDSIGN_SIGNATURE_SIZE;
-}
 #endif /* CRYPTO_C25519_INCLUDE_ED25519 */

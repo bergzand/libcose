@@ -223,14 +223,6 @@ int cose_crypto_aead_decrypt_aesgcm(uint8_t *msg,
 
 }
 
-
-
-size_t cose_crypto_sig_size_ecdsa(cose_curve_t curve)
-{
-    (void)curve;
-    return MBEDTLS_ECDSA_MAX_LEN;
-}
-
 void cose_crypto_keypair_ecdsa(cose_key_t *key, cose_curve_t curve)
 {
     mbedtls_ecdsa_context ctx;
