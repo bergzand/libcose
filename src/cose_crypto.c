@@ -120,6 +120,9 @@ int cose_crypto_aead_decrypt(uint8_t *msg, /* NOLINT(readability-non-const-param
                              const uint8_t *k,
                              cose_algo_t algo)
 {
+    if (clen == 0) {
+        return COSE_ERR_CRYPTO;
+    }
     /* NOLINTNEXTLINE(hicpp-multiway-paths-covered) */
     switch(algo) {
 #ifdef HAVE_ALGO_CHACHA20POLY1305
