@@ -225,6 +225,68 @@ void cose_crypto_keypair_ecdsa(cose_key_t *key, cose_curve_t curve);
  * @return      Signature size
  */
 size_t cose_crypto_sig_size_ed25519(void);
+
+/** @} */
+
+/**
+ * @name HKDF related functions
+ * @{
+ */
+
+/**
+ * @brief   Decide whether a given algorithm is known and an HKDF algorithm
+ *
+ * @param       alg         the algorithm to be checked
+ *
+ * @return      true if alg can be used with cose_crypto_hkdf_derive
+ */
+bool cose_crypto_is_hkdf(cose_algo_t alg);
+
+/**
+ * @brief    Derive a key using HKDF (HMAC based key derivation function)
+ *
+ * @param       salt        salt for key generation. Can be empty
+ * @param       salt_len    salt length
+ * @param       ikm         input key material
+ * @param       ikm_length  input key material length
+ * @param       info        info for derived key
+ * @param       info_length info for derived key length
+ * @param[out]  out         output buffer for derived key
+ * @param       out_length  dervied key length
+ * @param       alg         HKDF algorithm to use
+ *
+ * @return      COSE_OK on successful key derivations
+ * @return      COSE_ERR_NOTIMPLEMENTED if the alg is unsupported
+ * @return      COSE_ERR_INVALID_PARAM on invalid salt length
+ * @return      COSE_ERR_CRYPTO otherwise
+ */
+int cose_crypto_hkdf_derive(const uint8_t *salt, size_t salt_len,
+                            const uint8_t *ikm, size_t ikm_length,
+                            const uint8_t *info, size_t info_length,
+                            uint8_t *out, size_t out_length,
+                            cose_algo_t alg);
+
+/**
+ * @brief   Derive a key using SHA256 HKDF (HMAC based key derivation function)
+ *
+ * @param       salt        salt for key generation. Can be empty
+ * @param       salt_len    salt length
+ * @param       ikm         input key material
+ * @param       ikm_length  input key material length
+ * @param       info        info for derived key
+ * @param       info_length info for derived key length
+ * @param[out]  out         output buffer for derived key
+ * @param       out_length  dervied key length
+ *
+ * @return      COSE_OK on successful key derivations
+ * @return      COSE_ERR_INVALID_PARAM on invalid salt length
+ * @return      COSE_ERR_CRYPTO otherwise
+ */
+int cose_crypto_hkdf_derive_sha256(const uint8_t *salt, size_t salt_len,
+                                   const uint8_t *ikm, size_t ikm_length,
+                                   const uint8_t *info, size_t info_length,
+                                   uint8_t *out, size_t out_length);
+
 /** @} */
 
 #ifdef __cplusplus

@@ -23,6 +23,7 @@ extern test_t tests_crypto[];
 extern test_t tests_sign[];
 extern test_t tests_suit[];
 extern test_t tests_encrypt[];
+extern test_t tests_hkdf[];
 
 int getrandom(void *arg, unsigned char *buf, size_t bytes)
 {
@@ -85,6 +86,13 @@ int main()
         return CU_get_error();
     }
     add_tests(pSuite, tests_encrypt);
+
+    pSuite = CU_add_suite("Suite_hkdf", NULL, NULL);
+    if (NULL == pSuite) {
+        CU_cleanup_registry();
+        return CU_get_error();
+    }
+    add_tests(pSuite, tests_hkdf);
 
     srand(time(NULL));
     cose_crypt_set_rng(getrandom, NULL);

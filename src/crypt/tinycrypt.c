@@ -20,6 +20,9 @@
 #include <tinycrypt/ecc_dh.h>
 #include <tinycrypt/ecc_dsa.h>
 #include <tinycrypt/sha256.h>
+#if __has_include (<tinycrypt/hkdf.h>)
+#include <tinycrypt/hkdf.h>
+#endif
 
 extern cose_crypt_rng cose_crypt_get_random;
 extern void *cose_crypt_rng_arg;
@@ -188,3 +191,26 @@ int cose_crypto_verify_ecdsa(const cose_key_t *key, const uint8_t *sign, size_t 
     int res = uECC_verify(pubkey, hash, sizeof(hash), (uint8_t*)sign, uECC_secp256r1());
     return res ? COSE_OK : COSE_ERR_CRYPTO;
 }
+
+#ifdef CRYPTO_TINYCRYPT_INCLUDE_HKDFSHA256
+int cose_crypto_hkdf_derive_sha256(const uint8_t *salt, size_t salt_len,
+                                   const uint8_t *ikm, size_t ikm_length,
+                                   const uint8_t *info, size_t info_length,
+                                   uint8_t *out, size_t out_length)
+{
+    uint8_t prk[TC_SHA256_DIGEST_SIZE];
+
+    int ret = tc_hkdf_extract(ikm, ikm_length, salt, salt_len, prk);
+
+    if (ret != TC_CRYPTO_SUCCESS) {
+        return COSE_ERR_CRYPTO;
+    }
+
+    ret = tc_hkdf_expand(prk, info, info_length, out_length, out);
+
+    if (ret != TC_CRYPTO_SUCCESS) {
+        return COSE_ERR_CRYPTO;
+    }
+    return COSE_OK;
+}
+#endif /* CRYPTO_TINYCRYPT_INCLUDE_HKDFSHA256 */
