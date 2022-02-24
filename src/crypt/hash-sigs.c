@@ -27,7 +27,7 @@ int cose_crypto_sign_hsslms(const cose_key_t *key, uint8_t *sig, size_t *siglen,
 int cose_crypto_verify_hsslms(const cose_key_t *key, const uint8_t *sig,
                               size_t siglen, uint8_t *msg, uint64_t msglen)
 {
-    int res = verify(key->d, (unsigned char *)sig, siglen, msg, msglen);
+    int res = verify(key->x, (unsigned char *)sig, siglen, msg, msglen);
     return res ? COSE_OK : COSE_ERR_CRYPTO;;
 }
 
