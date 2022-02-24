@@ -193,7 +193,6 @@ size_t cose_crypto_sig_size(const cose_key_t *key);
  */
 int cose_crypto_sign_ecdsa(const cose_key_t *key, uint8_t *sign, size_t *signlen, uint8_t *msg,  size_t msglen);
 int cose_crypto_verify_ecdsa(const cose_key_t *key, const uint8_t *sign, size_t signlen, uint8_t *msg, size_t msglen);
-size_t cose_crypto_sig_size_ecdsa(cose_curve_t curve);
 /**
  * Sign a byte string with an ed25519 private key
  *
@@ -228,14 +227,6 @@ int cose_crypto_verify_ed25519(const cose_key_t *key, const uint8_t *sign, size_
  */
 void cose_crypto_keypair_ed25519(cose_key_t *key);
 void cose_crypto_keypair_ecdsa(cose_key_t *key, cose_curve_t curve);
-
-/**
- * Get the size of an ed25519 signature
- *
- * @return      Signature size
- */
-size_t cose_crypto_sig_size_ed25519(void);
-
 /** @} */
 
 /**
@@ -296,7 +287,6 @@ int cose_crypto_hkdf_derive_sha256(const uint8_t *salt, size_t salt_len,
                                    const uint8_t *ikm, size_t ikm_length,
                                    const uint8_t *info, size_t info_length,
                                    uint8_t *out, size_t out_length);
-
 /** @} */
 
 #ifdef __cplusplus

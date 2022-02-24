@@ -132,12 +132,6 @@ int cose_crypto_aead_decrypt_aesccm(uint8_t *msg,
     return res ? COSE_OK : COSE_ERR_CRYPTO;
 }
 
-size_t cose_crypto_sig_size_ecdsa(cose_curve_t curve)
-{
-    (void)curve;
-    return COSE_CRYPTO_SIGN_P256_SIGNBYTES;
-}
-
 void cose_crypto_keypair_ecdsa(cose_key_t *key, cose_curve_t curve)
 {
     (void)curve; /* Only COSE_EC_CURVE_P256 supported */

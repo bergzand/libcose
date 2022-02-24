@@ -95,9 +95,4 @@ void cose_crypto_keypair_ed25519(cose_key_t *key)
     crypto_sign_keypair(key->x, skey);
     memcpy(key->d, skey, COSE_CRYPTO_SIGN_ED25519_SECRETKEYBYTES);
 }
-
-size_t cose_crypto_sig_size_ed25519(void)
-{
-    return COSE_CRYPTO_SIGN_ED25519_SIGNBYTES;
-}
 #endif /* CRYPTO_HACL_INCLUDE_ED25519 */

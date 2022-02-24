@@ -246,19 +246,16 @@ size_t cose_crypto_sig_size(const cose_key_t *key)
 {
     /* NOLINTNEXTLINE(hicpp-multiway-paths-covered) */
     switch(key->algo) {
-#ifdef HAVE_ALGO_ECDSA
         case COSE_ALGO_ES256:
+            return COSE_CRYPTO_SIGN_P256_SIGNBYTES;
         case COSE_ALGO_ES384:
+            return COSE_CRYPTO_SIGN_P384_SIGNBYTES;
         case COSE_ALGO_ES512:
-            return cose_crypto_sig_size_ecdsa(key->crv);
-            break;
-#endif
-#ifdef HAVE_ALGO_EDDSA
+            return COSE_CRYPTO_SIGN_P521_SIGNBYTES;
         case COSE_ALGO_EDDSA:
             /* Needs to be splitted as soon as ed448 support is required */
-            return cose_crypto_sig_size_ed25519();
+            return COSE_CRYPTO_SIGN_ED25519_SIGNBYTES;
             break;
-#endif
         default:
             return COSE_ERR_NOTIMPLEMENTED;
     }
