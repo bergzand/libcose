@@ -22,6 +22,8 @@
 #ifndef COSE_CRYPTO_HASH_SIGS_H
 #define COSE_CRYPTO_HASH_SIGS_H
 
+#include "hash_sig_api.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -32,6 +34,13 @@ extern "C" {
  * @{
  */
 #define HAVE_ALGO_HSSLMS     /**< HSS/LMS support*/
+/** @} */
+
+/**
+ * @brief HSS/LMS key sizes
+ */
+#define COSE_CRYPTO_HSSLMS_PUBLICKEYBYTES               (HSS_MAX_PUBLIC_KEY_LEN)
+#define COSE_CRYPTO_HSSLMS_SECRETKEYBYTES               (PRIVATE_KEY_LEN)
 /** @} */
 
 #ifdef __cplusplus
