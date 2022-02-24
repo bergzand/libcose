@@ -204,6 +204,11 @@ int cose_crypto_sign(const cose_key_t *key, uint8_t *sign, size_t *signlen, uint
             return cose_crypto_sign_ed25519(key, sign, signlen, msg, msglen);
             break;
 #endif
+#ifdef HAVE_ALGO_HSSLMS
+        case COSE_ALGO_HSSLMS:
+            return cose_crypto_sign_hsslms(key, sign, signlen, msg, msglen);
+            break;
+#endif
         default:
             (void)key;
             (void)sign;
@@ -230,6 +235,11 @@ int cose_crypto_verify(const cose_key_t *key, const uint8_t *sign, size_t signle
         case COSE_ALGO_EDDSA:
             /* Needs to be splitted as soon as ed448 support is required */
             return cose_crypto_verify_ed25519(key, sign, signlen, msg, msglen);
+            break;
+#endif
+#ifdef HAVE_ALGO_HSSLMS
+        case COSE_ALGO_HSSLMS:
+            return cose_crypto_verify_hsslms(key, sign, signlen, msg, msglen);
             break;
 #endif
         default:

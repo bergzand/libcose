@@ -47,6 +47,9 @@
 #if defined(CRYPTO_TINYCRYPT)
 #include "cose/crypto/tinycrypt.h"
 #endif
+#if defined(CRYPTO_HASH_SIGS)
+#include "cose/crypto/hash-sigs.h"
+#endif
 
 #include "cose/crypto/selectors.h"
 
@@ -361,9 +364,10 @@ void cose_crypto_keypair_ecdsa(cose_key_t *key, cose_curve_t curve);
 size_t cose_crypto_sig_size_ed25519(void);
 /** @} */
 
-#ifdef __cplusplus
-}
-#endif
+int cose_crypto_keypair_hsslms(cose_key_t *key);
+int cose_crypto_sign_hsslms(const cose_key_t *key, uint8_t *sig, size_t *siglen, uint8_t *msg, unsigned long long int msglen);
+int cose_crypto_verify_hsslms(const cose_key_t *key, const uint8_t *sign, size_t signlen, uint8_t *msg, uint64_t msglen);
+size_t cose_crypto_sig_size_hsslms(void);
 
 #endif /* COSE_CRYPTO_H */
 
