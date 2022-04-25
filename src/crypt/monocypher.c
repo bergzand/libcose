@@ -19,7 +19,9 @@
 #include "cose/crypto.h"
 #include "cose/crypto/selectors.h"
 
-extern void randombytes(uint8_t *target, uint64_t n);
+
+extern cose_crypt_rng cose_crypt_get_random;
+extern void *cose_crypt_rng_arg;
 static const uint8_t zero[32] = { 0 };
 
 #ifdef CRYPTO_MONOCYPHER_INCLUDE_CHACHAPOLY
@@ -128,7 +130,7 @@ static void _ed25519_clamp(uint8_t *key)
 
 void cose_crypto_keypair_ed25519(cose_key_t *key)
 {
-    randombytes(key->d, COSE_CRYPTO_SIGN_ED25519_SECRETKEYBYTES);
+    cose_crypt_get_random(cose_crypt_rng_arg, key->d, COSE_CRYPTO_SIGN_ED25519_SECRETKEYBYTES);
     _ed25519_clamp(key->d);
     crypto_ed25519_public_key(key->x, key->d);
 }
