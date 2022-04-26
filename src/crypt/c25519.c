@@ -18,7 +18,9 @@
 #include "cose/crypto/c25519.h"
 #include "cose/crypto/selectors.h"
 
-extern void randombytes(uint8_t *target, uint64_t n);
+
+extern cose_crypt_rng cose_crypt_get_random;
+extern void *cose_crypt_rng_arg;
 
 #ifdef CRYPTO_C25519_INCLUDE_ED25519
 int cose_crypto_sign_ed25519(const cose_key_t *key, uint8_t *sign, size_t *signlen, uint8_t *msg, unsigned long long int msglen)
@@ -38,7 +40,7 @@ int cose_crypto_verify_ed25519(const cose_key_t *key, const uint8_t *sign, size_
 
 void cose_crypto_keypair_ed25519(cose_key_t *key)
 {
-    randombytes(key->d, EDSIGN_SECRET_KEY_SIZE);
+    cose_crypt_get_random(cose_crypt_rng_arg, key->d, EDSIGN_SECRET_KEY_SIZE);
     edsign_sec_to_pub(key->x, key->d);
 }
 #endif /* CRYPTO_C25519_INCLUDE_ED25519 */

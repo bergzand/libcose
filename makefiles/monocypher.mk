@@ -1,7 +1,6 @@
 MONOCYPHERLIB=monocypher
 
 CFLAGS +=-DCRYPTO_MONOCYPHER -DED25519_SHA512
-CRYPTOSRC +=$(SRC_DIR)/crypt/helpers.c
 CRYPTOSRC +=$(SRC_DIR)/crypt/monocypher.c
 
 MONOCYPHER_DIR ?= $(PWD)/../Monocypher

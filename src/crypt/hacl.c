@@ -22,7 +22,8 @@
 
 extern void Hacl_Ed25519_sign(uint8_t *signature, uint8_t *secret, uint8_t *msg, uint32_t len1);
 extern bool Hacl_Ed25519_verify(uint8_t *public, uint8_t *msg, uint32_t len1, uint8_t *signature);
-extern void randombytes(uint8_t *target, uint64_t n);
+extern cose_crypt_rng cose_crypt_get_random;
+extern void *cose_crypt_rng_arg;
 
 #ifdef CRYPTO_HACL_INCLUDE_CHACHAPOLY
 int cose_crypto_aead_encrypt_chachapoly(uint8_t *c,
