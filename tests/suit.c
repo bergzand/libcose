@@ -20,6 +20,7 @@
 #include "CUnit/Basic.h"
 #include "CUnit/Automated.h"
 
+#ifndef HAVE_ALGO_HSSLMS
 static uint8_t buf[2048];
 
 #ifdef HAVE_ALGO_EDDSA
@@ -159,6 +160,8 @@ void test_suit1(void)
     CU_ASSERT(res);
     CU_ASSERT_EQUAL(memcmp(kid, keyid, sizeof(keyid) - 1), 0);
 }
+
+#endif
 
 const test_t tests_suit[] = {
 #if defined(HAVE_ALGO_EDDSA) || ( defined(HAVE_ALGO_ECDSA) && defined(HAVE_CURVE_P521))

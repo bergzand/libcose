@@ -46,6 +46,9 @@ endif
 ifneq (,$(filter tinycrypt,$(CRYPTO)))
 	include $(MK_DIR)/tinycrypt.mk
 endif
+ifneq (,$(filter hash-sigs,$(CRYPTO)))
+	include $(MK_DIR)/hash-sigs.mk
+endif
 
 CFLAGS += $(CFLAGS_CRYPTO)
 
