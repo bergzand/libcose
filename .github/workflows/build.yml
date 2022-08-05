@@ -66,7 +66,7 @@ jobs:
       run: git clone https://github.com/bergzand/nanocbor/ ../nanocbor
 
     - name: build nanocbor
-      run: cd ../nanocbor && mkdir bin && meson . build  && ninja -C build && mv build/libnanocbor.so bin/libnanocbor.so
+      run: cd ../nanocbor && mkdir bin && meson . build  && ninja -C build
 
     - name: ${{ matrix.crypto }} setup script
       run: ${{ matrix.crypto_script }}
